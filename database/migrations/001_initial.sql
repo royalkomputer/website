@@ -1,0 +1,4 @@
+-- Migration 001: Initial schema setup
+-- Applied: <deployment date>
+-- Run schema.sql against Neon on first deploy.
+-- Subsequent changes go in 002, 003, etc.
