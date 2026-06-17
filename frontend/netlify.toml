@@ -2,29 +2,79 @@
 # Base directory: frontend/
 
 [build]
-  publish = "."
-  command = "echo 'Static PHP site — no build step required'"
+  command = "npm run build"
+  publish = "dist"
 
-# Proxy admin paths to Render backend
+# ─── IMPORTANT: Redirect ordering matters ───
+# Netlify matches redirects top-to-bottom and uses the first match.
+# These data/API redirects MUST come BEFORE the SPA catch-all "/*".
+
+# 1. Product data API → Render backend
+[[redirects]]
+  from = "/api_produk.php"
+  to = "https://royal-backend.onrender.com/api_produk.php"
+  status = 200
+
+# 2. Store status (once created on backend)
+[[redirects]]
+  from = "/api_status.php"
+  to = "https://royal-backend.onrender.com/api_status.php"
+  status = 200
+
+# 3. Schedules (once created on backend)
+[[redirects]]
+  from = "/api_schedules.php"
+  to = "https://royal-backend.onrender.com/api_schedules.php"
+  status = 200
+
+# 4. Cached product data fallback
+[[redirects]]
+  from = "/cache_produk.json"
+  to = "https://royal-backend.onrender.com/cache_produk.json"
+  status = 200
+
+# 5. Store config files (fetched directly by JS fallback)
+[[redirects]]
+  from = "/jam_operasional.json"
+  to = "https://royal-backend.onrender.com/jam_operasional.json"
+  status = 200
+
+[[redirects]]
+  from = "/jadwal_tutup.json"
+  to = "https://royal-backend.onrender.com/jadwal_tutup.json"
+  status = 200
+
+[[redirects]]
+  from = "/status_toko.txt"
+  to = "https://royal-backend.onrender.com/status_toko.txt"
+  status = 200
+
+# 6. Admin panel paths → Render backend
 [[redirects]]
   from = "/admin/*"
-  to = "https://royal-admin.onrender.com/:splat"
+  to = "https://royal-backend.onrender.com/:splat"
   status = 200
 
 [[redirects]]
   from = "/login*"
-  to = "https://royal-admin.onrender.com/login"
+  to = "https://royal-backend.onrender.com/login"
   status = 200
 
-# Proxy API mutations to Render
+# 7. API mutation endpoints → Render backend
 [[redirects]]
   from = "/update_*"
-  to = "https://royal-admin.onrender.com/:splat"
+  to = "https://royal-backend.onrender.com/:splat"
   status = 200
 
 [[redirects]]
   from = "/api_manage_*"
-  to = "https://royal-admin.onrender.com/:splat"
+  to = "https://royal-backend.onrender.com/:splat"
+  status = 200
+
+# 8. SPA fallback — all other routes serve index.html (MUST be last!)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
 
 # Security headers

@@ -1,9 +1,187 @@
 import './style.css'
+import { Navbar, bindNavbarEvents } from './components/Navbar.js'
+import { StoreStatus } from './components/StoreStatus.js'
+import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './components/FilterSidebar.js'
+import { ProductGrid, renderProductGrid, showLoading } from './components/ProductGrid.js'
+import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
+import { Footer } from './components/Footer.js'
+import { fetchProducts, fetchStoreStatus } from './lib/api.js'
+import { isBekas } from './lib/format.js'
 
-document.querySelector('#app').innerHTML = `
-  <div class="min-h-screen flex items-center justify-center bg-astra-50">
-    <div class="text-center">
-      <p class="text-astra-600 text-lg">Memuat...</p>
-    </div>
-  </div>
-`
+// ──────────────────────────────────────────────
+//  App State
+// ──────────────────────────────────────────────
+
+const state = {
+  allProducts: [],
+  filteredProducts: [],
+  filters: {
+    category: 'Semua',
+    search: '',
+    sortBy: 'default',
+    condition: 'Semua',
+  },
+  status: null,
+  hours: null,
+}
+
+// ──────────────────────────────────────────────
+//  Render the full page layout
+// ──────────────────────────────────────────────
+
+function renderApp() {
+  const app = document.querySelector('#app')
+  app.innerHTML = `
+    ${Navbar({ onSearch: handleSearch })}
+    <div class="js-status-container"></div>
+    <main class="container mx-auto px-4 py-8 max-w-7xl flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div class="js-filter-container"></div>
+      ${ProductGrid()}
+    </main>
+    <div class="js-footer-container"></div>
+    ${ProductModal()}
+  `
+
+  // Render the FilterSidebar into its container (will be re-rendered when data loads)
+  const filterContainer = document.querySelector('.js-filter-container')
+  if (filterContainer) {
+    filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua'], { 'Semua': 0 })
+  }
+
+  // Render the Footer placeholder (will be updated when hours load)
+  const footerContainer = document.querySelector('.js-footer-container')
+  if (footerContainer) {
+    footerContainer.innerHTML = Footer(null)
+  }
+
+  // Bind events (FilterSidebar events are re-bound after data loads in loadData)
+  bindNavbarEvents(handleSearch)
+  bindModalEvents()
+
+  // Load data
+  loadData()
+}
+
+// ──────────────────────────────────────────────
+//  Data Loading
+// ──────────────────────────────────────────────
+
+async function loadData() {
+  // Load products
+  showLoading(true)
+  try {
+    state.allProducts = await fetchProducts()
+    state.filteredProducts = [...state.allProducts]
+
+    // Re-render FilterSidebar with actual categories and counts
+    const categories = getUniqueCategories()
+    const categoryCounts = getCategoryCounts()
+    const filterContainer = document.querySelector('.js-filter-container')
+    if (filterContainer) {
+      filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
+      bindFilterEvents(state.filters, applyFiltersAndRender)
+    }
+
+    applyFiltersAndRender()
+  } catch (err) {
+    console.error('Failed to load products:', err)
+    const emptyState = document.querySelector('.js-empty-state')
+    if (emptyState) emptyState.classList.remove('hidden')
+  } finally {
+    showLoading(false)
+  }
+
+  // Load store status
+  try {
+    state.status = await fetchStoreStatus()
+    const statusContainer = document.querySelector('.js-status-container')
+    if (statusContainer) {
+      statusContainer.innerHTML = StoreStatus(state.status)
+    }
+  } catch (err) {
+    console.error('Failed to load store status:', err)
+  }
+
+  // Load operating hours (for footer)
+  try {
+    const res = await fetch('/jam_operasional.json')
+    state.hours = await res.json()
+    const footerContainer = document.querySelector('.js-footer-container')
+    if (footerContainer) {
+      footerContainer.innerHTML = Footer(state.hours)
+    }
+  } catch (err) {
+    console.error('Failed to load hours:', err)
+  }
+}
+
+// ──────────────────────────────────────────────
+//  Filtering & Sorting
+// ──────────────────────────────────────────────
+
+function getUniqueCategories() {
+  const cats = [...new Set(state.allProducts.map(p => p.category))]
+  return ['Semua', ...cats]
+}
+
+function getCategoryCounts() {
+  const counts = { 'Semua': state.allProducts.length }
+  state.allProducts.forEach(p => {
+    counts[p.category] = (counts[p.category] || 0) + 1
+  })
+  return counts
+}
+
+function applyFiltersAndRender() {
+  const { category, search, sortBy, condition } = state.filters
+
+  state.filteredProducts = state.allProducts.filter(p => {
+    // Category filter
+    const matchCategory = category === 'Semua' || p.category === category
+
+    // Search filter
+    const searchStr = (search || '').toLowerCase()
+    const matchSearch = (p.name || '').toLowerCase().includes(searchStr)
+
+    // Condition filter
+    const bekas = isBekas(p)
+    let matchCondition = true
+    if (condition === 'Baru') matchCondition = !bekas
+    if (condition === 'Bekas') matchCondition = bekas
+
+    return matchCategory && matchSearch && matchCondition
+  })
+
+  // Sort
+  if (sortBy === 'low-high') {
+    state.filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0))
+  } else if (sortBy === 'high-low') {
+    state.filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0))
+  }
+
+  // Update category button visuals
+  updateCategoryButtons(category)
+
+  // Render
+  renderProductGrid(state.filteredProducts, handleProductClick)
+}
+
+// ──────────────────────────────────────────────
+//  Event Handlers
+// ──────────────────────────────────────────────
+
+function handleSearch(query) {
+  state.filters.search = query
+  applyFiltersAndRender()
+}
+
+function handleProductClick(id) {
+  const product = state.allProducts.find(p => p.id === id)
+  if (product) openModal(product)
+}
+
+// ──────────────────────────────────────────────
+//  Initialize
+// ──────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', renderApp)

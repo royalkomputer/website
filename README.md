@@ -10,7 +10,7 @@ A single-store e-commerce marketplace for **Royal Komputer**, a computer hardwar
 ┌────────────────────────────────────────────────────────────────────┐
 │                        LOCAL PC (Toko Kediri)                      │
 │                                                                    │
-│  IPOS ──► local-updater (Task Scheduler, every 1hr) ──► git push │
+│  IPOS ──► sync/ (Task Scheduler, every 1hr) ──► git push          │
 └─────────────────────────────────┬──────────────────────────────────┘
                                   │
                                   ▼
@@ -25,7 +25,7 @@ A single-store e-commerce marketplace for **Royal Komputer**, a computer hardwar
 
 The system has a **hybrid local/cloud architecture**:
 1. **IPOS** POS software writes product data to a local PostgreSQL database
-2. **local-updater** scripts (scheduled via Windows Task Scheduler every hour) pull data and push to git
+2. **sync/** scripts (scheduled via Windows Task Scheduler every hour) pull data and push to git
 3. **Netlify** (frontend), **Render** (backend), and **Neon** (database) deploy from the git repo
 
 ---
@@ -127,10 +127,6 @@ royal-website/              # Git repo root
 | `backend/`  | **Render** | Admin backend — set root directory to `backend/` |
 | `sync/`     | **Local PC** | IPOS sync agent — Windows Task Scheduler runs scripts here |
 
-### Migration Note
-
-Code currently lives in `local-updater/`. The 4-folder layout above is the **target structure**. Files will be migrated one folder at a time as the codebase is separated.
-
 ---
 
 ## Cloud Deployment
@@ -174,7 +170,7 @@ This project deploys via git to three services:
 
 2. **Configure database credentials**
    
-   Edit `local-updater/config.php`:
+   Edit `backend/config.php` (for admin panel) or `sync/config.php` (for sync agent):
    ```php
    define('DB_HOST', 'your_host');
    define('DB_PORT', '5444');
@@ -183,47 +179,50 @@ This project deploys via git to three services:
    define('DB_PASS', 'your_password');
    ```
 
-3. **Deploy to a PHP web server**
+3. **Start development servers**
    
-   Serve the `local-updater/` directory with Apache/Nginx/PHP built-in server:
    ```bash
-   cd local-updater
-   php -S localhost:8000
+   # Terminal 1: Backend (admin panel + API)
+   cd backend && php -S localhost:8081
+   
+   # Terminal 2: Frontend (Vite)
+   cd frontend && npm run dev
    ```
 
 4. **Access the storefront**
    
-   Open `http://localhost:8000/index.php` in a browser.
+   Vite dev: `http://localhost:5173`
+   PHP fallback: `http://localhost:8080` (via `cd frontend && php -S localhost:8080`)
 
 5. **Login to admin**
    
-   Navigate to `http://localhost:8000/login.php`
+   Navigate to `http://localhost:8081/login.php`
    
    Default credentials:
    - Username: `superadmin`
    - Password: `royal2026`
 
 6. **Ensure writable directories**
-   - `uploads/` must be writable by the web server for photo uploads
-   - All JSON files must be writable for config changes
+   - `backend/uploads/` must be writable by the web server for photo uploads
+   - `backend/data/` must be writable for JSON config changes
 
 ---
 
 ## Running the Local Sync Agent
 
-The `local-updater` syncs product data from the local IPOS database:
+The `sync/` agent pulls product data from the local IPOS database:
 
 ### Manual Run
 ```bash
-cd local-updater
+cd sync
 php update_produk.php
 ```
 
 ### Automatic (Windows Task Scheduler)
 Create a task that runs every 1 hour:
-- Program: `php`
-- Arguments: `C:\path\to\local-updater\update_produk.php`
-- Start in: `C:\path\to\local-updater\`
+- Action 1: `php C:\path\to\royal-website\sync\update_produk.php`
+- Action 2: `C:\path\to\royal-website\sync\git_push.bat`
+- Start in: `C:\path\to\royal-website\sync\`
 
 ---
 

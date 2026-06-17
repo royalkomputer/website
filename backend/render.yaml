@@ -1,0 +1,64 @@
+# Royal Komputer — Render Blueprint
+# Deploys the backend/ directory as a PHP web service
+# Connected to Neon PostgreSQL for the cloud database
+#
+# After uploading this file, connect your git repo in the Render dashboard.
+# Render will auto-detect this blueprint and provision the service.
+#
+# https://render.com/docs/blueprint-spec
+
+services:
+  # ─────────────────────────────────────────────
+  # Web Service: PHP Backend (Admin Panel + API)
+  # ─────────────────────────────────────────────
+  - type: web
+    name: royal-backend
+    env: php
+    plan: free
+
+    # Monorepo: only deploy the backend/ subdirectory
+    rootDir: backend
+
+    # No build step needed — vanilla PHP, no Composer
+    buildCommand: ""
+
+    # PHP built-in server on Render's assigned port
+    startCommand: php -S 0.0.0.0:$PORT
+
+    # Health check endpoint — Render pings this every 5 min
+    healthCheckPath: /index.php
+
+    # ── Environment Variables ──
+    envVars:
+      # Render auto-injects $PORT — no need to set it
+      # Neon database connection (set these in Render dashboard → Environment)
+      # Or use a secret file if you prefer not to hardcode values
+
+      # Example — replace with your actual Neon credentials:
+      # - key: PGHOST
+      #   value: ep-xxxx.us-east-2.aws.neon.tech
+      # - key: PGPORT
+      #   value: "5432"
+      # - key: PGDATABASE
+      #   value: royal
+      # - key: PGUSER
+      #   value: royal_owner
+      # - key: PGPASSWORD
+      #   value: your-neon-password
+
+      # Alternative: use a single DATABASE_URL connection string
+      # - key: DATABASE_URL
+
+    # ── Disk (for JSON config persistence) ──
+    # The data/ directory needs to be writable for admins.json, jam_operasional.json, etc.
+    # Render's default filesystem is ephemeral — use a disk for persistence
+    disk:
+      name: backend-data
+      mountPath: /opt/render/project/src/backend/data
+      sizeGB: 1
+
+  # ─────────────────────────────────────────────
+  # Note: Neon database is external (not managed by Render)
+  # Create your Neon instance at https://neon.tech
+  # Then add the connection env vars above.
+  # ─────────────────────────────────────────────

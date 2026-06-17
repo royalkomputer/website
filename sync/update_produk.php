@@ -16,11 +16,31 @@ error_reporting(E_ERROR | E_PARSE);
 require_once __DIR__ . '/config.php';
 
 $log_file = __DIR__ . '/sync.log';
-$timestamp = date('Y-m-d H:i:s');
 
 function write_log(string $message): void {
-    global $log_file, $timestamp;
-    file_put_contents($log_file, "$timestamp $message\n", FILE_APPEND);
+    global $log_file;
+    file_put_contents($log_file, date('Y-m-d H:i:s') . " $message\n", FILE_APPEND);
+}
+
+// --- SYNC PHOTOS FROM BACKEND TO FRONTEND ---
+// Admin-uploaded photos go to backend/uploads/, sync them to frontend/uploads/ for the storefront
+$backend_uploads = __DIR__ . '/../backend/uploads/';
+$frontend_uploads = __DIR__ . '/../frontend/uploads/';
+if (is_dir($backend_uploads)) {
+    if (!is_dir($frontend_uploads)) {
+        mkdir($frontend_uploads, 0777, true);
+    }
+    $synced = 0;
+    foreach (glob($backend_uploads . '*.webp') as $photo) {
+        $dest = $frontend_uploads . basename($photo);
+        if (!file_exists($dest) || filemtime($photo) > filemtime($dest)) {
+            copy($photo, $dest);
+            $synced++;
+        }
+    }
+    if ($synced > 0) {
+        write_log("Photos synced: $synced new/updated");
+    }
 }
 
 // --- KONEKSI DATABASE ---
@@ -97,6 +117,14 @@ file_put_contents($sync_cache, json_encode($produk));
 // Write to frontend/ (for Netlify/storefront deployment)
 $frontend_cache = __DIR__ . '/../frontend/cache_produk.json';
 file_put_contents($frontend_cache, json_encode($produk));
+
+// Write to backend/data/ (for Render deployment — cache fallback when Neon has no IPOS data)
+$backend_cache = __DIR__ . '/../backend/data/cache_produk.json';
+$backend_dir = dirname($backend_cache);
+if (!is_dir($backend_dir)) {
+    mkdir($backend_dir, 0777, true);
+}
+file_put_contents($backend_cache, json_encode($produk));
 
 // --- LOG ---
 $count = count($produk);

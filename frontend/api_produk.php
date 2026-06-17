@@ -55,7 +55,9 @@ if (!$result) {
 }
 
 $produk = [];
+$query_has_results = false;
 while($row = pg_fetch_assoc($result)) {
+    $query_has_results = true;
     $row['price'] = (float) $row['price'];
     $row['stock'] = (float) $row['stock'];
     if (empty(trim($row['category']))) $row['category'] = 'Lainnya';
@@ -83,6 +85,17 @@ while($row = pg_fetch_assoc($result)) {
     }
     
     $produk[] = $row;
+}
+
+// If query returned no results (e.g., DB has the schema but no IPOS data),
+// fall back to the cache file written by the sync agent
+if (!$query_has_results) {
+    $cache_file = __DIR__ . '/cache_produk.json';
+    if (file_exists($cache_file)) {
+        echo file_get_contents($cache_file);
+        pg_close($conn);
+        exit;
+    }
 }
 
 // Simpan hasil terbaru ke dalam file cache untuk antisipasi database mati

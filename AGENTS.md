@@ -4,7 +4,7 @@
 
 Vanilla PHP e-commerce marketplace for **Royal Komputer Kediri**, a computer hardware store in Kediri, East Java, Indonesia.
 
-The system has a **hybrid local/cloud architecture**: a PC at the store runs `local-updater/` scripts to pull product data from the **IPOS** point-of-sale software and push changes to git. Cloud services (**Netlify** frontend, **Render** backend, **Neon** database) auto-deploy from the git repo.
+The system has a **hybrid local/cloud architecture**: a PC at the store runs `sync/` scripts to pull product data from the **IPOS** point-of-sale software and push changes to git. Cloud services (**Netlify** frontend, **Render** backend, **Neon** database) auto-deploy from the git repo.
 
 **Language:** PHP 8.x, vanilla JavaScript (ES6+), Tailwind CSS via CDN, Font Awesome icons.
 **No frameworks, no build tools, no package manager.** Flat-file monolithic architecture.
@@ -32,9 +32,8 @@ The system has a **hybrid local/cloud architecture**: a PC at the store runs `lo
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                          LOCAL PC (Toko Kediri)                          │
 │                                                                          │
-│  IPOS Software ──────► local-updater (PHP) ──────► git commit & push    │
-│  (PostgreSQL DB)        runs every 1 hour                                │
-│                          via Windows Task Scheduler                      │
+│  IPOS Software ──────► sync/ (PHP) ──────► git commit & push            │
+│  (PostgreSQL DB)        runs every 1 hour via Windows Task Scheduler    │
 └───────────────────────────┬──────────────────────────────────────────────┘
                             │ git push
                             ▼
@@ -126,19 +125,6 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `config.php` | DB config (local IPOS PostgreSQL) |
 | `cache_produk.json` | Generated product cache |
 | `git_push.bat` | Git commit + push automation |
-
----
-
-### Migration Status
-
-> ⚠️ Code currently lives in `local-updater/`. The 4-folder layout above is the **target structure**.
-
-To migrate:
-1. Separate public-facing files → `frontend/`
-2. Separate admin files → `backend/`
-3. Extract sync script → `sync/`
-4. Add configs (`frontend/netlify.toml`, `backend/render.yaml`)
-5. Delete `local-updater/` once fully migrated
 
 ## API Reference
 
@@ -531,20 +517,20 @@ Requires super admin role. HH:MM format, English day names.
 
 ### Running the sync agent manually
 ```bash
-cd packages/sync
+cd sync
 php update_produk.php
 ```
 
 ### Configuring Windows Task Scheduler
 Create a task that runs this command every 1 hour:
 ```
-php C:\path\to\royal-website\packages\sync\update_produk.php
+php C:\path\to\royal-website\sync\update_produk.php
 ```
-Working directory: `C:\path\to\royal-website\packages\sync\`
+Working directory: `C:\path\to\royal-website\sync\`
 
 After the PHP script runs, execute `git_push.bat` to commit and push changes:
 ```
-C:\path\to\royal-website\packages\sync\git_push.bat
+C:\path\to\royal-website\sync\git_push.bat
 ```
 
 ### Adding a new feature
