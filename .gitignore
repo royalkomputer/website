@@ -29,3 +29,13 @@ sync/cache_produk.json
 *.local.php
 .env
 .env.*
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
