@@ -8,7 +8,7 @@ $conn = getDBConnection();
 
 if (!$conn) {
     // Coba baca dari cache jika database mati
-    $cache_file = __DIR__ . '/cache_produk.json';
+    $cache_file = __DIR__ . '/data/cache_produk.json';
     if (file_exists($cache_file)) {
         echo file_get_contents($cache_file);
         exit;
@@ -86,7 +86,7 @@ while($row = pg_fetch_assoc($result)) {
 }
 
 // Simpan hasil terbaru ke dalam file cache untuk antisipasi database mati
-file_put_contents(__DIR__ . '/cache_produk.json', json_encode($produk));
+file_put_contents(__DIR__ . '/data/cache_produk.json', json_encode($produk));
 
 echo json_encode($produk);
 pg_close($conn);
