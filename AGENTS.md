@@ -562,6 +562,28 @@ pg_query_params($conn, $sql, $params);
 
 ---
 
+## Git Commit Convention
+
+Every commit must be **small and focused** — one logical change per commit.
+
+| Scenario | Example Message |
+|----------|----------------|
+| New feature | `feat: add product search by category` |
+| Bug fix | `fix: resolve store status showing incorrect hours` |
+| Refactor | `refactor: extract photo upload logic to helper` |
+| Content update | `sync: product data update 2026-06-18 10:00` |
+| Documentation | `docs: update API reference in AGENTS.md` |
+| Config | `chore: update .gitignore for upload paths` |
+
+**Rules:**
+- Never mix unrelated changes in one commit (e.g., don't combine a bug fix with a new feature)
+- Use the prefix format: `type: short description`
+- Keep subject line under 72 characters
+- Body (optional) explains *why*, not *what* — the diff shows what changed
+- Before committing: `git status` → `git diff` → stage *only* intended files
+
+---
+
 ## Testing
 
 No automated test suite. Manual testing through browser.

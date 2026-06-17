@@ -1,0 +1,15 @@
+{
+  "name": "royal-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6",
+    "tailwindcss": "^4",
+    "@tailwindcss/vite": "^4"
+  }
+}
