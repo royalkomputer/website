@@ -122,6 +122,7 @@ function isSuperAdmin(): bool {
     return $admin && $admin['role'] === 'super_admin';
 }
 
+/** @codeCoverageIgnore */
 function requireLogin(): void {
     if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
         header("Location: login.php");

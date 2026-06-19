@@ -59,9 +59,13 @@ if (!is_dir($backend_uploads)) {
         log_and_echo("Created frontend/uploads/ directory");
     }
 
-    $all_photos = glob($backend_uploads . '*.webp');
+    $all_photos = [];
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $matches = glob($backend_uploads . '*.' . $ext);
+        if ($matches) $all_photos = array_merge($all_photos, $matches);
+    }
     $photo_count = count($all_photos);
-    log_and_echo("Found $photo_count .webp files in backend/uploads/");
+    log_and_echo("Found $photo_count image files in backend/uploads/");
 
     $synced = 0;
     $skipped = 0;
@@ -154,10 +158,18 @@ while ($row = pg_fetch_assoc($result)) {
     $uploads_path = __DIR__ . '/../frontend/uploads/';
     $images = [];
 
-    $matched_files = glob($uploads_path . $safe_kode . '_*.webp');
-    $legacy_file = $uploads_path . $safe_kode . '.webp';
-    if (file_exists($legacy_file)) {
-        array_unshift($matched_files, $legacy_file);
+    $matched_files = [];
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $matches = glob($uploads_path . $safe_kode . '_*.' . $ext);
+        if ($matches) $matched_files = array_merge($matched_files, $matches);
+    }
+    sort($matched_files);
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $legacy_file = $uploads_path . $safe_kode . '.' . $ext;
+        if (file_exists($legacy_file)) {
+            array_unshift($matched_files, $legacy_file);
+            break;
+        }
     }
 
     if (!empty($matched_files)) {

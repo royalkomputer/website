@@ -60,7 +60,15 @@ if (!$result) {
     exit;
 }
 
-// 2. PROSES UPLOAD FOTO DAN KONVERSI OTOMATIS KE FORMAT WEBP
+// 2. PROSES UPLOAD FOTO — DUKUNG JPG, PNG, WEBP, GIF
+// Mapping MIME → ekstensi dan fungsi simpan GD
+$EXT_MAP = [
+    'image/jpeg' => ['ext' => 'jpg', 'create' => 'imagecreatefromjpeg', 'save' => 'imagejpeg', 'save_args' => [85]],
+    'image/png'  => ['ext' => 'png', 'create' => 'imagecreatefrompng',  'save' => 'imagepng',  'save_args' => [8]],
+    'image/webp' => ['ext' => 'webp','create' => 'imagecreatefromwebp', 'save' => 'imagewebp', 'save_args' => [85]],
+    'image/gif'  => ['ext' => 'gif', 'create' => 'imagecreatefromgif',  'save' => 'imagegif',  'save_args' => []],
+];
+
 $uploadFiles = $_FILES['new_files'] ?? $_FILES['foto'] ?? null;
 $imageOrder = [];
 if (isset($_POST['image_order'])) {
@@ -78,10 +86,23 @@ if ($uploadFiles || !empty($imageOrder)) {
         mkdir($target_dir, 0777, true);
     }
 
-    $existing_files = glob($target_dir . $safe_kode . "_*.webp");
-    $legacy_file = $target_dir . $safe_kode . ".webp";
-    if (file_exists($legacy_file)) {
-        array_unshift($existing_files, $legacy_file);
+    $image_extensions = ['webp', 'jpg', 'jpeg', 'png', 'gif'];
+    $existing_files = [];
+    foreach ($image_extensions as $ext) {
+        $matches = glob($target_dir . $safe_kode . "_*." . $ext);
+        if ($matches) {
+            $existing_files = array_merge($existing_files, $matches);
+        }
+    }
+    sort($existing_files);
+
+    // Cek legacy format (single file, tanpa nomor indeks)
+    foreach ($image_extensions as $ext) {
+        $legacy_file = $target_dir . $safe_kode . "." . $ext;
+        if (file_exists($legacy_file)) {
+            array_unshift($existing_files, $legacy_file);
+            break;
+        }
     }
 
     $existing_map = [];
@@ -157,7 +178,8 @@ if ($uploadFiles || !empty($imageOrder)) {
     $tempPaths = [];
     foreach ($orderedItems as $item) {
         if ($item['type'] === 'existing' && !isset($tempPaths[$item['basename']]) && file_exists($item['path'])) {
-            $tempPath = $target_dir . 'temp_' . uniqid() . '.webp';
+            $ext = pathinfo($item['path'], PATHINFO_EXTENSION);
+            $tempPath = $target_dir . 'temp_' . uniqid() . '.' . $ext;
             rename($item['path'], $tempPath);
             $tempPaths[$item['basename']] = $tempPath;
         }
@@ -165,9 +187,10 @@ if ($uploadFiles || !empty($imageOrder)) {
 
     $index = 1;
     foreach ($orderedItems as $item) {
-        $target_file = $target_dir . $safe_kode . '_' . $index . '.webp';
         if ($item['type'] === 'existing') {
             if (isset($tempPaths[$item['basename']])) {
+                $ext = pathinfo($item['path'], PATHINFO_EXTENSION);
+                $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
                 rename($tempPaths[$item['basename']], $target_file);
             }
         } elseif ($item['type'] === 'new') {
@@ -175,21 +198,33 @@ if ($uploadFiles || !empty($imageOrder)) {
             $img_info = getimagesize($file_tmp);
             if ($img_info) {
                 $mime = $img_info['mime'];
-                switch ($mime) {
-                    case 'image/jpeg': $image = imagecreatefromjpeg($file_tmp); break;
-                    case 'image/png': 
-                        $image = imagecreatefrompng($file_tmp);
-                        imagepalettetotruecolor($image);
-                        imagealphablending($image, true);
-                        imagesavealpha($image, true);
-                        break;
-                    case 'image/webp': $image = imagecreatefromwebp($file_tmp); break;
-                    default: $image = null;
-                }
-                if ($image) {
-                    imagewebp($image, $target_file, 85);
-                    imagedestroy($image);
+                $info = $EXT_MAP[$mime] ?? null;
+                if ($info) {
+                    $image = null;
+                    switch ($mime) {
+                        case 'image/jpeg': $image = imagecreatefromjpeg($file_tmp); break;
+                        case 'image/png':
+                            $image = imagecreatefrompng($file_tmp);
+                            imagepalettetotruecolor($image);
+                            imagealphablending($image, true);
+                            imagesavealpha($image, true);
+                            break;
+                        case 'image/webp': $image = imagecreatefromwebp($file_tmp); break;
+                        case 'image/gif': $image = imagecreatefromgif($file_tmp); break;
+                    }
+                    if ($image) {
+                        $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $info['ext'];
+                        $save_func = $info['save'];
+                        $save_func($image, $target_file, ...$info['save_args']);
+                        imagedestroy($image);
+                    } else {
+                        $ext = pathinfo($item['name'], PATHINFO_EXTENSION) ?: 'jpg';
+                        $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
+                        move_uploaded_file($file_tmp, $target_file);
+                    }
                 } else {
+                    $ext = pathinfo($item['name'], PATHINFO_EXTENSION) ?: 'jpg';
+                    $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
                     move_uploaded_file($file_tmp, $target_file);
                 }
             }
@@ -198,7 +233,16 @@ if ($uploadFiles || !empty($imageOrder)) {
     }
 
     // Remove any old files that were not included in the current order
-    foreach ($existing_files as $file) {
+    $all_old = [];
+    foreach ($image_extensions as $ext) {
+        $old = glob($target_dir . $safe_kode . "_*." . $ext);
+        if ($old) $all_old = array_merge($all_old, $old);
+    }
+    foreach ($image_extensions as $ext) {
+        $legacy = $target_dir . $safe_kode . "." . $ext;
+        if (file_exists($legacy)) $all_old[] = $legacy;
+    }
+    foreach ($all_old as $file) {
         $basename = basename($file);
         $shouldKeep = false;
         foreach ($orderedItems as $item) {

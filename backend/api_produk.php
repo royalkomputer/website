@@ -67,11 +67,19 @@ while($row = pg_fetch_assoc($result)) {
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
     
     $images = [];
-    $matched_files = glob("uploads/" . $safe_kode . "_*.webp");
+    $matched_files = [];
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $matches = glob("uploads/" . $safe_kode . "_*." . $ext);
+        if ($matches) $matched_files = array_merge($matched_files, $matches);
+    }
+    sort($matched_files);
     
-    $legacy_file = "uploads/" . $safe_kode . ".webp";
-    if (file_exists($legacy_file)) {
-        array_unshift($matched_files, $legacy_file); // Taruh format lama di depan jika ada
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $legacy_file = "uploads/" . $safe_kode . "." . $ext;
+        if (file_exists($legacy_file)) {
+            array_unshift($matched_files, $legacy_file);
+            break;
+        }
     }
     
     if (!empty($matched_files)) {

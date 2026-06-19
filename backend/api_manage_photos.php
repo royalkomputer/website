@@ -47,20 +47,22 @@ if ($action === 'delete') {
 
     $temp_names = [];
     // 1. Pindahkan ke nama sementara untuk menghindari bentrok nama saat rename beruntun
-    foreach ($files as $i => $file_url) {
+    foreach ($files as $file_url) {
         $path_parts = explode('?', $file_url);
         $filepath = __DIR__ . '/' . $path_parts[0];
         if (is_file($filepath) && strpos(realpath($filepath), realpath($target_dir)) === 0) {
-            $temp_name = $target_dir . "temp_" . uniqid() . ".webp";
+            $ext = pathinfo($filepath, PATHINFO_EXTENSION);
+            $temp_name = $target_dir . "temp_" . uniqid() . "." . $ext;
             rename($filepath, $temp_name);
             $temp_names[] = $temp_name;
         }
     }
 
-    // 2. Ubah nama menjadi urutan baku (_1, _2, dst)
+    // 2. Ubah nama menjadi urutan baku (_1, _2, dst) — pertahankan ekstensi asli
     $index = 1;
     foreach ($temp_names as $temp_name) {
-        $final_name = $target_dir . $safe_kode . "_" . $index . ".webp";
+        $ext = pathinfo($temp_name, PATHINFO_EXTENSION);
+        $final_name = $target_dir . $safe_kode . "_" . $index . "." . $ext;
         rename($temp_name, $final_name);
         $index++;
     }

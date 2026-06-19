@@ -1,105 +1,35 @@
-# Development Journal
+# Dev Journal
 
-## v3.0 — Monorepo Migration + Vite Frontend
+## 2026-06-19 — PHPUnit Test Suite & Sync Improvements
 
-### Architecture Overhaul
+### Sync Agent Overhaul
+- Rewrote `sync/update_produk.php` with full debug logging
+- Each step logs to `sync/sync.log`: PHP version, memory, photo sync details, DB connection, query timing, product processing stats (category distribution, image counts), cache file sizes, peak memory
+- Added structured console output with section headers and summary box
+- Created `sync/setup_env.ps1` for PHP PATH setup on Windows
 
-Migrated from a monolithic `local-updater/` directory to a 4-folder monorepo:
+### PHP Installation (Dev Machine)
+- Installed PHP 8.4.22 via winget
+- Enabled `pgsql`, `pdo_pgsql`, `mbstring` extensions
+- Added PHP to User PATH
+- Installed PCOV 1.0.12 for code coverage
 
-| Folder | Deploys To | Purpose |
-|--------|------------|---------|
-| `database/` | Neon | PostgreSQL schema + migrations |
-| `frontend/` | Netlify | Vite storefront + PHP fallback |
-| `backend/` | Render | Admin panel + API layer |
-| `sync/` | Local PC | IPOS sync agent (Task Scheduler) |
+### PHPUnit Test Suite
+- Installed PHPUnit 12.5.30 (PHAR)
+- Created `tests/` directory with 7 test files:
+  - **ConfigTest** (25 tests) — `loadAdmins`, `saveAdmins`, `findAdminByUsername`, `findAdminById`, `generateAdminId`, `loadJamOperasional`, `loadSchedules`, `saveSchedules`, `getCurrentAdmin`, `isSuperAdmin`, `requireLogin`, `getDBConnection`
+  - **FrontendConfigTest** (4 tests) — operating hours and schedule roundtrips
+  - **CorsTest** (10 tests) — live `handleCORS()` calls + origin matching logic
+  - **StoreStatusTest** (16 tests) — manual override, schedule check, hours check, priority order, next opening time
+  - **AdminCrudTest** (24 tests) — validation rules, permissions, uniqueness constraints, super admin safeguards
+  - **PhotoManagementTest** (17 tests) — safe kode, file naming, realpath security, reorder/delete logic, photo sync
+  - **SyncAgentTest** (18 tests) — photo sync, cache writing, JSON structure, logging, directory creation
+- **133 tests, 230 assertions — all passing**
+- **Coverage results:**
+  - `backend/config.php`: **92.37%** (121/131 lines, only top-level boilerplate uncovered)
+  - `backend/cors.php`: **96.00%** (48/50 lines, only OPTIONS preflight exit uncovered)
+  - 10 uncovered lines in config.php are `session_start()` and `define()` calls (execute before PCOV starts recording)
+  - 2 uncovered lines in cors.php are the OPTIONS `exit` (can't be tested)
 
-### Phase 1 — Vite Frontend (Complete)
-
-- Scaffolded Vite 6 + Tailwind CSS v4 in `frontend/`
-- Built 7 vanilla JS components: Navbar, StoreStatus, FilterSidebar, ProductCard, ProductGrid, ProductModal, Footer
-- Created `lib/api.js` with fetch wrappers + fallback chains, `lib/format.js` with IDR formatter + helpers
-- Wired up `main.js` with app state, data loading, filtering, sorting, event binding
-- Added Vite dev proxy (`:5173` → `:8081`) for API calls + static files
-- Updated `netlify.toml` for Vite build mode (`npm run build`, publish `dist/`)
-- Added explicit Netlify redirects for all 7 data/API paths before SPA fallback
-
-### Phase 2 — Backend Admin Migration (Complete)
-
-- Migrated all admin PHP files from `local-updater/` to `backend/`
-- Rewrote `backend/config.php` — all paths point to `data/` subdirectory, `getenv()` fallbacks for Neon
-- Created `backend/api_status.php` — public store status endpoint (open/closed/schedules)
-- Created `backend/index.php` — health check endpoint
-- Created `backend/render.yaml` — Render blueprint with Neon env vars + persistent disk
-- Added Vite proxy rules for JSON/text files used by JS fallback
-
-### Phase 3 — Sync Agent (Complete)
-
-- Created `sync/config.php` — minimal DB config (no session, no admin helpers)
-- Created `sync/update_produk.php` — headless sync agent: photo sync → DB query → cache write → log
-- Created `sync/git_push.bat` — auto-commit + push
-- Syncs photos from `backend/uploads/` → `frontend/uploads/`
-- Writes `cache_produk.json` to `sync/`, `frontend/`, and `backend/data/`
-
-### Phase 4 — Neon Database Schema (Ready)
-
-- `database/schema.sql` with DDL for `tbl_item`, `tbl_itemstok`, `tbl_web_deskripsi`
-- `database/migrations/001_initial.sql` — migration tracking placeholder
-
-### Production Bug Fixes
-
-During review, identified and fixed a critical production issue:
-
-1. **Empty DB fallback** — On Render, `api_produk.php` connects to Neon (valid DB) but `tbl_item`/`tbl_itemstok` have no IPOS data. Fixed: both `backend/api_produk.php` and `frontend/api_produk.php` now fall back to `cache_produk.json` when query returns 0 results.
-
-2. **Cache coverage** — Sync agent now writes cache to all 3 locations: `sync/`, `frontend/`, and `backend/data/` (was missing `backend/data/`).
-
-### Cleanup
-
-- Deleted `local-updater/` — migration complete, no legacy directory remains
-- Updated all docs (AGENTS.md, README.md, PLAN.md) to remove stale references
-
-### Key Technical Decisions
-
-- **No JavaScript framework** — vanilla JS with Vite bundler, no React/Vue overhead
-- **API fallback chain** — live API → `cache_produk.json` → graceful degradation
-- **Store status** calculated server-side via `api_status.php`, with client-side JSON file fallback
-- **Event delegation** on product grid for performance
-- **CORS** handled per-endpoint with `Access-Control-Allow-Origin: *` + OPTIONS preflight
-- **4-folder monorepo** — each folder is self-contained, maps 1:1 to deployment target
-
-### Next Steps
-
-- Deploy backend to Render (connect git repo, add Neon env vars)
-- Deploy frontend to Netlify (connect git repo, set base directory to `frontend/`)
-- Set up Windows Task Scheduler on local store PC for sync agent
-- Configure git credential caching on local PC
-
----
-
-## v2.2 — Previous
-
-- Product catalog with search, category filter, condition filter, price sort
-- Real-time store status (operating hours, manual override, scheduled closures)
-- Admin dashboard with catalog management, photo upload/reorder/delete
-- Multi-role admin system (super admin, admin)
-- Operating hours configuration (per-day)
-- Temporary closure scheduling
-- Photo auto-conversion to WEBP on upload
-- PostgreSQL product database with JSON cache fallback
-- Mobile-responsive UI with Tailwind CSS
-- WhatsApp order integration
-- Session-based authentication with bcrypt password hashing
-- Image carousel in product detail modal
-- Indonesian language UI, WIB timezone, IDR currency
-
-### Notable technical decisions
-- Flat PHP architecture (no framework) for simplicity
-- File-based JSON storage for config, database for products
-- WEBP-only image format for consistent performance
-- Session auth with role-based access control
-
-## v1.0 — Initial Release
-
-- Basic product listing page
-- Admin login and simple product management
-- Core PostgreSQL integration
+### Git
+- Committed `c5d9a42` — pushed to `origin/main`

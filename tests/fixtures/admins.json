@@ -1,0 +1,20 @@
+{
+    "admins": [
+        {
+            "id": "1",
+            "username": "superadmin",
+            "password_hash": "$2y$10$dummyhashforsuperadmin",
+            "role": "super_admin",
+            "nama": "Super Admin",
+            "created_at": "2026-01-01"
+        },
+        {
+            "id": "2",
+            "username": "admin1",
+            "password_hash": "$2y$10$dummyhashforadmin1",
+            "role": "admin",
+            "nama": "Admin Satu",
+            "created_at": "2026-06-01"
+        }
+    ]
+}
