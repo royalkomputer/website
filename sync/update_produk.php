@@ -4,7 +4,7 @@
  *
  * Runs on the local PC via Windows Task Scheduler every 1 hour.
  * Queries the IPOS PostgreSQL database for products with stock > 0,
- * generates cache_produk.json, and writes it to both sync/ and frontend/.
+ * generates cache_produk.json, and writes it to sync/, frontend/, and backend/data/.
  *
  * After this script completes, git_push.bat commits and pushes changes.
  *
@@ -12,47 +12,97 @@
  * Log:   sync/sync.log
  */
 
-error_reporting(E_ERROR | E_PARSE);
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
 require_once __DIR__ . '/config.php';
 
 $log_file = __DIR__ . '/sync.log';
+$start_time = microtime(true);
 
 function write_log(string $message): void {
     global $log_file;
     file_put_contents($log_file, date('Y-m-d H:i:s') . " $message\n", FILE_APPEND);
 }
 
+function log_and_echo(string $message): void {
+    write_log($message);
+    echo "  $message\n";
+}
+
+function format_bytes(int $bytes): string {
+    if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' MB';
+    if ($bytes >= 1024) return round($bytes / 1024, 2) . ' KB';
+    return $bytes . ' B';
+}
+
+echo "\n";
+echo "╔══════════════════════════════════════════╗\n";
+echo "║  Royal Komputer — IPOS Sync Agent       ║\n";
+echo "╚══════════════════════════════════════════╝\n";
+echo "\n";
+
+log_and_echo("PHP version: " . PHP_VERSION);
+log_and_echo("Memory limit: " . ini_get('memory_limit'));
+log_and_echo("Working directory: " . __DIR__);
+
 // --- SYNC PHOTOS FROM BACKEND TO FRONTEND ---
-// Admin-uploaded photos go to backend/uploads/, sync them to frontend/uploads/ for the storefront
+echo "─── Photo Sync ───────────────────────────────\n";
+log_and_echo("Checking backend/uploads/ for new photos...");
 $backend_uploads = __DIR__ . '/../backend/uploads/';
 $frontend_uploads = __DIR__ . '/../frontend/uploads/';
-if (is_dir($backend_uploads)) {
+
+if (!is_dir($backend_uploads)) {
+    log_and_echo("WARNING — backend/uploads/ does not exist at: " . $backend_uploads);
+} else {
     if (!is_dir($frontend_uploads)) {
         mkdir($frontend_uploads, 0777, true);
+        log_and_echo("Created frontend/uploads/ directory");
     }
+
+    $all_photos = glob($backend_uploads . '*.webp');
+    $photo_count = count($all_photos);
+    log_and_echo("Found $photo_count .webp files in backend/uploads/");
+
     $synced = 0;
-    foreach (glob($backend_uploads . '*.webp') as $photo) {
-        $dest = $frontend_uploads . basename($photo);
-        if (!file_exists($dest) || filemtime($photo) > filemtime($dest)) {
-            copy($photo, $dest);
-            $synced++;
+    $skipped = 0;
+    $failed = 0;
+
+    foreach ($all_photos as $photo) {
+        $filename = basename($photo);
+        $dest = $frontend_uploads . $filename;
+        $backend_mtime = filemtime($photo);
+
+        if (!file_exists($dest) || $backend_mtime > filemtime($dest)) {
+            $result = copy($photo, $dest);
+            if ($result) {
+                $synced++;
+                write_log("[PHOTO SYNC] Copied: $filename (mtime: $backend_mtime, size: " . format_bytes(filesize($photo)) . ")");
+            } else {
+                $failed++;
+                write_log("[PHOTO SYNC] FAILED to copy: $filename");
+            }
+        } else {
+            $skipped++;
         }
     }
-    if ($synced > 0) {
-        write_log("Photos synced: $synced new/updated");
-    }
+
+    log_and_echo("Result: $synced copied, $skipped up-to-date, $failed failed");
 }
 
-// --- KONEKSI DATABASE ---
+// --- DATABASE CONNECTION ---
+echo "─── Database ─────────────────────────────────\n";
+log_and_echo("Connecting to PostgreSQL: host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME);
 $conn = getDBConnection();
+
 if (!$conn) {
-    write_log("FAIL — Could not connect to database");
-    echo "Sync failed: DB connection error\n";
+    $err = error_get_last();
+    $err_msg = $err ? $err['message'] : 'Unknown error';
+    log_and_echo("FAIL — Could not connect to database: $err_msg");
     exit(1);
 }
+log_and_echo("Connection established successfully");
 
 // --- QUERY PRODUK DENGAN STOK > 0 ---
-// Sama persis dengan query di api_produk.php
 $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category,
             i.hargajual1 AS price,
             COALESCE(s.total_stok, 0) AS stock,
@@ -66,22 +116,40 @@ $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category,
         ) s ON i.kodeitem = s.kodeitem
         LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem";
 
+log_and_echo("Executing product query...");
+$query_start = microtime(true);
 $result = @pg_query($conn, $sql);
+$query_duration = round(microtime(true) - $query_start, 4);
+
 if (!$result) {
-    write_log("FAIL — Query error: " . pg_last_error($conn));
-    echo "Sync failed: query error\n";
+    $err = pg_last_error($conn);
+    log_and_echo("FAIL — Query error after {$query_duration}s: $err");
     pg_close($conn);
     exit(1);
 }
 
+$rows = pg_num_rows($result);
+log_and_echo("Query returned $rows rows in {$query_duration}s");
+
+// --- PROCESS PRODUCTS ---
+echo "─── Processing ───────────────────────────────\n";
 $produk = [];
+$image_counts = [];
+$category_counts = [];
+$no_image_count = 0;
+
 while ($row = pg_fetch_assoc($result)) {
     $row['price'] = (float) $row['price'];
     $row['stock'] = (float) $row['stock'];
-    if (empty(trim($row['category']))) $row['category'] = 'Lainnya';
+    if (empty(trim($row['category']))) {
+        $row['category'] = 'Lainnya';
+    }
+
+    // Track category distribution
+    $cat = $row['category'];
+    $category_counts[$cat] = ($category_counts[$cat] ?? 0) + 1;
 
     // --- GENERATE IMAGE PATHS ---
-    // Photos live in frontend/uploads/, referenced from there
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
     $uploads_path = __DIR__ . '/../frontend/uploads/';
     $images = [];
@@ -93,12 +161,15 @@ while ($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
+        $img_count = count($matched_files);
+        $image_counts[$img_count] = ($image_counts[$img_count] ?? 0) + 1;
         foreach ($matched_files as $file) {
             $images[] = 'uploads/' . basename($file) . '?v=' . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;
     } else {
+        $no_image_count++;
         $default_img = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500";
         $row['image'] = $default_img;
         $row['images'] = [$default_img];
@@ -108,25 +179,72 @@ while ($row = pg_fetch_assoc($result)) {
 }
 
 pg_close($conn);
+$process_duration = round(microtime(true) - $query_start, 4);
+
+log_and_echo("Processed " . count($produk) . " products in {$process_duration}s");
+log_and_echo("Products with no photos: $no_image_count");
+
+ksort($image_counts);
+$img_summary = [];
+foreach ($image_counts as $count => $num) {
+    $img_summary[] = "$count photo(s): $num products";
+}
+if (empty($img_summary)) {
+    log_and_echo("Image distribution: no products have photos");
+} else {
+    log_and_echo("Image distribution: " . implode(", ", $img_summary));
+}
+
+$cat_summary = [];
+foreach ($category_counts as $cat => $count) {
+    $cat_summary[] = "$cat: $count";
+}
+log_and_echo("Category distribution: " . implode(", ", $cat_summary));
 
 // --- WRITE CACHE FILES ---
-// Write to sync/ (local reference)
-$sync_cache = __DIR__ . '/cache_produk.json';
-file_put_contents($sync_cache, json_encode($produk));
+echo "─── Cache Files ──────────────────────────────\n";
+$json_output = json_encode($produk);
 
-// Write to frontend/ (for Netlify/storefront deployment)
-$frontend_cache = __DIR__ . '/../frontend/cache_produk.json';
-file_put_contents($frontend_cache, json_encode($produk));
-
-// Write to backend/data/ (for Render deployment — cache fallback when Neon has no IPOS data)
-$backend_cache = __DIR__ . '/../backend/data/cache_produk.json';
-$backend_dir = dirname($backend_cache);
-if (!is_dir($backend_dir)) {
-    mkdir($backend_dir, 0777, true);
+if ($json_output === false) {
+    log_and_echo("FAIL — JSON encoding error: " . json_last_error_msg());
+    exit(1);
 }
-file_put_contents($backend_cache, json_encode($produk));
 
-// --- LOG ---
+$targets = [
+    __DIR__ . '/cache_produk.json'             => 'sync/',
+    __DIR__ . '/../frontend/cache_produk.json'  => 'frontend/',
+    __DIR__ . '/../backend/data/cache_produk.json' => 'backend/data/',
+];
+
+foreach ($targets as $path => $label) {
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+        log_and_echo("Created directory: $dir");
+    }
+    $written = file_put_contents($path, $json_output);
+    if ($written === false) {
+        log_and_echo("FAIL — Could not write to $label");
+    } else {
+        log_and_echo("Written to $label: " . format_bytes($written));
+    }
+}
+
+// --- SUMMARY ---
+$total_duration = round(microtime(true) - $start_time, 4);
+$peak_memory = memory_get_peak_usage(true);
 $count = count($produk);
-write_log("OK — $count products synced");
-echo "Sync complete: $count products\n";
+
+write_log("=== SYNC COMPLETE ===");
+write_log("Products: $count | Duration: {$total_duration}s | Peak memory: " . format_bytes($peak_memory));
+
+echo "\n";
+$box_w = 43;
+echo "+" . str_repeat("-", $box_w - 2) . "+\n";
+echo "| SYNC COMPLETE" . str_repeat(" ", $box_w - 15) . "|\n";
+echo "|" . str_repeat("-", $box_w - 2) . "|\n";
+echo "| Products:    " . str_pad($count, $box_w - 17, " ", STR_PAD_LEFT) . " |\n";
+echo "| Duration:    " . str_pad("{$total_duration}s", $box_w - 17, " ", STR_PAD_LEFT) . " |\n";
+echo "| Peak memory: " . str_pad(format_bytes($peak_memory), $box_w - 17, " ", STR_PAD_LEFT) . " |\n";
+echo "+" . str_repeat("-", $box_w - 2) . "+\n";
+echo "\n";

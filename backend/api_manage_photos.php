@@ -2,6 +2,10 @@
 // Mencegah PHP error dari merusak JSON output
 error_reporting(E_ERROR | E_PARSE);
 header('Content-Type: application/json');
+
+require_once __DIR__ . '/cors.php';
+handleCORS();
+
 require_once 'config.php';
 
 // Proteksi akses
