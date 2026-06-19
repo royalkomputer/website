@@ -60,15 +60,7 @@ if (!$result) {
     exit;
 }
 
-// 2. PROSES UPLOAD FOTO — DUKUNG JPG, PNG, WEBP, GIF
-// Mapping MIME → ekstensi dan fungsi simpan GD
-$EXT_MAP = [
-    'image/jpeg' => ['ext' => 'jpg', 'create' => 'imagecreatefromjpeg', 'save' => 'imagejpeg', 'save_args' => [85]],
-    'image/png'  => ['ext' => 'png', 'create' => 'imagecreatefrompng',  'save' => 'imagepng',  'save_args' => [8]],
-    'image/webp' => ['ext' => 'webp','create' => 'imagecreatefromwebp', 'save' => 'imagewebp', 'save_args' => [85]],
-    'image/gif'  => ['ext' => 'gif', 'create' => 'imagecreatefromgif',  'save' => 'imagegif',  'save_args' => []],
-];
-
+// 2. PROSES UPLOAD FOTO — AUTO-KONVERSI KE WEBP
 $uploadFiles = $_FILES['new_files'] ?? $_FILES['foto'] ?? null;
 $imageOrder = [];
 if (isset($_POST['image_order'])) {
@@ -96,7 +88,6 @@ if ($uploadFiles || !empty($imageOrder)) {
     }
     sort($existing_files);
 
-    // Cek legacy format (single file, tanpa nomor indeks)
     foreach ($image_extensions as $ext) {
         $legacy_file = $target_dir . $safe_kode . "." . $ext;
         if (file_exists($legacy_file)) {
@@ -142,7 +133,6 @@ if ($uploadFiles || !empty($imageOrder)) {
         }
     }
 
-    // Append any remaining new files that weren't referenced explicitly
     while ($uploadFiles && isset($uploadFiles['tmp_name'][$newIndex]) && $uploadFiles['error'][$newIndex] === UPLOAD_ERR_OK) {
         $orderedItems[] = [
             'type' => 'new',
@@ -152,7 +142,6 @@ if ($uploadFiles || !empty($imageOrder)) {
         $newIndex++;
     }
 
-    // If no image order given, keep existing files and append new files at the end
     if (empty($imageOrder)) {
         foreach ($existing_files as $file) {
             $orderedItems[] = [
@@ -174,7 +163,6 @@ if ($uploadFiles || !empty($imageOrder)) {
         }
     }
 
-    // Move existing files to temporary names to avoid overwrite collisions
     $tempPaths = [];
     foreach ($orderedItems as $item) {
         if ($item['type'] === 'existing' && !isset($tempPaths[$item['basename']]) && file_exists($item['path'])) {
@@ -187,44 +175,54 @@ if ($uploadFiles || !empty($imageOrder)) {
 
     $index = 1;
     foreach ($orderedItems as $item) {
+        $target_file = $target_dir . $safe_kode . '_' . $index . '.webp';
         if ($item['type'] === 'existing') {
             if (isset($tempPaths[$item['basename']])) {
-                $ext = pathinfo($item['path'], PATHINFO_EXTENSION);
-                $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
-                rename($tempPaths[$item['basename']], $target_file);
+                $tempPath = $tempPaths[$item['basename']];
+                $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
+                if ($ext === 'webp') {
+                    rename($tempPath, $target_file);
+                } else {
+                    $img = null;
+                    $mime = image_type_to_mime_type(exif_imagetype($tempPath));
+                    switch ($mime) {
+                        case 'image/jpeg': $img = imagecreatefromjpeg($tempPath); break;
+                        case 'image/png':
+                            $img = imagecreatefrompng($tempPath);
+                            imagepalettetotruecolor($img);
+                            imagealphablending($img, true);
+                            imagesavealpha($img, true);
+                            break;
+                        case 'image/gif': $img = imagecreatefromgif($tempPath); break;
+                    }
+                    if ($img) {
+                        imagewebp($img, $target_file, 85);
+                        imagedestroy($img);
+                    }
+                    unlink($tempPath);
+                }
             }
         } elseif ($item['type'] === 'new') {
             $file_tmp = $item['tmp_name'];
             $img_info = getimagesize($file_tmp);
             if ($img_info) {
                 $mime = $img_info['mime'];
-                $info = $EXT_MAP[$mime] ?? null;
-                if ($info) {
-                    $image = null;
-                    switch ($mime) {
-                        case 'image/jpeg': $image = imagecreatefromjpeg($file_tmp); break;
-                        case 'image/png':
-                            $image = imagecreatefrompng($file_tmp);
-                            imagepalettetotruecolor($image);
-                            imagealphablending($image, true);
-                            imagesavealpha($image, true);
-                            break;
-                        case 'image/webp': $image = imagecreatefromwebp($file_tmp); break;
-                        case 'image/gif': $image = imagecreatefromgif($file_tmp); break;
-                    }
-                    if ($image) {
-                        $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $info['ext'];
-                        $save_func = $info['save'];
-                        $save_func($image, $target_file, ...$info['save_args']);
-                        imagedestroy($image);
-                    } else {
-                        $ext = pathinfo($item['name'], PATHINFO_EXTENSION) ?: 'jpg';
-                        $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
-                        move_uploaded_file($file_tmp, $target_file);
-                    }
+                $image = null;
+                switch ($mime) {
+                    case 'image/jpeg': $image = imagecreatefromjpeg($file_tmp); break;
+                    case 'image/png':
+                        $image = imagecreatefrompng($file_tmp);
+                        imagepalettetotruecolor($image);
+                        imagealphablending($image, true);
+                        imagesavealpha($image, true);
+                        break;
+                    case 'image/webp': $image = imagecreatefromwebp($file_tmp); break;
+                    case 'image/gif': $image = imagecreatefromgif($file_tmp); break;
+                }
+                if ($image) {
+                    imagewebp($image, $target_file, 85);
+                    imagedestroy($image);
                 } else {
-                    $ext = pathinfo($item['name'], PATHINFO_EXTENSION) ?: 'jpg';
-                    $target_file = $target_dir . $safe_kode . '_' . $index . '.' . $ext;
                     move_uploaded_file($file_tmp, $target_file);
                 }
             }
@@ -232,7 +230,6 @@ if ($uploadFiles || !empty($imageOrder)) {
         $index++;
     }
 
-    // Remove any old files that were not included in the current order
     $all_old = [];
     foreach ($image_extensions as $ext) {
         $old = glob($target_dir . $safe_kode . "_*." . $ext);

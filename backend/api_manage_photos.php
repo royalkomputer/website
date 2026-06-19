@@ -46,7 +46,6 @@ if ($action === 'delete') {
     }
 
     $temp_names = [];
-    // 1. Pindahkan ke nama sementara untuk menghindari bentrok nama saat rename beruntun
     foreach ($files as $file_url) {
         $path_parts = explode('?', $file_url);
         $filepath = __DIR__ . '/' . $path_parts[0];
@@ -58,12 +57,31 @@ if ($action === 'delete') {
         }
     }
 
-    // 2. Ubah nama menjadi urutan baku (_1, _2, dst) — pertahankan ekstensi asli
     $index = 1;
     foreach ($temp_names as $temp_name) {
+        $final_name = $target_dir . $safe_kode . "_" . $index . ".webp";
         $ext = pathinfo($temp_name, PATHINFO_EXTENSION);
-        $final_name = $target_dir . $safe_kode . "_" . $index . "." . $ext;
-        rename($temp_name, $final_name);
+        if ($ext === 'webp') {
+            rename($temp_name, $final_name);
+        } else {
+            $img = null;
+            $mime = image_type_to_mime_type(exif_imagetype($temp_name));
+            switch ($mime) {
+                case 'image/jpeg': $img = imagecreatefromjpeg($temp_name); break;
+                case 'image/png':
+                    $img = imagecreatefrompng($temp_name);
+                    imagepalettetotruecolor($img);
+                    imagealphablending($img, true);
+                    imagesavealpha($img, true);
+                    break;
+                case 'image/gif': $img = imagecreatefromgif($temp_name); break;
+            }
+            if ($img) {
+                imagewebp($img, $final_name, 85);
+                imagedestroy($img);
+            }
+            unlink($temp_name);
+        }
         $index++;
     }
 
