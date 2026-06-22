@@ -11,28 +11,24 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 }
 
 $conn = getDBConnection();
+$db_available = ($conn !== false);
 
-if (!$conn) {
-    echo json_encode(["success" => false, "message" => "Gagal terhubung ke database."]);
-    exit;
-}
-
-// --- FITUR AUTO-CREATE TABEL ---
-// Pengecekan apakah tabel sudah ada
-$check_table = "SELECT EXISTS (
-    SELECT 1 FROM information_schema.tables 
-    WHERE table_name = 'tbl_web_deskripsi'
-);";
-$res_table = pg_query($conn, $check_table);
-$table_exists = pg_fetch_result($res_table, 0, 0);
-
-if ($table_exists == 'f') {
-    // Tabel belum ada, buat otomatis!
-    $create_sql = "CREATE TABLE tbl_web_deskripsi (
-        kodeitem VARCHAR(50) PRIMARY KEY,
-        deskripsi TEXT
+if ($db_available) {
+    // --- FITUR AUTO-CREATE TABEL ---
+    $check_table = "SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'tbl_web_deskripsi'
     );";
-    pg_query($conn, $create_sql);
+    $res_table = pg_query($conn, $check_table);
+    $table_exists = pg_fetch_result($res_table, 0, 0);
+
+    if ($table_exists == 'f') {
+        $create_sql = "CREATE TABLE tbl_web_deskripsi (
+            kodeitem VARCHAR(50) PRIMARY KEY,
+            deskripsi TEXT
+        );";
+        pg_query($conn, $create_sql);
+    }
 }
 
 $id = $_POST['id'] ?? '';
@@ -44,20 +40,22 @@ if (empty($id)) {
 }
 
 // 1. PROSES UPDATE ATAU INSERT DESKRIPSI KE DATABASE
-$check_sql = "SELECT kodeitem FROM tbl_web_deskripsi WHERE kodeitem = $1";
-$check_res = pg_query_params($conn, $check_sql, array($id));
+if ($db_available) {
+    $check_sql = "SELECT kodeitem FROM tbl_web_deskripsi WHERE kodeitem = $1";
+    $check_res = pg_query_params($conn, $check_sql, array($id));
 
-if (pg_num_rows($check_res) > 0) {
-    $update_sql = "UPDATE tbl_web_deskripsi SET deskripsi = $1 WHERE kodeitem = $2";
-    $result = pg_query_params($conn, $update_sql, array($description, $id));
-} else {
-    $insert_sql = "INSERT INTO tbl_web_deskripsi (kodeitem, deskripsi) VALUES ($1, $2)";
-    $result = pg_query_params($conn, $insert_sql, array($id, $description));
-}
+    if (pg_num_rows($check_res) > 0) {
+        $update_sql = "UPDATE tbl_web_deskripsi SET deskripsi = $1 WHERE kodeitem = $2";
+        $result = pg_query_params($conn, $update_sql, array($description, $id));
+    } else {
+        $insert_sql = "INSERT INTO tbl_web_deskripsi (kodeitem, deskripsi) VALUES ($1, $2)";
+        $result = pg_query_params($conn, $insert_sql, array($id, $description));
+    }
 
-if (!$result) {
-    echo json_encode(["success" => false, "message" => "Gagal menyimpan rincian deskripsi ke database."]);
-    exit;
+    if (!$result) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan rincian deskripsi ke database."]);
+        exit;
+    }
 }
 
 // 2. PROSES UPLOAD FOTO — AUTO-KONVERSI KE WEBP
@@ -72,7 +70,7 @@ if (isset($_POST['image_order'])) {
 
 if ($uploadFiles || !empty($imageOrder)) {
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $id);
-    $target_dir = "uploads/";
+    $target_dir = __DIR__ . "/uploads/";
     
     if (!is_dir($target_dir)) {
         mkdir($target_dir, 0777, true);
@@ -173,15 +171,18 @@ if ($uploadFiles || !empty($imageOrder)) {
         }
     }
 
+    $savedFiles = [];
     $index = 1;
     foreach ($orderedItems as $item) {
         $target_file = $target_dir . $safe_kode . '_' . $index . '.webp';
+        $savedFiles[] = basename($target_file);
         if ($item['type'] === 'existing') {
             if (isset($tempPaths[$item['basename']])) {
                 $tempPath = $tempPaths[$item['basename']];
                 $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
                 if ($ext === 'webp') {
                     rename($tempPath, $target_file);
+                    touch($target_file);
                 } else {
                     $img = null;
                     $mime = image_type_to_mime_type(exif_imagetype($tempPath));
@@ -240,20 +241,100 @@ if ($uploadFiles || !empty($imageOrder)) {
         if (file_exists($legacy)) $all_old[] = $legacy;
     }
     foreach ($all_old as $file) {
-        $basename = basename($file);
-        $shouldKeep = false;
-        foreach ($orderedItems as $item) {
-            if ($item['type'] === 'existing' && $item['basename'] === $basename) {
-                $shouldKeep = true;
-                break;
+        if (!in_array(basename($file), $savedFiles) && file_exists($file)) {
+            unlink($file);
+        }
+    }
+
+    // --- FRONTEND SYNC: Copy updated photos to frontend/uploads/ for immediate sync ---
+    $frontend_upload_dir = __DIR__ . '/../frontend/uploads/';
+    if (!is_dir($frontend_upload_dir)) {
+        @mkdir($frontend_upload_dir, 0777, true);
+    }
+    
+    // Copy all saved photos for this product to frontend
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $saved_photos = glob($target_dir . $safe_kode . '_*.' . $ext);
+        if ($saved_photos) {
+            foreach ($saved_photos as $photo) {
+                copy($photo, $frontend_upload_dir . basename($photo));
             }
         }
-        if (!$shouldKeep && file_exists($file)) {
-            unlink($file);
+        // Copy legacy file (safe_kode.webp) if exists
+        $legacy = $target_dir . $safe_kode . '.' . $ext;
+        if (file_exists($legacy)) {
+            copy($legacy, $frontend_upload_dir . $safe_kode . '.' . $ext);
+        }
+    }
+    
+    // Update cache files with correct photo URLs and description
+    $cache_files = [
+        __DIR__ . '/data/cache_produk.json',   // backend (dibaca admin)
+        __DIR__ . '/../frontend/cache_produk.json',  // frontend (dibaca user)
+    ];
+    foreach ($cache_files as $cache_file) {
+        if (file_exists($cache_file)) {
+            $cacheData = json_decode(file_get_contents($cache_file), true);
+            if (is_array($cacheData)) {
+                foreach ($cacheData as &$entry) {
+                    if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
+                        // Update photo URLs
+                        $newImages = [];
+                        $matched_files = [];
+                        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                            $m = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
+                            if ($m) $matched_files = array_merge($matched_files, $m);
+                        }
+                        sort($matched_files);
+                        if (!empty($matched_files)) {
+                            foreach ($matched_files as $file) {
+                                $newImages[] = 'uploads/' . basename($file) . '?v=' . filemtime($file);
+                            }
+                            $entry['image'] = $newImages[0];
+                            $entry['images'] = $newImages;
+                        }
+                        break;
+                    }
+                }
+                unset($entry);
+                file_put_contents($cache_file, json_encode($cacheData));
+            }
         }
     }
 }
 
-echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
-pg_close($conn);
+// Simpan deskripsi ke cache jika DB tidak tersedia (sebagai fallback)
+$desc_provided = !empty($description);
+if (!$db_available && $desc_provided) {
+    $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $id);
+    $cache_files = [
+        __DIR__ . '/data/cache_produk.json',
+        __DIR__ . '/../frontend/cache_produk.json',
+    ];
+    foreach ($cache_files as $cache_file) {
+        if (file_exists($cache_file)) {
+            $cacheData = json_decode(file_get_contents($cache_file), true);
+            if (is_array($cacheData)) {
+                foreach ($cacheData as &$entry) {
+                    if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
+                        $entry['description'] = $description;
+                        break;
+                    }
+                }
+                unset($entry);
+                file_put_contents($cache_file, json_encode($cacheData));
+            }
+        }
+    }
+}
+
+if ($db_available) {
+    pg_close($conn);
+}
+
+if (!$db_available && $desc_provided) {
+    echo json_encode(["success" => true, "warning" => true, "message" => "Foto dan deskripsi berhasil disimpan (offline mode). Database tidak terhubung, data disimpan di cache."]);
+} else {
+    echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
+}
 ?>

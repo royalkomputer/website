@@ -2,36 +2,43 @@
     "Monday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Senin"
+        "indo": "Senin",
+        "libur": false
     },
     "Tuesday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Selasa"
+        "indo": "Selasa",
+        "libur": false
     },
     "Wednesday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Rabu"
+        "indo": "Rabu",
+        "libur": false
     },
     "Thursday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Kamis"
+        "indo": "Kamis",
+        "libur": false
     },
     "Friday": {
         "buka": "13:30",
         "tutup": "22:00",
-        "indo": "Jumat"
+        "indo": "Jumat",
+        "libur": false
     },
     "Saturday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Sabtu"
+        "indo": "Sabtu",
+        "libur": false
     },
     "Sunday": {
         "buka": "09:00",
         "tutup": "21:00",
-        "indo": "Minggu"
+        "indo": "Minggu",
+        "libur": false
     }
 }

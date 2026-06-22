@@ -14,6 +14,9 @@
  *   1 = one or more tests failed
  */
 
+// Suppress deprecation for $http_response_header magic variable (PHP 8.5+)
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 $BASE_URL = getenv('BASE_URL') ?: 'http://localhost:8081';
 $PASS = 0;
 $FAIL = 0;
@@ -35,7 +38,7 @@ function request(string $method, string $path, array $headers = []): array {
         ]
     ];
 
-    // For OPTIONS, we need to capture response headers
+    // For OPTIONS, send an origin header so CORS is tested properly
     if ($method === 'OPTIONS') {
         $opts['http']['header'][] = 'Origin: http://localhost:5173';
     }
@@ -44,20 +47,24 @@ function request(string $method, string $path, array $headers = []): array {
     $url = $BASE_URL . $path;
     $body = @file_get_contents($url, false, $context);
 
-    // Get HTTP status code from $http_response_header
-    $status = 0;
-    if (isset($http_response_header) && is_array($http_response_header)) {
-        preg_match('/HTTP\/\d\.\d\s+(\d+)/', $http_response_header[0], $matches);
-        $status = (int) ($matches[1] ?? 0);
+    // Get HTTP headers from the response
+    $responseHeaders = [];
+    if (function_exists('http_get_last_response_headers')) {
+        // PHP 8.5+ API (no deprecation)
+        $responseHeaders = http_get_last_response_headers() ?: [];
+    } elseif (isset($http_response_header)) {
+        $responseHeaders = $http_response_header;
     }
 
-    // Get redirect URL if any
+    // Parse status and redirect from headers
+    $status = 0;
     $redirectUrl = '';
-    if (isset($http_response_header)) {
-        foreach ($http_response_header as $h) {
-            if (stripos($h, 'Location:') === 0) {
-                $redirectUrl = trim(substr($h, 9));
-            }
+    foreach ($responseHeaders as $h) {
+        if (preg_match('/HTTP\/\d\.\d\s+(\d+)/', $h, $m)) {
+            $status = (int) ($m[1] ?? 0);
+        }
+        if (stripos($h, 'Location:') === 0) {
+            $redirectUrl = trim(substr($h, 9));
         }
     }
 
@@ -65,7 +72,7 @@ function request(string $method, string $path, array $headers = []): array {
         'status' => $status,
         'body' => $body === false ? '' : $body,
         'redirect' => $redirectUrl,
-        'headers' => $http_response_header ?? [],
+        'headers' => $responseHeaders,
     ];
 }
 
@@ -100,12 +107,8 @@ function assertJsonIsArray(string $desc, string $method, string $path): void {
     global $PASS, $FAIL, $FAILURES;
     $res = request($method, $path);
     $data = json_decode($res['body'], true);
-    if (is_array($data) && isset($data[0])) {
+    if (is_array($data) && (isset($data[0]) || empty($data))) {
         echo "  ✓ $desc\n";
-        $PASS++;
-    } elseif (is_array($data) && empty($data)) {
-        // Empty array is still an array
-        echo "  ✓ $desc  (empty array)\n";
         $PASS++;
     } else {
         echo "  ✗ $desc  (response is not a JSON array)\n";
@@ -189,26 +192,6 @@ function assertCorsHeader(string $desc, string $path): void {
     }
 }
 
-function assertContentType(string $desc, string $path, string $expectedContentType): void {
-    global $PASS, $FAIL, $FAILURES;
-    $res = request('GET', $path);
-    $found = false;
-    foreach ($res['headers'] as $h) {
-        if (stripos($h, 'Content-Type') !== false && stripos($h, $expectedContentType) !== false) {
-            $found = true;
-            break;
-        }
-    }
-    if ($found) {
-        echo "  ✓ $desc\n";
-        $PASS++;
-    } else {
-        echo "  ✗ $desc  (expected Content-Type containing '$expectedContentType')\n";
-        $FAIL++;
-        $FAILURES[] = "$desc (wrong Content-Type)";
-    }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 //  Test Suite
 // ─────────────────────────────────────────────────────────────────────────────
@@ -221,11 +204,11 @@ echo "========================================================\n";
 echo "\n";
 
 // 1. Connectivity
-echo "[1/6] Connectivity\n";
+echo "[1/7] Connectivity\n";
 assertStatus('Server is reachable', 'GET', '/index.php', 200);
 
 // 2. Health Check
-echo "\n[2/6] Health Check (index.php)\n";
+echo "\n[2/7] Health Check (index.php)\n";
 assertStatus('Health check returns 200', 'GET', '/index.php', 200);
 assertJsonIsObject('Response is a JSON object', 'GET', '/index.php');
 assertJsonHasKey('Has status key', 'GET', '/index.php', 'status');
@@ -234,16 +217,17 @@ assertJsonHasKey('Has service key', 'GET', '/index.php', 'service');
 assertJsonHasKey('Has time key', 'GET', '/index.php', 'time');
 
 // 3. CORS
-echo "\n[3/6] CORS Headers\n";
+echo "\n[3/7] CORS Headers\n";
 assertCorsHeader('api_produk.php returns CORS headers', '/api_produk.php');
 assertCorsHeader('api_status.php returns CORS headers', '/api_status.php');
 assertCorsHeader('api_schedules.php returns CORS headers', '/api_schedules.php');
+// CORS OPTIONS preflight should return 204
 assertStatus('api_produk.php OPTIONS returns 204', 'OPTIONS', '/api_produk.php', 204);
 assertStatus('api_status.php OPTIONS returns 204', 'OPTIONS', '/api_status.php', 204);
 assertStatus('api_schedules.php OPTIONS returns 204', 'OPTIONS', '/api_schedules.php', 204);
 
 // 4. Store Status
-echo "\n[4/6] Store Status (api_status.php)\n";
+echo "\n[4/7] Store Status (api_status.php)\n";
 assertStatus('Store status returns 200', 'GET', '/api_status.php', 200);
 assertJsonIsObject('Response is a JSON object', 'GET', '/api_status.php');
 assertJsonHasKey('Has isOpen field', 'GET', '/api_status.php', 'isOpen');
@@ -255,13 +239,14 @@ assertJsonBoolField('isOpen is boolean', 'GET', '/api_status.php', 'isOpen');
 assertJsonBoolField('isTemporarilyClosed is boolean', 'GET', '/api_status.php', 'isTemporarilyClosed');
 
 // 5. Schedules
-echo "\n[5/6] Schedules (api_schedules.php)\n";
+echo "\n[5/7] Schedules (api_schedules.php)\n";
 assertStatus('Schedules returns 200', 'GET', '/api_schedules.php', 200);
 assertJsonIsArray('Response is a JSON array', 'GET', '/api_schedules.php');
 
 // 6. Auth Protection
-echo "\n[6/6] Auth Protection\n";
-assertStatus('admin.php redirects to login (302)', 'GET', '/admin.php', 302);
+echo "\n[6/7] Auth Protection\n";
+// admin.php returns a 302 redirect. file_get_contents follows the redirect
+// and returns the final 200, so we verify the redirect header separately.
 assertRedirect('admin.php redirects to login.php', '/admin.php', 'login.php');
 assertContains('update_produk.php rejects unauthenticated', 'POST', '/update_produk.php', 'Akses ditolak');
 assertContains('update_admin.php rejects unauthenticated', 'POST', '/update_admin.php', 'Akses ditolak');
@@ -269,7 +254,7 @@ assertContains('update_jam.php rejects unauthenticated', 'POST', '/update_jam.ph
 assertContains('api_manage_photos.php rejects unauthenticated', 'POST', '/api_manage_photos.php', 'Akses ditolak');
 
 // 7. Content Types
-echo "\n[7/6] Content Type Headers\n";
+echo "\n[7/7] Content Type Headers\n";
 assertContains('api_produk.php returns JSON', 'GET', '/api_produk.php', '{');
 assertContains('api_status.php returns JSON', 'GET', '/api_status.php', '{');
 assertContains('api_schedules.php returns JSON', 'GET', '/api_schedules.php', '[');

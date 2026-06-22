@@ -112,7 +112,8 @@ async function calculateStatusFromFiles() {
   // Check operating hours
   const todayHours = jamBuka[currentDay]
   let isOpen = false
-  if (todayHours && !isTemporarilyClosed) {
+  const isLibur = todayHours?.libur === true
+  if (todayHours && !isTemporarilyClosed && !isLibur) {
     isOpen = currentTime >= todayHours.buka && currentTime <= todayHours.tutup
   }
 
@@ -120,16 +121,16 @@ async function calculateStatusFromFiles() {
   let nextOpenDay = ''
   let nextOpenTime = ''
   if (!isOpen || isTemporarilyClosed) {
-    if (!isTemporarilyClosed && todayHours && currentTime < todayHours.buka) {
+    if (!isTemporarilyClosed && todayHours && !isLibur && currentTime < todayHours.buka) {
       // Opens later today
       nextOpenDay = todayHours.indo
       nextOpenTime = todayHours.buka
     } else {
-      // Check tomorrow onwards
+      // Check tomorrow onwards, skip libur days
       for (let i = 1; i <= 7; i++) {
         const checkDay = dayNames[(now.getDay() + i) % 7]
         const h = jamBuka[checkDay]
-        if (h && h.buka) {
+        if (h && h.buka && !h.libur) {
           nextOpenDay = h.indo
           nextOpenTime = h.buka
           break
@@ -147,6 +148,22 @@ async function calculateStatusFromFiles() {
     upcomingSchedule = futureSchedules[0]
   }
 
+  // ── Effective close time (adjusted for today's closure schedules) ──
+  let effectiveClose = isLibur ? '' : (todayHours?.tutup || '')
+  if (isOpen && effectiveClose) {
+    const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    for (const s of schedules) {
+      if (s.start) {
+        const schedDate = s.start.substring(0, 10)
+        const schedTime = s.start.substring(11, 16)
+        // Schedule starts today, hasn't started yet, and is before normal closing
+        if (schedDate === todayDate && schedTime > currentTime && schedTime < effectiveClose) {
+          effectiveClose = schedTime
+        }
+      }
+    }
+  }
+
   return {
     isOpen,
     isTemporarilyClosed,
@@ -154,7 +171,7 @@ async function calculateStatusFromFiles() {
     upcomingSchedule,
     nextOpenDay,
     nextOpenTime,
-    closeTime: todayHours?.tutup || '',
+    closeTime: effectiveClose,
     currentDayIndo: dayIndo[now.getDay()],
   }
 }

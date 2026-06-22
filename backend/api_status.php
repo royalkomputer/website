@@ -25,15 +25,9 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
+require_once __DIR__ . '/cors.php';
+handleCORS();
 
 require_once __DIR__ . '/config.php';
 
@@ -53,7 +47,9 @@ $jam_buka = loadJamOperasional();
 $is_open = false;
 $hari_ini = $jam_buka[$hari_inggris] ?? null;
 
-if ($hari_ini && !$tutup_sementara) {
+$is_libur = ($hari_ini['libur'] ?? false);
+
+if ($hari_ini && !$tutup_sementara && !$is_libur) {
     $is_open = ($jam_sekarang >= $hari_ini['buka'] && $jam_sekarang <= $hari_ini['tutup']);
 }
 
@@ -92,7 +88,7 @@ if (!empty($future_schedules)) {
 $next_buka = '';
 $next_hari = '';
 
-if (!$is_open && $hari_ini && !$tutup_sementara) {
+if (!$is_open && $hari_ini && !$tutup_sementara && !$is_libur) {
     if ($jam_sekarang < $hari_ini['buka']) {
         // Opens later today
         $next_buka = $hari_ini['buka'];
@@ -111,7 +107,7 @@ if (empty($next_buka)) {
         $check_day = $day_names[$check_idx];
         $h = $jam_buka[$check_day] ?? null;
 
-        if ($h && !empty($h['buka'])) {
+        if ($h && !empty($h['buka']) && !($h['libur'] ?? false)) {
             $next_buka = $h['buka'];
             $next_hari = $h['indo'];
             break;
@@ -119,7 +115,29 @@ if (empty($next_buka)) {
     }
 }
 
-// ── 6. Build response ──
+// ── 6. Effective close time (adjusted for today's closure schedules) ──
+$effective_close = $hari_ini['tutup'] ?? '';
+$today_date = date('Y-m-d');
+
+if ($is_open && !empty($effective_close) && !$is_libur) {
+    foreach ($schedules as $s) {
+        if (!empty($s['start'])) {
+            $sched_date = substr($s['start'], 0, 10);
+            $sched_time = substr($s['start'], 11, 5);
+
+            if ($sched_date === $today_date && $sched_time > $jam_sekarang && $sched_time < $effective_close) {
+                $effective_close = $sched_time;
+            }
+        }
+    }
+} elseif ($is_libur) {
+    $effective_close = '';
+}
+
+// ── 8. Tagline toko ──
+$tagline = loadTagline();
+
+// ── 7. Build response ──
 $response = [
     'isOpen'               => $is_open,
     'isTemporarilyClosed'  => $tutup_sementara,
@@ -127,11 +145,12 @@ $response = [
     'upcomingSchedule'     => $upcoming_schedule,
     'nextOpenDay'          => $next_hari,
     'nextOpenTime'         => $next_buka,
-    'closeTime'            => ($hari_ini['tutup'] ?? ''),
+    'closeTime'            => $effective_close,
     'currentDay'           => $hari_inggris,
     'currentDayIndo'       => $hari_ini['indo'] ?? '',
     'currentTime'          => $jam_sekarang,
     'hours'                => $jam_buka,
+    'tagline'              => $tagline,
     'timestamp'            => date('c'),
 ];
 

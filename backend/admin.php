@@ -16,7 +16,8 @@ $jam_buka     = loadJamOperasional();
 $hari_inggris = date('l');
 $jam_sekarang = date('H:i');
 $hari_ini_jam = $jam_buka[$hari_inggris];
-$is_open_system = ($jam_sekarang >= $hari_ini_jam['buka'] && $jam_sekarang <= $hari_ini_jam['tutup']);
+$hari_libur = !empty($hari_ini_jam['libur']);
+$is_open_system = !$hari_libur && ($jam_sekarang >= $hari_ini_jam['buka'] && $jam_sekarang <= $hari_ini_jam['tutup']);
 
 if ($current_status === 'tutup') {
     $notif_text  = "Pelanggan saat ini melihat: TOKO TUTUP SEMENTARA (Manual)";
@@ -56,6 +57,7 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
     <style>
         ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#0254A3;border-radius:4px}
         .tab-btn.active{background:#0254A3;color:#fff;box-shadow:0 2px 8px #0254a355}.tab-btn{transition:all .2s}
+        @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
@@ -83,16 +85,18 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
     </div>
 </nav>
 
+<!-- NOTIFICATION TOAST -->
+<div id="notification-bar" class="fixed top-16 left-0 right-0 z-[100] transition-all duration-300 -translate-y-full opacity-0 pointer-events-none">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <div id="notification-content" class="mt-4 px-5 py-3 rounded-xl shadow-lg border flex items-center gap-3 text-sm font-semibold"></div>
+    </div>
+</div>
+
 <main class="container mx-auto px-4 py-8 max-w-7xl flex-grow">
 
-    <div class="mb-6 flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-4">
-        <div>
-            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard Admin</h2>
-            <p class="text-slate-500 text-sm mt-1">Kelola katalog produk, jam operasional, dan akun admin.</p>
-        </div>
-        <div class="text-sm font-semibold bg-white border border-slate-200 px-4 py-2 rounded-lg shadow-sm">
-            Total Produk: <span id="total-count" class="text-astra-700">0</span>
-        </div>
+    <div class="mb-6 border-b border-slate-200 pb-4">
+        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard Admin</h2>
+        <p class="text-slate-500 text-sm mt-1">Kelola katalog produk, jam operasional, dan akun admin.</p>
     </div>
 
     <!-- TAB NAV -->
@@ -118,11 +122,32 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
 
     <!-- PANEL KATALOG -->
     <div id="panel-katalog">
+
+        <!-- TAGLINE EDITOR -->
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
-            <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-store"></i> Katalog Produk</h3>
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-quote-right text-astra-700"></i> Tagline Toko</h4>
+            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di halaman utama toko, di bawah judul &quot;Solusi Hardware di Royal Komputer&quot;.</p>
+            <div class="flex gap-3 items-start">
+                <textarea id="tagline-input" rows="2"
+                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                    placeholder="Tulis tagline toko..."><?php echo htmlspecialchars(loadTagline()); ?></textarea>
+                <button type="button" onclick="saveTagline()" id="btn-simpan-tagline"
+                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan
+                </button>
+            </div>
+            <span id="tagline-feedback" class="text-sm font-semibold hidden mt-2"></span>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <!-- FILTER + HEADER KATALOG MENYATU -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-store text-astra-700"></i> Katalog Produk</h3>
+                <div class="text-sm font-semibold bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                    Total: <span id="total-count" class="text-astra-700">0</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Cari Produk / Kode</label>
                 <div class="relative">
@@ -151,6 +176,7 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
                 </select>
             </div>
         </div>
+    </div>
 
         <div id="loading-spinner" class="py-12 flex flex-col items-center justify-center gap-3">
             <i class="fa-solid fa-circle-notch text-3xl text-astra-700 animate-spin"></i>
@@ -194,22 +220,37 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
                 <?php foreach ($urutan_hari as $hari):
                     $d = $jam_buka[$hari];
                     $today = ($hari === $hari_inggris);
+                    $is_libur = $d['libur'] ?? false;
                 ?>
-                <div class="grid grid-cols-[130px_1fr_1fr] gap-3 items-center p-3 rounded-lg <?php echo $today ? 'bg-astra-50 border border-astra-200' : 'bg-slate-50 border border-slate-100'; ?>">
+                <div class="grid grid-cols-[130px_auto_1fr_1fr] gap-3 items-center p-3 rounded-lg <?php echo $today ? 'bg-astra-50 border border-astra-200' : 'bg-slate-50 border border-slate-100'; ?>">
                     <div class="font-semibold text-sm <?php echo $today ? 'text-astra-700' : 'text-slate-700'; ?> flex items-center gap-2">
                         <?php if ($today): ?><span class="w-2 h-2 bg-astra-500 rounded-full"></span><?php endif; ?>
                         <?php echo $d['indo']; ?>
                         <?php if ($today): ?><span class="text-[10px] text-astra-500 font-bold">(Hari ini)</span><?php endif; ?>
                     </div>
                     <div>
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none <?php echo $is_super ? '' : 'pointer-events-none opacity-60'; ?>">
+                            <input type="checkbox" name="libur_<?php echo $hari; ?>" value="1"
+                                <?php echo $is_libur ? 'checked' : ''; ?>
+                                <?php echo $is_super ? '' : 'disabled'; ?>
+                                onchange="toggleLibur(this, '<?php echo $hari; ?>')"
+                                class="w-4 h-4 text-red-500 border-slate-300 rounded focus:ring-red-500 cursor-pointer">
+                            <span class="text-xs font-bold text-red-500">Libur</span>
+                        </label>
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Buka</label>
                         <input type="time" name="buka_<?php echo $hari; ?>" value="<?php echo $d['buka']; ?>" <?php echo $is_super ? '' : 'disabled'; ?>
-                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                            id="buka-<?php echo $hari; ?>"
+                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 <?php echo $is_libur ? 'opacity-40' : ''; ?>"
+                            <?php echo $is_libur ? 'disabled' : ''; ?>>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tutup</label>
                         <input type="time" name="tutup_<?php echo $hari; ?>" value="<?php echo $d['tutup']; ?>" <?php echo $is_super ? '' : 'disabled'; ?>
-                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                            id="tutup-<?php echo $hari; ?>"
+                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 <?php echo $is_libur ? 'opacity-40' : ''; ?>"
+                            <?php echo $is_libur ? 'disabled' : ''; ?>>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -394,6 +435,23 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
     </div>
 </div>
 
+<!-- KONFIRMASI MODAL -->
+<div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-sm shadow-2xl flex flex-col overflow-hidden animate-fade-in" style="animation:fadeIn .2s ease-out">
+        <div class="p-6 text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
+                <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Konfirmasi</h3>
+            <p id="confirm-message" class="text-sm text-slate-600"></p>
+        </div>
+        <div class="px-6 pb-6 flex gap-3 justify-center">
+            <button id="confirm-cancel" type="button" class="px-5 py-2.5 border border-slate-300 text-slate-600 rounded-lg text-sm font-bold hover:bg-slate-50 w-full">Batal</button>
+            <button id="confirm-ok" type="button" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold w-full">Ya, Hapus</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL PREVIEW FOTO -->
 <div id="photo-preview-modal" onclick="if(event.target.id==='photo-preview-modal') closePhotoPreview()" class="fixed inset-0 bg-slate-900/70 z-50 hidden items-center justify-center p-4">
     <div class="relative bg-slate-900 rounded-3xl overflow-hidden shadow-2xl max-w-3xl w-full mx-auto">
@@ -454,6 +512,67 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
 const IS_SUPER = <?php echo $is_super ? 'true' : 'false'; ?>;
 const CURRENT_ADMIN_ID = "<?php echo $current_admin['id']; ?>";
 
+// SCROLL POSITION SAVER
+let _savedScrollY = 0;
+
+// KONFIRMASI MODAL
+function showConfirmModal(message, onConfirm) {
+    const modal = document.getElementById('confirm-modal');
+    document.getElementById('confirm-message').textContent = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+
+    function cleanup() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        okBtn.removeEventListener('click', handleOk);
+        cancelBtn.removeEventListener('click', handleCancel);
+    }
+
+    function handleOk() {
+        cleanup();
+        onConfirm();
+    }
+
+    function handleCancel() {
+        cleanup();
+    }
+
+    okBtn.addEventListener('click', handleOk);
+    cancelBtn.addEventListener('click', handleCancel);
+
+    // Close on backdrop click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) handleCancel();
+    }, { once: true });
+}
+
+// NOTIFIKASI INLINE
+function showNotification(message, type = 'success') {
+    const bar = document.getElementById('notification-bar');
+    const content = document.getElementById('notification-content');
+    const config = {
+        success: { bg: 'bg-green-50 text-green-700 border-green-200', icon: 'fa-circle-check' },
+        error:   { bg: 'bg-red-50 text-red-700 border-red-200',   icon: 'fa-circle-xmark' },
+        info:    { bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: 'fa-circle-info' },
+    };
+    const cfg = config[type] || config.success;
+    content.className = cfg.bg + ' px-5 py-3 rounded-xl shadow-lg border flex items-center gap-3 text-sm font-semibold';
+    content.innerHTML = `<i class="fa-solid ${cfg.icon} text-lg"></i> ${message} <button onclick="hideNotification()" class="ml-auto text-current opacity-60 hover:opacity-100"><i class="fa-solid fa-xmark text-lg"></i></button>`;
+    bar.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+    bar.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+    clearTimeout(bar._timeout);
+    bar._timeout = setTimeout(hideNotification, 4000);
+}
+function hideNotification() {
+    const bar = document.getElementById('notification-bar');
+    bar.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+    bar.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+}
+
 // TAB
 function showPanel(name){
     const panels = ['katalog','jam','schedule','admin','profil'];
@@ -483,6 +602,7 @@ window.addEventListener('DOMContentLoaded', () => { fetchProducts(); if (typeof 
     showPanel('katalog'); });
 
 function fetchProducts() {
+    _savedScrollY = window.scrollY;
     document.getElementById('loading-spinner').style.display='flex';
     document.getElementById('table-container').classList.add('hidden');
     fetch('api_produk.php').then(r=>r.json()).then(data => {
@@ -490,6 +610,7 @@ function fetchProducts() {
         allProducts=data; applyAdminFilters();
         document.getElementById('loading-spinner').style.display='none';
         document.getElementById('table-container').classList.remove('hidden');
+        requestAnimationFrame(() => window.scrollTo(0, _savedScrollY));
     }).catch(()=>{
         document.getElementById('loading-spinner').innerHTML='<p class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Gagal terhubung ke database.</p>';
     });
@@ -649,7 +770,7 @@ function updateProductImagesInMemory(id, images) {
 }
 
 function deleteSavedPhoto(idx) {
-    if(!confirm('Hapus foto ini permanen?')) return;
+    showConfirmModal('Hapus foto ini permanen?', function() {
     const fileItem = currentEditImages[idx];
     if (fileItem.type === 'existing') {
         const formData = new FormData();
@@ -658,17 +779,25 @@ function deleteSavedPhoto(idx) {
         formData.append('file', fileItem.src);
         fetch('api_manage_photos.php', { method:'POST', body:formData })
           .then(r=>r.json()).then(data=>{
-              if(data.success){
-                  currentEditImages.splice(idx, 1);
-                  renderSavedPhotos(currentEditId, currentEditImages);
-                  updateProductImagesInMemory(currentEditId, currentEditImages.filter(i=>i.type==='existing').map(i=>i.src));
-                  applyAdminFilters();
-              } else alert(data.message);
-          }).catch(() => alert('Terjadi kesalahan koneksi.'));
+              // Hapus dari array terlepas dari hasil, agar tidak ada referensi stale
+              currentEditImages.splice(idx, 1);
+              renderSavedPhotos(currentEditId, currentEditImages);
+              updateProductImagesInMemory(currentEditId, currentEditImages.filter(i=>i.type==='existing').map(i=>i.src));
+              applyAdminFilters();
+
+              if(data.success && !data.warning){
+                  showNotification('Foto berhasil dihapus!', 'success');
+              } else if(data.success && data.warning){
+                  showNotification('Foto sudah tidak tersedia dan telah dihapus dari tampilan.', 'info');
+              } else {
+                  showNotification(data.message, 'error');
+              }
+          }).catch(() => showNotification('Terjadi kesalahan koneksi.', 'error'));
     } else {
         currentEditImages.splice(idx, 1);
         renderSavedPhotos(currentEditId, currentEditImages);
     }
+    });
 }
 
 function moveSavedPhoto(idx, dir) {
@@ -677,21 +806,11 @@ function moveSavedPhoto(idx, dir) {
     currentEditImages[idx] = currentEditImages[idx+dir];
     currentEditImages[idx+dir] = temp;
     renderSavedPhotos(currentEditId, currentEditImages);
-
-    const existingItems = currentEditImages.filter(i => i.type === 'existing');
-    if (existingItems.length === currentEditImages.length) {
-        const formData = new FormData();
-        formData.append('action', 'reorder');
-        formData.append('id', currentEditId);
-        formData.append('files', JSON.stringify(existingItems.map(i => i.src)));
-        fetch('api_manage_photos.php', { method:'POST', body:formData })
-          .then(r=>r.json()).then(data=>{
-              if(!data.success) alert(data.message);
-              else {
-                  updateProductImagesInMemory(currentEditId, existingItems.map(i=>i.src));
-                  applyAdminFilters();
-              }
-          }).catch(() => alert('Terjadi kesalahan koneksi.'));
+    // Update table thumbnail & memory immediately
+    const orderSrcs = currentEditImages.filter(i => i.type === 'existing').map(i => i.src);
+    if (orderSrcs.length > 0 && currentEditImages.every(i => i.type === 'existing')) {
+        updateProductImagesInMemory(currentEditId, orderSrcs);
+        applyAdminFilters();
     }
 }
 
@@ -727,13 +846,48 @@ function submitForm(event){
 
     fetch('update_produk.php',{method:'POST',body:formData})
         .then(r=>r.json()).then(data=>{
-            if(data.success){alert('Data berhasil diperbarui!');closeEditModal();fetchProducts();}
-            else alert('Error: '+data.message);
-        }).catch(()=>alert('Terjadi kesalahan jaringan.'))
+            if(data.success && !data.warning){showNotification('Data berhasil diperbarui!', 'success');closeEditModal();fetchProducts();}
+            else if(data.success && data.warning){showNotification(data.message, 'info');closeEditModal();fetchProducts();}
+            else showNotification('Error: '+data.message, 'error');
+        }).catch(()=>showNotification('Terjadi kesalahan jaringan.', 'error'))
         .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan';});
 }
 
+// TAGLINE
+function saveTagline(){
+    const btn=document.getElementById('btn-simpan-tagline');
+    const fb=document.getElementById('tagline-feedback');
+    const tagline=document.getElementById('tagline-input').value.trim();
+    if(!tagline){ showNotification('Tagline tidak boleh kosong.', 'error'); return; }
+    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+    fb.classList.add('hidden');
+    const fd=new FormData();
+    fd.append('action','save_tagline');
+    fd.append('tagline',tagline);
+    fetch('update_admin.php',{method:'POST',body:fd})
+        .then(r=>r.json()).then(data=>{
+            showNotification(data.message, data.success ? 'success' : 'error');
+        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
+        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan';});
+}
+
 // JAM OPERASIONAL
+function toggleLibur(checkbox, day) {
+    const bukaInput = document.getElementById('buka-' + day);
+    const tutupInput = document.getElementById('tutup-' + day);
+    if (checkbox.checked) {
+        bukaInput.disabled = true;
+        bukaInput.classList.add('opacity-40');
+        tutupInput.disabled = true;
+        tutupInput.classList.add('opacity-40');
+    } else {
+        bukaInput.disabled = false;
+        bukaInput.classList.remove('opacity-40');
+        tutupInput.disabled = false;
+        tutupInput.classList.remove('opacity-40');
+    }
+}
+
 function submitJam(){
     const btn=document.getElementById('btn-simpan-jam');
     const fb=document.getElementById('jam-feedback');
@@ -829,10 +983,11 @@ function submitAdmin(){
 }
 
 function hapusAdmin(id,username){
-    if(!confirm(`Hapus admin "@${username}"?\nTindakan ini tidak dapat dibatalkan.`)) return;
+    showConfirmModal(`Hapus admin "@${username}"? Tindakan ini tidak dapat dibatalkan.`, function() {
     const fd=new FormData(); fd.append('action','hapus_admin'); fd.append('target_id',id);
     fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
-        if(data.success) loadAdminList(); else alert('Gagal: '+data.message);
+        if(data.success) loadAdminList(); else showNotification('Gagal: '+data.message, 'error');
+    });
     });
 }
 
@@ -878,7 +1033,7 @@ function loadSchedules(){
 
 function editSchedule(id){
     const s = _lastSchedules.find(x=>x.id===id);
-    if(!s) return alert('Jadwal tidak ditemukan. Muat ulang daftar.');
+    if(!s) return showNotification('Jadwal tidak ditemukan. Muat ulang daftar.', 'error');
     _editingScheduleId = id;
     document.getElementById('sched-start-date').value = s.start.split(' ')[0];
     document.getElementById('sched-start-time').value = s.start.split(' ')[1] || '00:00';
@@ -895,7 +1050,7 @@ function submitSchedule(){
   const ed=document.getElementById('sched-end-date').value;
   const et=document.getElementById('sched-end-time').value;
   const note=document.getElementById('sched-note').value;
-  if(!sd||!st||!ed||!et){ alert('Isi tanggal dan waktu mulai serta selesai.'); return; }
+  if(!sd||!st||!ed||!et){ showNotification('Isi tanggal dan waktu mulai serta selesai.', 'error'); return; }
   const fd=new FormData();
   const btn=document.getElementById('btn-add-schedule');
   if(_editingScheduleId){
@@ -908,56 +1063,30 @@ function submitSchedule(){
   fd.append('note',note);
   btn.disabled=true; btn.textContent='Menyimpan...';
   fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
-    alert(data.message);
+    showNotification(data.message, data.success ? 'success' : 'error');
     if(data.success){ document.getElementById('sched-start-date').value=''; document.getElementById('sched-start-time').value=''; document.getElementById('sched-end-date').value=''; document.getElementById('sched-end-time').value=''; document.getElementById('sched-note').value=''; _editingScheduleId=null; btn.textContent='Tambah Jadwal Tutup'; loadSchedules(); }
-  }).catch(()=>{alert('Gagal. Cek koneksi.');}).finally(()=>{btn.disabled=false; if(!_editingScheduleId) btn.textContent='Tambah Jadwal Tutup';});
+  }).catch(()=>{showNotification('Gagal. Cek koneksi.', 'error');}).finally(()=>{btn.disabled=false; if(!_editingScheduleId) btn.textContent='Tambah Jadwal Tutup';});
 }
 
 function deleteSchedule(id){
-  if(!confirm('Hapus jadwal ini?')) return;
-  const fd=new FormData(); fd.append('action','delete_schedule'); fd.append('id',id);
-  fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{ alert(data.message); if(data.success) loadSchedules(); }).catch(()=>alert('Gagal. Cek koneksi.'));
+  showConfirmModal('Hapus jadwal ini?', function() {
+    const fd=new FormData(); fd.append('action','delete_schedule'); fd.append('id',id);
+    fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{ showNotification(data.message, data.success ? 'success' : 'error'); if(data.success) loadSchedules(); }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'));
+  });
 }
 
-function setManualStatus(statusParam, sourceSelectId){
-    // statusParam optional; if not provided read from schedule/manual selectors
-    let status = statusParam || null;
-    if(!status){
-        const s1 = document.getElementById('manual-status');
-        const s2 = document.getElementById('operational-manual-status');
-        if(s1 && s1.value) status = s1.value;
-        if(s2 && s2.value) status = s2.value;
-    }
-    if(!status) status = 'buka';
+function setManualStatus(){
+    let status = 'buka';
+    const select = document.getElementById('manual-status');
+    if(select && select.value) status = select.value;
 
-    // Disable related buttons
-    const btn1 = document.getElementById('btn-set-manual');
-    const btn2 = document.getElementById('btn-set-manual-panel');
-    if(btn1) { btn1.disabled = true; btn1.textContent = 'Menyimpan...'; }
-    if(btn2) { btn2.disabled = true; btn2.textContent = 'Menyimpan...'; }
+    const btn = document.getElementById('btn-set-manual');
+    if(btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
 
     const fd=new FormData(); fd.append('action','set_manual_status'); fd.append('status',status);
     fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
-        alert(data.message);
-        if(data.success){
-            // Update notif badge immediately
-            const notif = document.getElementById('operational-notif');
-            if(notif){
-                if(status === 'tutup'){
-                    notif.className = 'bg-red-100 text-red-700 border-red-200 text-xs font-bold px-3 py-1.5 rounded inline-flex items-center gap-2 border';
-                    notif.innerHTML = '<i class="fa-solid fa-store-slash"></i> Pelanggan saat ini melihat: TOKO TUTUP SEMENTARA (Manual)';
-                } else {
-                    notif.className = 'bg-green-100 text-green-700 border-green-200 text-xs font-bold px-3 py-1.5 rounded inline-flex items-center gap-2 border';
-                    notif.innerHTML = '<i class="fa-solid fa-store"></i> Pelanggan saat ini melihat: TOKO BUKA (Sesuai Jam Operasional)';
-                }
-            }
-            // Sync selects if present
-            const sManual = document.getElementById('manual-status');
-            const sOper = document.getElementById('operational-manual-status');
-            if(sManual) sManual.value = status;
-            if(sOper) sOper.value = status;
-        }
-    }).catch(()=>alert('Gagal. Cek koneksi.')).finally(()=>{ if(btn1){btn1.disabled=false;btn1.textContent='Simpan Status Manual';} if(btn2){btn2.disabled=false;btn2.textContent='Simpan';} });
+        showNotification(data.message, data.success ? 'success' : 'error');
+    }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error')).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='Simpan Status Manual';} });
 }
 
 function escHtml(str){

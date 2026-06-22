@@ -19,7 +19,7 @@ export function StoreStatus(status) {
     </header>`
   }
 
-  const { isOpen, isTemporarilyClosed, upcomingSchedule, closeTime, nextOpenDay, nextOpenTime } = status
+  const { isOpen, isTemporarilyClosed, upcomingSchedule, closeTime, nextOpenDay, nextOpenTime, tagline } = status
 
   // Determine status badge
   let badgeHTML = ''
@@ -55,7 +55,7 @@ export function StoreStatus(status) {
     ${badgeHTML}
     ${scheduleHTML}
     <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Solusi Hardware di <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">Royal Komputer</span></h1>
-    <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light">Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.</p>
+    <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light">${tagline || 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.'}</p>
   </div>
 </header>`
 }

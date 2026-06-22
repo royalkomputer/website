@@ -19,7 +19,9 @@ $jam_buka = loadJamOperasional();
 $is_open = false;
 $hari_ini = $jam_buka[$hari_inggris];
 
-if ($jam_sekarang >= $hari_ini['buka'] && $jam_sekarang <= $hari_ini['tutup']) {
+$is_libur = !empty($hari_ini['libur']);
+
+if (!$is_libur && $jam_sekarang >= $hari_ini['buka'] && $jam_sekarang <= $hari_ini['tutup']) {
     $is_open = true;
 }
 
@@ -40,19 +42,33 @@ $future_schedules = array_filter($schedules, function($s) use ($now_dt){ return 
 usort($future_schedules, function($a,$b){ return strcmp($a['start'],$b['start']); });
 if (!empty($future_schedules)) $upcomingSchedule = $future_schedules[0];
 
+// Baca tagline toko
+$tagline_file = 'tagline.json';
+$tagline = 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.';
+if (file_exists($tagline_file)) {
+    $tagline_data = json_decode(file_get_contents($tagline_file), true);
+    if (!empty($tagline_data['tagline'])) $tagline = $tagline_data['tagline'];
+}
+
 // Menentukan jam buka selanjutnya jika sedang tutup
 $next_buka = '';
 $next_hari = '';
 if (!$is_open) {
-    if ($jam_sekarang < $hari_ini['buka']) {
+    if (!$is_libur && $jam_sekarang < $hari_ini['buka']) {
         // Belum buka hari ini
         $next_buka = $hari_ini['buka'];
         $next_hari = $hari_ini['indo'];
     } else {
-        // Sudah tutup hari ini, cek besok
-        $besok_inggris = date('l', strtotime('+1 day'));
-        $next_buka = $jam_buka[$besok_inggris]['buka'];
-        $next_hari = $jam_buka[$besok_inggris]['indo'];
+        // Sudah tutup hari ini, cek besok (lewati hari libur)
+        for ($i = 1; $i <= 7; $i++) {
+            $check_day = date('l', strtotime("+$i day"));
+            $h = $jam_buka[$check_day] ?? null;
+            if ($h && !empty($h['buka']) && empty($h['libur'])) {
+                $next_buka = $h['buka'];
+                $next_hari = $h['indo'];
+                break;
+            }
+        }
     }
 }
 ?>
@@ -194,7 +210,7 @@ if (!$is_open) {
             <?php endif; ?>
 
             <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Solusi Hardware di <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">Royal Komputer</span></h1>
-            <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light">Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.</p>
+            <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light"><?php echo htmlspecialchars($tagline); ?></p>
         </div>
     </header>
 
@@ -308,7 +324,8 @@ if (!$is_open) {
                     foreach ($jam_buka as $hari => $waktu) {
                         $is_today = ($hari == $hari_inggris);
                         $highlight = $is_today ? 'text-astra-400 font-bold bg-slate-900 rounded border border-slate-800' : '';
-                        $buka_tutup = str_replace(':', '.', $waktu['buka']) . '–' . str_replace(':', '.', $waktu['tutup']);
+                        $is_libur_item = !empty($waktu['libur']);
+                        $buka_tutup = $is_libur_item ? '<span class="text-red-400 font-bold">Libur</span>' : str_replace(':', '.', $waktu['buka']) . '–' . str_replace(':', '.', $waktu['tutup']);
                         
                         echo "<div class='flex justify-between py-1 px-2 mb-1 {$highlight}'>";
                         echo "<span>{$waktu['indo']}</span>";

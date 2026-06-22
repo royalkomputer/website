@@ -18,7 +18,8 @@ export function Footer(hours) {
       if (!h) return ''
       const isToday = day === currentDay
       const highlight = isToday ? 'text-astra-400 font-bold bg-slate-900 rounded border border-slate-800' : ''
-      const times = `${h.buka.replace(':', '.')}–${h.tutup.replace(':', '.')}`
+      const isLibur = h.libur === true
+      const times = isLibur ? '<span class="text-red-400 font-bold">Libur</span>' : `${h.buka.replace(':', '.')}–${h.tutup.replace(':', '.')}`
       return `<div class="flex justify-between py-1 px-2 mb-1 ${highlight}">
         <span>${h.indo || day}</span>
         <span>${times}</span>

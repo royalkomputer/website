@@ -2,7 +2,11 @@
 header('Content-Type: application/json');
 require_once 'config.php';
 
-requireLogin();
+// Check auth: return JSON error instead of redirect (consistent with other API endpoints)
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    echo json_encode(["success" => false, "message" => "Akses ditolak. Silakan login terlebih dahulu."]);
+    exit;
+}
 
 $action       = $_POST['action'] ?? '';
 $current      = getCurrentAdmin();
@@ -148,6 +152,8 @@ if ($action === 'get_schedules') {
 if ($action === 'set_manual_status') {
     $status = ($_POST['status'] ?? 'buka') === 'tutup' ? 'tutup' : 'buka';
     if (file_put_contents(STATUS_FILE, $status) !== false) {
+        // Sync ke frontend untuk immediate update
+        @file_put_contents(__DIR__ . '/../frontend/status_toko.txt', $status);
         echo json_encode(['success'=>true,'message'=>'Status manual berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan status.']);
@@ -230,6 +236,28 @@ if ($action === 'delete_schedule') {
     $schedules = array_values(array_filter(loadSchedules(), function($s) use($id){ return ($s['id'] ?? '') !== $id; }));
     if (saveSchedules($schedules)) echo json_encode(['success'=>true,'message'=>'Jadwal berhasil dihapus.']);
     else echo json_encode(['success'=>false,'message'=>'Gagal menghapus jadwal.']);
+    exit;
+}
+
+// -------------------------------------------------------
+// ACTION: save_tagline / get_tagline
+// -------------------------------------------------------
+if ($action === 'save_tagline') {
+    $tagline = trim($_POST['tagline'] ?? '');
+    if (empty($tagline)) {
+        echo json_encode(['success'=>false,'message'=>'Tagline tidak boleh kosong.']);
+        exit;
+    }
+    if (saveTagline($tagline)) {
+        echo json_encode(['success'=>true,'message'=>'Tagline berhasil disimpan.']);
+    } else {
+        echo json_encode(['success'=>false,'message'=>'Gagal menyimpan tagline.']);
+    }
+    exit;
+}
+
+if ($action === 'get_tagline') {
+    echo json_encode(['success'=>true, 'data' => ['tagline' => loadTagline()]]);
     exit;
 }
 

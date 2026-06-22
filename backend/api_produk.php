@@ -66,16 +66,17 @@ while($row = pg_fetch_assoc($result)) {
     
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
     
+    $upload_dir = __DIR__ . "/uploads/";
     $images = [];
     $matched_files = [];
     foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-        $matches = glob("uploads/" . $safe_kode . "_*." . $ext);
+        $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
         if ($matches) $matched_files = array_merge($matched_files, $matches);
     }
     sort($matched_files);
     
     foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-        $legacy_file = "uploads/" . $safe_kode . "." . $ext;
+        $legacy_file = $upload_dir . $safe_kode . "." . $ext;
         if (file_exists($legacy_file)) {
             array_unshift($matched_files, $legacy_file);
             break;
@@ -84,7 +85,7 @@ while($row = pg_fetch_assoc($result)) {
     
     if (!empty($matched_files)) {
         foreach ($matched_files as $file) {
-            $images[] = $file . "?v=" . filemtime($file);
+            $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;

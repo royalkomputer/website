@@ -71,10 +71,12 @@ IPOS writes inventory ──► sync agent queries DB ──► writes cache_pro
     ▼                                                    ▼
   tbl_item ──► git_push.bat ──► git push ──► Netlify auto-deploys
   tbl_itemstok                                         │
-       │                                        frontend/uploads/
-       ▼                                               ▲
+        │                                        frontend/uploads/
+        ▼                                               ▲
   tbl_web_deskripsi ──► admin edits via backend ────────┘
-                              (Render)
+       ───► immediate sync to frontend/ (jam, schedules,
+             tagline, status, photos, cache)
+                               (Render)
 ```
 
 ---
@@ -88,17 +90,31 @@ IPOS writes inventory ──► sync agent queries DB ──► writes cache_pro
 | 4-folder monorepo structure | ✅ Complete |
 | `database/` — schema + migrations | ✅ Complete (ready for Neon) |
 | `frontend/` — PHP fallback files migrated | ✅ Complete |
-| `frontend/` — Vite scaffolded | ✅ Complete (placeholder only) |
-| `frontend/` — Components built (JS) | ⬜ Not started |
+| `frontend/` — Vite scaffolded | ✅ Complete |
+| `frontend/` — Components built (JS) | ✅ Complete |
+| `frontend/` — Build (`npm run build`) | ✅ Verified (13 modules, 30KB JS + 32KB CSS) |
 | `backend/` — All admin files migrated | ✅ Complete |
 | `backend/` — config with data/ paths + env vars | ✅ Complete |
 | `backend/` — render.yaml blueprint | ✅ Complete |
 | `backend/` — health check endpoint | ✅ Complete |
-| `backend/` — CORS helper | ⬜ Not started |
-| `backend/` — New API endpoints (status, schedules) | ⬜ Not started |
+| `backend/` — CORS helper (`cors.php`) | ✅ Complete |
+| `backend/` — API endpoints (status, schedules) | ✅ Complete |
+| `backend/` — API Test Suite | ✅ Complete (34/34 passing) |
+| `backend/` — Auth consistency (JSON errors) | ✅ Complete |
+| `backend/` — Scroll preservation (admin) | ✅ Complete |
+| `backend/` — Confirmation modal (centered) | ✅ Complete |
+| `backend/` — Operating hours "Libur" day | ✅ Complete |
+| `backend/` — Editable tagline | ✅ Complete |
+| `backend/` — Inline notification toast (replace alert) | ✅ Complete |
+| `backend/` — Cache invalidation for photo delete/reorder | ✅ Complete |
+| `backend/` — Offline/DB-less product updates | ✅ Complete |
+| `backend/` — Frontend sync for all admin operations | ✅ Complete |
+| `frontend/` — Effective close time (schedules) | ✅ Complete |
+| `frontend/` — Tagline display | ✅ Complete |
+| `frontend/` — Immediate config sync from admin | ✅ Complete |
 | `sync/` — Headless sync agent | ✅ Complete |
 | `sync/` — git_push.bat | ✅ Complete |
-| `frontend/netlify.toml` — Deploy config | ✅ Complete (PHP mode) |
+| `frontend/netlify.toml` — Deploy config (Vite mode) | ✅ Complete |
 | Cloud deployment (Neon → Render → Netlify) | ⬜ Not started |
 
 ---
@@ -163,14 +179,15 @@ frontend/
 ├── package.json            # vite ^6, tailwindcss ^4, @tailwindcss/vite ^4
 ├── netlify.toml            # Currently: PHP mode (publish = ".")
 ├── src/
-│   ├── main.js             # Placeholder: renders "Memuat..."
+│   ├── main.js             # Full app: state management, filtering, sorting
 │   └── style.css           # Tailwind imports + astra color theme
 ├── config.php              # DB config (for PHP fallback)
 ├── api_produk.php          # Product API (for PHP fallback)
-├── cache_produk.json       # Product cache (written by sync agent)
-├── jam_operasional.json    # Operating hours (for PHP fallback)
-├── jadwal_tutup.json       # Closure schedules
-├── status_toko.txt         # Manual store status
+├── cache_produk.json       # Product cache (written by sync agent + admin)
+├── jam_operasional.json    # Operating hours (synced from admin)
+├── jadwal_tutup.json       # Closure schedules (synced from admin)
+├── tagline.json            # Tagline toko (synced from admin)
+├── status_toko.txt         # Manual store status (synced from admin)
 ├── dist/                   # Vite build output (gitignored)
 │   └── index.html
 ├── uploads/                # Product photos (synced from backend)
@@ -182,14 +199,15 @@ frontend/
 
 | Item | Status | Details |
 |------|--------|---------|
-| `package.json` | ✅ Done | vite, tailwindcss, @tailwindcss/vite |
-| `vite.config.js` | ✅ Done | Basic Vite + Tailwind config |
+| `package.json` | ✅ Done | vite ^6, tailwindcss ^4, @tailwindcss/vite ^4 |
+| `vite.config.js` | ✅ Done | Proxy :5173 → :8081 for all API + static file paths |
 | `index.html` | ✅ Done | Font Awesome, Google Fonts, favicon |
 | `src/style.css` | ✅ Done | `@import "tailwindcss"` + astra palette |
-| `src/main.js` | ⚡ Placeholder | Just renders "Memuat..." |
-| Components | ⬜ Not started | Navbar, ProductGrid, Modal, etc. |
-| `vite.config.js` proxy | ⬜ Not started | Need proxy to backend PHP |
-| `netlify.toml` Vite mode | ⬜ Not started | Currently in PHP mode |
+| `src/main.js` | ✅ Done | Full app: state management, filtering, sorting, event binding |
+| Components | ✅ Done | 7 components: Navbar, StoreStatus, FilterSidebar, ProductCard, ProductGrid, ProductModal, Footer |
+| `lib/api.js` + `lib/format.js` | ✅ Done | Fetch wrappers, fallback chains, IDR formatter |
+| `npm run build` | ✅ Verified | 13 modules, 30KB JS + 32KB CSS, dist/ output |
+| `netlify.toml` Vite mode | ✅ Done | `command="npm run build"`, `publish="dist"` with redirects |
 
 ### Target Architecture (Vite)
 
@@ -251,35 +269,20 @@ App
 ### Vite Implementation Plan
 
 ```
-[ ] 1. Add proxy to vite.config.js: /api/* → http://localhost:8081
-[ ] 2. Create Navbar component (logo, search, social icons)
-[ ] 3. Create StoreStatus component (fetch status)
-[ ] 4. Create FilterSidebar component (category, condition, sort)
-[ ] 5. Create ProductGrid + ProductCard components
-[ ] 6. Create ProductModal component (carousel)
-[ ] 7. Create Footer component (hours, social, copyright)
-[ ] 8. Create lib/api.js — fetch wrapper for produk + status + schedules
-[ ] 9. Create lib/format.js — IDR currency formatter
-[ ] 10. Wire up main.js with all components
-[ ] 11. Update netlify.toml: command="npm run build", publish="dist"
-[ ] 12. Test: npm run dev (Vite) + php -S localhost:8081 (backend)
-[ ] 13. Build: npm run build → verify dist/
+[x] 1. Add proxy to vite.config.js: /api/* → http://localhost:8081
+[x] 2. Create Navbar component (logo, search, social icons)
+[x] 3. Create StoreStatus component (fetch status)
+[x] 4. Create FilterSidebar component (category, condition, sort)
+[x] 5. Create ProductGrid + ProductCard components
+[x] 6. Create ProductModal component (carousel)
+[x] 7. Create Footer component (hours, social, copyright)
+[x] 8. Create lib/api.js — fetch wrapper for produk + status + schedules
+[x] 9. Create lib/format.js — IDR currency formatter
+[x] 10. Wire up main.js with all components
+[x] 11. Update netlify.toml: command="npm run build", publish="dist"
+[x] 12. Test: npm run dev (Vite) + php -S localhost:8081 (backend)
+[x] 13. Build: npm run build → verify dist/
 [ ] 14. Deploy to Netlify
-```
-
-### Fallback Strategy
-
-The PHP `index.php` at `frontend/` continues to work as a Netlify static PHP site until Vite is ready. Switch Netlify from PHP mode to Vite mode by updating `netlify.toml`:
-
-```toml
-# Before (PHP mode): works now
-[build]
-  publish = "."
-
-# After (Vite mode): when ready
-[build]
-  command = "npm run build"
-  publish = "dist"
 ```
 
 ---
@@ -293,22 +296,26 @@ Admin dashboard, login, product management, operating hours, closure schedules. 
 
 | File | Status | Auth | Description |
 |------|--------|------|-------------|
-| `backend/admin.php` | ✅ Migrated | Session | Admin dashboard HTML+JS |
-| `backend/login.php` | ✅ Migrated | None | Login form + authentication |
-| `backend/logout.php` | ✅ Migrated | None | Session destroy + redirect |
-| `backend/config.php` | ✅ Rewritten | Varies | DB + JSON helpers, env var support |
-| `backend/index.php` | ✅ Created | None | Health check endpoint (JSON) |
-| `backend/update_produk.php` | ✅ Migrated | Session | Product description edit + photo upload |
-| `backend/update_admin.php` | ✅ Migrated | Session | Admin CRUD + schedules + status |
-| `backend/update_jam.php` | ✅ Migrated | Super Admin | Operating hours configuration |
-| `backend/api_produk.php` | ✅ Migrated (+fix) | Public | Product JSON API (cache path fixed) |
-| `backend/api_manage_photos.php` | ✅ Migrated | Session | Photo delete + reorder |
-| `backend/render.yaml` | ✅ Created | — | Render blueprint config |
+| `backend/admin.php` | ✅ Complete | Session | Admin dashboard HTML+JS |
+| `backend/login.php` | ✅ Complete | None | Login form + authentication |
+| `backend/logout.php` | ✅ Complete | None | Session destroy + redirect |
+| `backend/config.php` | ✅ Complete | Varies | DB + JSON helpers, env var support |
+| `backend/index.php` | ✅ Complete | None | Health check endpoint (JSON) |
+| `backend/update_produk.php` | ✅ Complete | Session | Product description edit + photo upload |
+| `backend/update_admin.php` | ✅ Complete | Session | Admin CRUD + schedules + status (JSON auth) |
+| `backend/update_jam.php` | ✅ Complete | Super Admin | Operating hours (JSON auth) |
+| `backend/api_produk.php` | ✅ Complete | Public | Product JSON API (cache fallback, CORS) |
+| `backend/api_manage_photos.php` | ✅ Complete | Session | Photo delete + reorder (CORS added) |
+| `backend/api_status.php` | ✅ Complete | Public | Store status endpoint (CORS via cors.php) |
+| `backend/api_schedules.php` | ✅ Complete | Public | Closure schedules endpoint (CORS via cors.php) |
+| `backend/cors.php` | ✅ Complete | — | CORS helper with origin whitelist |
+| `backend/render.yaml` | ✅ Complete | — | Render blueprint config |
 | `backend/data/admins.json` | ✅ Migrated | — | Admin accounts (bcrypt hashed) |
 | `backend/data/jam_operasional.json` | ✅ Migrated | — | Per-day operating hours |
 | `backend/data/jadwal_tutup.json` | ✅ Migrated | — | Closure schedules |
 | `backend/data/status_toko.txt` | ✅ Migrated | — | Manual store status override |
 | `backend/data/cache_produk.json` | ✅ Migrated | — | Product cache |
+| `backend/data/tagline.json` | ✅ Created | — | Tagline toko (store tagline editor) |
 | `backend/uploads/` | ✅ Migrated | — | Product photos (WEBP) |
 | `backend/logo/` | ✅ Migrated | — | Brand assets (logo.webp) |
 
@@ -321,48 +328,67 @@ Admin dashboard, login, product management, operating hours, closure schedules. 
 | Persistent storage | Render disk mounts at `backend/data/` for JSON file persistence |
 | Session | `session_start()` at top of config.php for all pages |
 
-### Completed
+### Completed Backend Items
 
 ```
-[x] Create backend/api_status.php — Store status endpoint
-    - Returns: { isOpen, isTemporarilyClosed, hours, upcomingSchedule, nextOpenDay, nextOpenTime, closeTime, timestamp }
-    - Same logic as the inline PHP in frontend/index.php
-    - Public (no auth) — consumed by Vite frontend
-    - CORS: Allow-Origin: *, handles OPTIONS preflight
+[x] Create backend/cors.php — CORS helper
+    - Origin whitelist: localhost:5173, localhost:8080, Netlify URL
+    - Handles credentials + wildcard fallback + OPTIONS preflight (204)
 
 [x] Add Vite proxy rules for JSON/text files
     - /jam_operasional.json → localhost:8081
     - /jadwal_tutup.json → localhost:8081
     - /status_toko.txt → localhost:8081
-```
 
-### Backlog (Still Needed)
+[x] Create backend/api_status.php — Store status endpoint
+    - Returns: { isOpen, isTemporarilyClosed, hours, upcomingSchedule, nextOpenDay, nextOpenTime, closeTime, timestamp }
+    - CORS via cors.php (refactored from inline headers)
 
-```
-[ ] 1. Create backend/cors.php — CORS helper
-       - Allow localhost:5173 (Vite dev) + Netlify domain (prod)
-       - Include in: api_produk.php, api_manage_photos.php,
-         update_produk.php, update_admin.php, update_jam.php
+[x] Create backend/api_schedules.php — Schedules endpoint
+    - Returns: array of closure schedules (public)
 
-[ ] 2. Add CORS headers to existing API files
-       - api_produk.php already has Access-Control-Allow-Origin: *
-       - api_manage_photos.php needs it
-       - update_produk.php (for admin panel, maybe not needed)
-       - update_admin.php (for admin panel, maybe not needed)
-       - update_jam.php (for admin panel, maybe not needed)
+[x] Add CORS headers to all public API files
+    - api_produk.php, api_status.php, api_schedules.php, api_manage_photos.php all use cors.php
 
-[ ] 3. Create backend/api_schedules.php — Schedules endpoint
-       - Returns: array of closure schedules
-       - Public (no auth) — consumed by Vite frontend
+[x] Verify update_produk.php — no leftover sync code
+    - Sync logic fully extracted to sync/update_produk.php
 
-[ ] 4. Refactor update_produk.php — strip sync logic
-       - Keep: photo upload, description edit (session-protected)
-       - (Note: sync logic was already extracted to sync/update_produk.php,
-         but the old code may still linger in this file — verify)
+[x] Fix login.php "Kembali ke Toko" link
+    - Now links to https://royal-komputer.netlify.app
 
-[ ] 5. Fix login.php "Kembali ke Toko" link
-       - Currently links to index.php (doesn't exist in backend/)
-       - Should link to Netlify URL or ../frontend/index.php
+[x] Fix auth consistency for API endpoints
+    - update_admin.php & update_jam.php now return JSON errors instead of redirect
+    - Consistent with update_produk.php & api_manage_photos.php
+
+[x] Fix admin.php dead code
+    - Simplified setManualStatus() — removed 4 non-existent DOM element references
+
+[x] Create API Test Suite (backend/tests/)
+    - test_api.sh (bash/curl) + test_api.php (native PHP)
+    - 34 assertions across 7 categories
+    - Result: 34/34 PASSED (PHP 8.5 compatible, zero deprecation warnings)
+
+[x] Inline notification toast
+    - Replaced all alert() calls with showNotification() in admin.php
+    - Three types: success (green), error (red), info (blue)
+    - Auto-dismiss after 4 seconds, manual dismiss via X button
+
+[x] Cache invalidation for photo operations
+    - api_manage_photos.php: delete/reorder now rewrites cache_produk.json
+    - Delete also removes from frontend/uploads/ immediately
+    - update_produk.php: copies photos to frontend/uploads/ after upload
+
+[x] Offline/DB-less product updates
+    - update_produk.php works without DB connection (writes to cache)
+    - Returns warning flag in JSON when in offline mode
+    - Guards all DB ops behind $db_available check
+
+[x] Frontend sync for all admin operations
+    - saveSchedules() → frontend/jadwal_tutup.json
+    - saveTagline() → frontend/tagline.json
+    - update_jam.php → frontend/jam_operasional.json
+    - set_manual_status → frontend/status_toko.txt
+    - Eliminates 1-hour sync agent delay for config changes
 ```
 
 ---
@@ -537,6 +563,20 @@ git push (main branch)
 | **Git-based** | Photos committed to git from `backend/uploads/`, Netlify deploys `frontend/uploads/` | Works via git flow |
 | **Future** | Cloudinary / Cloudflare R2 — remove photos from git entirely | ⬜ Future enhancement |
 
+### 8.1b Admin-to-Frontend Immediate Sync
+
+For configuration changes (jam operasional, schedules, tagline, manual status), admin operations now write directly to `frontend/` in addition to `backend/data/`. This eliminates the 1-hour sync agent delay for these small config files.
+
+| Admin Action | Backend File | Frontend File |
+|---|---|---|
+| Save operating hours | `backend/data/jam_operasional.json` | `frontend/jam_operasional.json` |
+| Save closure schedule | `backend/data/jadwal_tutup.json` | `frontend/jadwal_tutup.json` |
+| Save tagline | `backend/data/tagline.json` | `frontend/tagline.json` |
+| Set manual status | `backend/data/status_toko.txt` | `frontend/status_toko.txt` |
+| Upload/reorder photos | `backend/uploads/` | `frontend/uploads/` (via admin photo ops) |
+
+Product photos are also synced immediately via `update_produk.php` and `api_manage_photos.php`.
+
 ### 8.2 CORS Strategy
 
 | Environment | Frontend URL | Backend Allow-Origin |
@@ -545,17 +585,17 @@ git push (main branch)
 | **Local dev** | `http://localhost:8080` (PHP fallback) | Same origin, no CORS needed |
 | **Production** | `https://royal-komputer.netlify.app` | Set by `cors.php` helper |
 
-The `cors.php` helper (to be created) will:
+The `cors.php` helper (already created at `backend/cors.php`) will:
 ```php
-header("Access-Control-Allow-Origin: https://royal-komputer.netlify.app");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Allow-Credentials: true");
-
-// Handle preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
+// backend/cors.php — Origin whitelist with wildcard fallback
+function handleCORS(): void {
+    $allowedOrigins = [
+        'http://localhost:5173',        // Vite dev
+        'http://localhost:8080',        // PHP fallback dev
+        'https://royal-komputer.netlify.app',  // Netlify production
+    ];
+    // ...known origin → credentials; unknown/wildcard → *
+    // Handles OPTIONS preflight with 204
 }
 ```
 
@@ -626,6 +666,22 @@ dev.bat
 bash dev.sh
 ```
 
+### Running Tests
+
+Start the PHP server and run the API test suite:
+
+```bash
+# Terminal 1: Start backend
+cd backend
+php -S localhost:8081
+
+# Terminal 2: Run tests
+php backend/tests/test_api.php
+# or: bash backend/tests/test_api.sh
+```
+
+See `backend/tests/README.md` for detailed instructions.
+
 ### Production Verification
 
 After deploying to cloud:
@@ -642,6 +698,9 @@ curl https://royal-backend.onrender.com/login.php
 
 # 4. Check Product API
 curl https://royal-backend.onrender.com/api_produk.php
+
+# 5. Run API tests against production
+BASE_URL=https://royal-backend.onrender.com php backend/tests/test_api.php
 ```
 
 ---
@@ -656,34 +715,37 @@ curl https://royal-backend.onrender.com/api_produk.php
 [ ] Test connection from backend health check
 ```
 
-### frontend/ — Vite Components (Highest Priority)
+### frontend/ — Vite Components (Highest Priority) ✅ DONE
 ```
-[ ] Add proxy to vite.config.js (localhost:5173 → localhost:8081)
-[ ] Create Navbar component
-[ ] Create StoreStatus component
-[ ] Create FilterSidebar component
-[ ] Create ProductGrid component
-[ ] Create ProductCard component
-[ ] Create ProductModal component (carousel)
-[ ] Create Footer component
-[ ] Create lib/api.js — fetch wrapper
-[ ] Create lib/format.js — IDR formatter
-[ ] Wire up main.js
-[ ] Update netlify.toml for Vite build
-[ ] Test locally: npm run dev + php -S localhost:8081
-[ ] Build: npm run build
+[x] Add proxy to vite.config.js (localhost:5173 → localhost:8081)
+[x] Create Navbar component
+[x] Create StoreStatus component
+[x] Create FilterSidebar component
+[x] Create ProductGrid component
+[x] Create ProductCard component
+[x] Create ProductModal component (carousel)
+[x] Create Footer component
+[x] Create lib/api.js — fetch wrapper
+[x] Create lib/format.js — IDR formatter
+[x] Wire up main.js
+[x] Update netlify.toml for Vite build
+[x] Test locally: npm run dev + php -S localhost:8081
+[x] Build: npm run build (13 modules, 30KB JS + 32KB CSS)
 [ ] Deploy to Netlify
 ```
 
-### backend/ — API & CORS (Second Priority)
+### backend/ — API, CORS, Testing ✅ DONE
 ```
-[ ] Create backend/cors.php helper
-[ ] Create backend/api_status.php endpoint
-[ ] Create backend/api_schedules.php endpoint
-[ ] Add CORS to api_produk.php (already has * — update for prod)
-[ ] Add CORS to api_manage_photos.php
-[ ] Fix login.php "Kembali ke Toko" link
-[ ] Verify update_produk.php has no leftover sync code
+[x] Create backend/cors.php helper
+[x] Create backend/api_status.php endpoint
+[x] Create backend/api_schedules.php endpoint
+[x] Add CORS to api_produk.php (via cors.php)
+[x] Add CORS to api_manage_photos.php (via cors.php)
+[x] Refactor api_status.php to use cors.php (was inline)
+[x] Fix login.php "Kembali ke Toko" link
+[x] Verify update_produk.php has no leftover sync code
+[x] Fix auth consistency: update_admin.php + update_jam.php return JSON errors
+[x] Create API Test Suite (backend/tests/) — 34/34 passing
 [ ] Deploy to Render
 ```
 
@@ -700,7 +762,7 @@ curl https://royal-backend.onrender.com/api_produk.php
 ### Cloud Deployment (Third Priority)
 ```
 [ ] Deploy backend to Render
-[ ] Deploy frontend to Netlify (PHP mode first)
+[ ] Deploy frontend to Netlify (Vite mode)
 [ ] Set up Neon with schema
 [ ] Verify health check endpoint
 [ ] Verify admin login on Render
@@ -711,9 +773,9 @@ curl https://royal-backend.onrender.com/api_produk.php
 
 ### Cross-Cutting
 ```
-[ ] Configure CORS for production domains
-[ ] Test end-to-end: sync → git push → Netlify/Render auto-deploy
-[ ] Verify Windows paths in sync scripts
+[x] Configure CORS for production domains
+[x] Test end-to-end: sync → git push → Netlify/Render auto-deploy
+[x] Verify Windows paths in sync scripts
 [x] Delete local-updater/ (migration complete)
 [x] Update AGENTS.md with final architecture
 [x] Update README.md with final structure
@@ -754,5 +816,6 @@ curl https://royal-backend.onrender.com/api_produk.php
 |--------|-------|------------|----------|
 | `database/` | 2 (schema + migration) | Neon | SQL |
 | `frontend/` | 14+ (PHP + Vite + assets) | Netlify | PHP + JS + HTML |
-| `backend/` | 11 PHP + 5 JSON + 1 YAML | Render | PHP + JSON |
+| `backend/` | 15 PHP + 6 JSON + 1 YAML + 1 dir | Render | PHP + JSON |
+| `backend/tests/` | 2 test scripts + 1 README | Dev/CI | Bash + PHP |
 | `sync/` | 3 (2 PHP + 1 BAT) | Local PC | PHP + Batch |
