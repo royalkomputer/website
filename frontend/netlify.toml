@@ -54,18 +54,6 @@
   status = 200
 
 [[redirects]]
-  from = "/uploads/*"
-  to = "https://royal-backend-s3ir.onrender.com/uploads/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/logo/*"
-  to = "https://royal-backend-s3ir.onrender.com/logo/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/admin/*"
   to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200

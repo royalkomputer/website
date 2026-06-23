@@ -35,8 +35,9 @@ if (file_exists($cache_file)) {
                 }
                 if (!empty($matched_files)) {
                     $images = [];
+                    $img_base = "https://royal-backend-s3ir.onrender.com";
                     foreach ($matched_files as $file) {
-                        $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
+                        $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
                     }
                     $p['image'] = $images[0];
                     $p['images'] = $images;
@@ -123,8 +124,9 @@ while($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
+        $img_base = "https://royal-backend-s3ir.onrender.com";
         foreach ($matched_files as $file) {
-            $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;
