@@ -14,6 +14,7 @@
  *   - http://localhost:5173        (Vite dev server)
  *   - http://localhost:8080        (PHP fallback dev server)
  *   - https://royal-komputer.netlify.app  (Netlify production)
+ *   - https://royal-backend-s3ir.onrender.com  (Render production)
  */
 
 /**
@@ -25,6 +26,7 @@ function handleCORS(): void {
         'http://localhost:5173',
         'http://localhost:8080',
         'https://royal-komputer.netlify.app',
+        'https://royal-backend-s3ir.onrender.com',
     ];
 
     // Determine the origin to allow

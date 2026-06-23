@@ -12,78 +12,78 @@
 # 1. Product data API → Render backend
 [[redirects]]
   from = "/api_produk.php"
-  to = "https://royal-backend.onrender.com/api_produk.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_produk.php"
   status = 200
 
 # 2. Store status (once created on backend)
 [[redirects]]
   from = "/api_status.php"
-  to = "https://royal-backend.onrender.com/api_status.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_status.php"
   status = 200
 
 # 3. Schedules (once created on backend)
 [[redirects]]
   from = "/api_schedules.php"
-  to = "https://royal-backend.onrender.com/api_schedules.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_schedules.php"
   status = 200
 
 # 4. Cached product data (served from backend/data/)
 [[redirects]]
   from = "/cache_produk.json"
-  to = "https://royal-backend.onrender.com/data/cache_produk.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/cache_produk.json"
   status = 200
 
 # 5. Store config files (fetched directly by JS fallback)
 [[redirects]]
   from = "/jam_operasional.json"
-  to = "https://royal-backend.onrender.com/data/jam_operasional.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/jam_operasional.json"
   status = 200
 
 [[redirects]]
   from = "/jadwal_tutup.json"
-  to = "https://royal-backend.onrender.com/data/jadwal_tutup.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/jadwal_tutup.json"
   status = 200
 
 [[redirects]]
   from = "/status_toko.txt"
-  to = "https://royal-backend.onrender.com/data/status_toko.txt"
+  to = "https://royal-backend-s3ir.onrender.com/data/status_toko.txt"
   status = 200
 
 [[redirects]]
   from = "/product_info.json"
-  to = "https://royal-backend.onrender.com/data/product_info.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/product_info.json"
   status = 200
 
 [[redirects]]
   from = "/tagline.json"
-  to = "https://royal-backend.onrender.com/data/tagline.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/tagline.json"
   status = 200
 
 [[redirects]]
   from = "/heading.json"
-  to = "https://royal-backend.onrender.com/data/heading.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/heading.json"
   status = 200
 
 # 6. Admin panel paths → Render backend
 [[redirects]]
   from = "/admin/*"
-  to = "https://royal-backend.onrender.com/:splat"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200
 
 [[redirects]]
   from = "/login*"
-  to = "https://royal-backend.onrender.com/login"
+  to = "https://royal-backend-s3ir.onrender.com/login"
   status = 200
 
 # 7. API mutation endpoints → Render backend
 [[redirects]]
   from = "/update_*"
-  to = "https://royal-backend.onrender.com/:splat"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200
 
 [[redirects]]
   from = "/api_manage_*"
-  to = "https://royal-backend.onrender.com/:splat"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200
 
 # 8. SPA fallback — all other routes serve index.html (MUST be last!)
