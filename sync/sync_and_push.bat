@@ -4,8 +4,10 @@ REM Called by Windows Task Scheduler or run manually.
 
 cd /d "%~dp0"
 
+set PHP_PATH=C:\xampp\php\php.exe
+
 echo [%date% %time%] Starting sync...
-php update_produk.php --once
+"%PHP_PATH%" update_produk.php --once
 if %errorlevel% neq 0 (
     echo [%date% %time%] WARNING: Sync exited with code %errorlevel%
 )

@@ -33,8 +33,9 @@ $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1).ToString(
 # Run whether user is logged in or not
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew
 
-# Register the task
-$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+# Register the task — runs as current user so Git/SSH config is available
+$CurrentUser = "$env:USERDOMAIN\$env:USERNAME"
+$Principal = New-ScheduledTaskPrincipal -UserId $CurrentUser -LogonType S4U -RunLevel Highest
 Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "Sync produk dari IPOS dan push ke GitHub setiap 1 jam" -Force
 
 Write-Host "Task '$TaskName' created successfully."
