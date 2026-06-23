@@ -64,7 +64,18 @@
   to = "https://royal-backend-s3ir.onrender.com/data/heading.json"
   status = 200
 
-# 6. Admin panel paths → Render backend
+# 6. Static assets—product photos & logo → Render backend
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://royal-backend-s3ir.onrender.com/uploads/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/logo/*"
+  to = "https://royal-backend-s3ir.onrender.com/logo/:splat"
+  status = 200
+
+# 7. Admin panel paths → Render backend
 [[redirects]]
   from = "/admin/*"
   to = "https://royal-backend-s3ir.onrender.com/:splat"
@@ -75,7 +86,7 @@
   to = "https://royal-backend-s3ir.onrender.com/login"
   status = 200
 
-# 7. API mutation endpoints → Render backend
+# 8. API mutation endpoints → Render backend
 [[redirects]]
   from = "/update_*"
   to = "https://royal-backend-s3ir.onrender.com/:splat"
@@ -86,7 +97,7 @@
   to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200
 
-# 8. SPA fallback — all other routes serve index.html (MUST be last!)
+# 9. SPA fallback — all other routes serve index.html (MUST be last!)
 [[redirects]]
   from = "/*"
   to = "/index.html"
