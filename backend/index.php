@@ -1,5 +1,31 @@
 <?php
+// Health check endpoint untuk Render
+// Jika request dengan header Accept: application/json → return JSON
+// Jika tidak → tampilkan halaman landing admin
+
 require_once __DIR__ . '/config.php';
+
+$is_health_check = (
+    isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json')
+) || (isset($_GET['format']) && $_GET['format'] === 'json');
+
+if ($is_health_check) {
+    header('Content-Type: application/json');
+
+    $db = getDBConnection();
+    $db_status = $db !== false ? 'connected' : 'disconnected';
+    if ($db) pg_close($db);
+
+    echo json_encode([
+        'status' => 'ok',
+        'service' => 'royal-backend',
+        'version' => '2.2',
+        'database' => $db_status,
+        'timestamp' => date('c'),
+        'php_version' => PHP_VERSION,
+    ]);
+    exit;
+}
 
 if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
     header("Location: admin.php");
@@ -30,7 +56,8 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
                 <i class="fa-solid fa-right-to-bracket"></i> Login Admin
             </a>
             <div class="mt-8 pt-6 border-t border-slate-100">
-                <a href="/royalkomputer/frontend/" class="text-sm text-slate-400 hover:text-astra-700 transition-colors">
+                <?php $store_url = getenv('STOREFRONT_URL') ?: 'https://royal-komputer.netlify.app'; ?>
+                <a href="<?= $store_url ?>" target="_blank" class="text-sm text-slate-400 hover:text-astra-700 transition-colors">
                     <i class="fa-solid fa-store mr-1"></i> Ke Toko
                 </a>
             </div>

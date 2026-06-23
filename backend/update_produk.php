@@ -244,34 +244,61 @@ if ($uploadFiles || !empty($imageOrder)) {
         }
     }
 
-    // --- FRONTEND SYNC: Copy updated photos to frontend/uploads/ for immediate sync ---
-    $frontend_upload_dir = __DIR__ . '/../frontend/uploads/';
-    if (!is_dir($frontend_upload_dir)) {
-        @mkdir($frontend_upload_dir, 0777, true);
-    }
-
-    // Hapus dulu semua file lawas produk ini dari frontend/ biar tidak ada duplikat
-    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-        $old = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
-        if ($old) {
-            foreach ($old as $f) { @unlink($f); }
+    // --- FRONTEND SYNC (only on local dev where frontend/ dir exists) ---
+    $frontend_base = __DIR__ . '/../frontend';
+    $frontend_upload_dir = $target_dir;
+    if (is_dir($frontend_base)) {
+        $frontend_upload_dir = $frontend_base . '/uploads/';
+        if (!is_dir($frontend_upload_dir)) {
+            @mkdir($frontend_upload_dir, 0777, true);
         }
-        $legacy = $frontend_upload_dir . $safe_kode . '.' . $ext;
-        if (file_exists($legacy)) { @unlink($legacy); }
-    }
 
-    // Copy all saved photos for this product to frontend
-    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-        $saved_photos = glob($target_dir . $safe_kode . '_*.' . $ext);
-        if ($saved_photos) {
-            foreach ($saved_photos as $photo) {
-                copy($photo, $frontend_upload_dir . basename($photo));
+        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+            $old = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
+            if ($old) {
+                foreach ($old as $f) { @unlink($f); }
+            }
+            $legacy = $frontend_upload_dir . $safe_kode . '.' . $ext;
+            if (file_exists($legacy)) { @unlink($legacy); }
+        }
+
+        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+            $saved_photos = glob($target_dir . $safe_kode . '_*.' . $ext);
+            if ($saved_photos) {
+                foreach ($saved_photos as $photo) {
+                    @copy($photo, $frontend_upload_dir . basename($photo));
+                }
+            }
+            $legacy = $target_dir . $safe_kode . '.' . $ext;
+            if (file_exists($legacy)) {
+                @copy($legacy, $frontend_upload_dir . $safe_kode . '.' . $ext);
             }
         }
-        // Copy legacy file (safe_kode.webp) if exists
-        $legacy = $target_dir . $safe_kode . '.' . $ext;
-        if (file_exists($legacy)) {
-            copy($legacy, $frontend_upload_dir . $safe_kode . '.' . $ext);
+
+        // Update frontend cache
+        $frontend_cache = $frontend_base . '/cache_produk.json';
+        if (file_exists($frontend_cache)) {
+            $fcData = json_decode(file_get_contents($frontend_cache), true);
+            if (is_array($fcData)) {
+                foreach ($fcData as &$entry) {
+                    if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
+                        $newImages = [];
+                        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                            $m = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
+                            if ($m) $newImages = array_merge($newImages, $m);
+                        }
+                        sort($newImages);
+                        if (!empty($newImages)) {
+                            $newImages = array_map(fn($f) => 'uploads/' . basename($f) . '?v=' . filemtime($f), $newImages);
+                            $entry['image'] = $newImages[0];
+                            $entry['images'] = $newImages;
+                        }
+                        break;
+                    }
+                }
+                unset($entry);
+                @file_put_contents($frontend_cache, json_encode($fcData));
+            }
         }
     }
     

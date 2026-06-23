@@ -27,41 +27,41 @@
   to = "https://royal-backend.onrender.com/api_schedules.php"
   status = 200
 
-# 4. Cached product data fallback
+# 4. Cached product data (served from backend/data/)
 [[redirects]]
   from = "/cache_produk.json"
-  to = "https://royal-backend.onrender.com/cache_produk.json"
+  to = "https://royal-backend.onrender.com/data/cache_produk.json"
   status = 200
 
 # 5. Store config files (fetched directly by JS fallback)
 [[redirects]]
   from = "/jam_operasional.json"
-  to = "https://royal-backend.onrender.com/jam_operasional.json"
+  to = "https://royal-backend.onrender.com/data/jam_operasional.json"
   status = 200
 
 [[redirects]]
   from = "/jadwal_tutup.json"
-  to = "https://royal-backend.onrender.com/jadwal_tutup.json"
+  to = "https://royal-backend.onrender.com/data/jadwal_tutup.json"
   status = 200
 
 [[redirects]]
   from = "/status_toko.txt"
-  to = "https://royal-backend.onrender.com/status_toko.txt"
+  to = "https://royal-backend.onrender.com/data/status_toko.txt"
   status = 200
 
 [[redirects]]
   from = "/product_info.json"
-  to = "https://royal-backend.onrender.com/product_info.json"
+  to = "https://royal-backend.onrender.com/data/product_info.json"
   status = 200
 
 [[redirects]]
   from = "/tagline.json"
-  to = "https://royal-backend.onrender.com/tagline.json"
+  to = "https://royal-backend.onrender.com/data/tagline.json"
   status = 200
 
 [[redirects]]
   from = "/heading.json"
-  to = "https://royal-backend.onrender.com/heading.json"
+  to = "https://royal-backend.onrender.com/data/heading.json"
   status = 200
 
 # 6. Admin panel paths → Render backend
