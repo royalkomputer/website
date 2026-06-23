@@ -140,3 +140,38 @@
 - `frontend/index.php`: Added `flex-shrink-0` to WhatsApp buttons on all product cards to prevent the WA icon from being cut off/compressed in narrow cards
 - `frontend/index.php`: Added `gap-1.5` to price+WA row for better spacing
 - `frontend/index.php`: Added `truncate min-w-0` to price text to prevent price overflow pushing WA button out
+
+## 2026-06-23 (Session 4) — Production Deployment & Image Fixes
+
+### Server URLs for Production
+- **Netlify (frontend):** `https://tiny-druid-60182f.netlify.app/`
+- **Render (backend):** `https://royal-backend-s3ir.onrender.com/`
+- **GitHub:** `https://github.com/royalkomputer/website`
+
+### Product Photo Fix — Absolute Image URLs
+- `backend/api_produk.php`: Changed image URL construction from relative paths (`uploads/BRG001_1.webp`) to absolute Render URLs (`https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp`) — avoids relying on Netlify's broken wildcard proxy
+- Both cache-first path (line 36-48) and DB-fallback path (line 126-130) updated
+- 8 products with photos now return correct absolute URLs; API returns 771 products total
+
+### Logo Fix — Exact-Path Redirect
+- `frontend/netlify.toml`: Removed broken wildcard redirects (`/uploads/*`, `/logo/*`) — Netlify doesn't support wildcard → external URL with `status = 200`
+- `frontend/netlify.toml`: Added exact-path redirect `/logo/logo.webp → https://royal-backend-s3ir.onrender.com/logo/logo.webp` (wildcards work for admin paths with `force = true`)
+- Logo removed from `frontend/public/logo/` (no static file to shadow redirect); served entirely from Render via Netlify proxy
+
+### Storefront URL Consistency
+- `backend/login.php:84`: "Kembali ke Toko" link changed from hardcoded `royal-komputer.netlify.app` (404) to `getenv('STOREFRONT_URL') ?: 'https://tiny-druid-60182f.netlify.app'`
+- `backend/index.php:59`: Fallback URL updated to active Netlify domain
+- `backend/cors.php:28`: Added `tiny-druid-60182f.netlify.app` to allowed origins (kept old URL for backward compat)
+
+### Windows Task Scheduler for Auto-Sync
+- `sync/sync_and_push.bat`: New wrapper — runs `php update_produk.php --once` then `git_push.bat`
+- `sync/setup_scheduler.ps1`: Creates "RoyalKomputer Sync" task running every 1 hour as current user (for Git/SSH access)
+- Uses full PHP path `C:\xampp\php\php.exe` (not in SYSTEM PATH)
+- Task registered and active (next run: 23:27)
+
+### Key Learnings
+- Netlify `_redirects` wildcards + external URL + status 200 = not supported (exact paths only)
+- Netlify `netlify.toml` wildcards + external URL + `force = true` = also not supported for `/uploads/*` and `/logo/*`
+- Solution: serve images via absolute Render URLs, use exact-path Netlify redirects for fixed paths like `/logo/logo.webp`
+- For wildcards that must work: admin paths (`/admin/*`, `/update_*`, `/api_manage_*`) — these are only accessed by admins and `force = true` may work for some
+- Netlify deploy preview URLs (`*-*-*--*.netlify.app`) may serve stale builds; use canonical URL (`*.netlify.app`)

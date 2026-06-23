@@ -60,11 +60,27 @@ The system has a **hybrid local/cloud architecture**: a PC at the store runs `sy
 
 ### Cloud Service Roles
 
-| Service  | Role      | Purpose                                    |
-|----------|-----------|--------------------------------------------|
-| Netlify  | Frontend  | Storefront static site, CDN, domain        |
-| Render   | Backend   | PHP admin panel, API layer                 |
-| Neon     | Database  | Serverless PostgreSQL (schema mirrors local) |
+| Service  | Role      | URL                                          |
+|----------|-----------|----------------------------------------------|
+| Netlify  | Frontend  | `https://tiny-druid-60182f.netlify.app`      |
+| Render   | Backend   | `https://royal-backend-s3ir.onrender.com`    |
+| Neon     | Database  | `postgresql://...@ep-dawn-shape-ao7h4edr.jp-tokyo-1.aws.neon.tech/royalkomputer?sslmode=require` |
+
+### Netlify Redirect Limitations
+
+Netlify **does not support** wildcard/redirect with `status = 200` to an external URL. The following approaches were tested and **failed**:
+- `_redirects`: `/uploads/* https://render.com/uploads/:splat 200`
+- `netlify.toml`: `from = "/uploads/*"`, `to = "...", status = 200`
+
+**What works:**
+- **Exact-path redirects** with `status = 200` to external URLs (e.g., `/logo/logo.webp`)
+- **Wildcard redirects with `force = true`** — only works for internal admin paths that hit Render directly (e.g., `/admin/*`, `/update_*`)
+- **Absolute image URLs** from the backend API (e.g., `https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp`)
+
+**Current strategy:**
+- Logo: served via exact-path redirect `/logo/logo.webp → Render URL`
+- Product photos: API returns absolute Render URLs (not relative paths)
+- Admin paths: wildcard redirects to Render with `force = true`
 
 ---
 
@@ -143,8 +159,8 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
     "price": 1850000,
     "stock": 12,
     "description": "Spesifikasi lengkap...",
-    "image": "uploads/BRG001_1.webp?v=1234567890",
-    "images": ["uploads/BRG001_1.webp?v=...", "uploads/BRG001_2.webp?v=..."]
+    "image": "https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=1234567890",
+    "images": ["https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=...", "https://royal-backend-s3ir.onrender.com/uploads/BRG001_2.webp?v=..."]
   }
 ]
 ```
@@ -304,7 +320,9 @@ Only items with `SUM(stok) > 0` are exposed to the storefront.
   - `safe_kode` = `preg_replace('/[^A-Za-z0-9]/', '_', $kodeitem)`
   - Example: `BRG_001` → `BRG_001_1.webp`, `BRG_001_2.webp`
 - Legacy single-photo format: `{safe_kode}.webp` (supported, shown first)
-- Location: `uploads/` directory
+- Location: `uploads/` directory on Render (not served via Netlify proxy)
+- Image URLs in API response: **absolute Render URLs** (e.g., `https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=...`)
+- Netlify wildcard proxy to Render does not work — images must use absolute Render URLs
 - Cache busting: `?v=filemtime` appended to URLs
 
 ---
@@ -522,15 +540,19 @@ php update_produk.php
 ```
 
 ### Configuring Windows Task Scheduler
-Create a task that runs this command every 1 hour:
-```
-php C:\path\to\royal-website\sync\update_produk.php
-```
-Working directory: `C:\path\to\royal-website\sync\`
 
-After the PHP script runs, execute `git_push.bat` to commit and push changes:
-```
-C:\path\to\royal-website\sync\git_push.bat
+The sync task is configured using `sync/setup_scheduler.ps1` (run as Administrator once). It creates the **"RoyalKomputer Sync"** task that runs:
+
+**Action:** `C:\xampp\php\php.exe` with arguments `update_produk.php --once`
+**Follow-up action:** `sync/git_push.bat`
+**Wrapper:** `sync/sync_and_push.bat` (runs both sequentially)
+**Schedule:** Every 1 hour
+**Run as:** Current user (for Git/SSH credentials)
+
+To install:
+```powershell
+# Run as Administrator once
+powershell -ExecutionPolicy Bypass -File sync\setup_scheduler.ps1
 ```
 
 ### Adding a new feature
