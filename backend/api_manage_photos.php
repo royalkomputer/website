@@ -59,6 +59,20 @@ if ($action === 'delete') {
         if (is_file($frontend_target)) {
             unlink($frontend_target);
         }
+        // Bersihkan semua file lawas produk ini di frontend (antisipasi nama file berubah)
+        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+            $old = glob(__DIR__ . '/../frontend/uploads/' . $safe_kode . '_*.' . $ext);
+            if ($old) { foreach ($old as $f) { @unlink($f); } }
+            $legacy = __DIR__ . '/../frontend/uploads/' . $safe_kode . '.' . $ext;
+            if (is_file($legacy)) { @unlink($legacy); }
+        }
+        // Copy ulang semua file yang masih ada di backend ke frontend
+        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+            $saved = glob($target_dir . $safe_kode . '_*.' . $ext);
+            if ($saved) { foreach ($saved as $f) { copy($f, __DIR__ . '/../frontend/uploads/' . basename($f)); } }
+            $legacy = $target_dir . $safe_kode . '.' . $ext;
+            if (file_exists($legacy)) { copy($legacy, __DIR__ . '/../frontend/uploads/' . $safe_kode . '.' . $ext); }
+        }
 
         // Update cache agar user UI juga ikut terupdate
         foreach ([__DIR__ . '/data/cache_produk.json', __DIR__ . '/../frontend/cache_produk.json'] as $cacheFile) {
@@ -136,27 +150,44 @@ if ($action === 'delete') {
         $index++;
     }
 
-    // Update cache dengan urutan baru agar tidak stale
-    $cacheFile = __DIR__ . '/data/cache_produk.json';
-    if (file_exists($cacheFile)) {
-        $cacheData = json_decode(file_get_contents($cacheFile), true);
-        if (is_array($cacheData)) {
-            foreach ($cacheData as &$entry) {
-                if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
-                    $newImages = [];
-                    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-                        $m = glob($target_dir . $safe_kode . '_*.' . $ext);
-                        if ($m) $newImages = array_merge($newImages, $m);
+    // Sync ke frontend: hapus file lawas, copy yang baru
+    $frontend_upload_dir = __DIR__ . '/../frontend/uploads/';
+    if (!is_dir($frontend_upload_dir)) {
+        @mkdir($frontend_upload_dir, 0777, true);
+    }
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $old = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
+        if ($old) { foreach ($old as $f) { @unlink($f); } }
+        $legacy = $frontend_upload_dir . $safe_kode . '.' . $ext;
+        if (file_exists($legacy)) { @unlink($legacy); }
+        $saved = glob($target_dir . $safe_kode . '_*.' . $ext);
+        if ($saved) { foreach ($saved as $f) { copy($f, $frontend_upload_dir . basename($f)); } }
+        $legacy_src = $target_dir . $safe_kode . '.' . $ext;
+        if (file_exists($legacy_src)) { copy($legacy_src, $frontend_upload_dir . $safe_kode . '.' . $ext); }
+    }
+
+    // Update cache (backend + frontend) dengan urutan baru
+    foreach ([__DIR__ . '/data/cache_produk.json', __DIR__ . '/../frontend/cache_produk.json'] as $cacheFile) {
+        if (file_exists($cacheFile)) {
+            $cacheData = json_decode(file_get_contents($cacheFile), true);
+            if (is_array($cacheData)) {
+                foreach ($cacheData as &$entry) {
+                    if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
+                        $newImages = [];
+                        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                            $m = glob($target_dir . $safe_kode . '_*.' . $ext);
+                            if ($m) $newImages = array_merge($newImages, $m);
+                        }
+                        sort($newImages);
+                        $newImages = array_map(fn($f) => 'uploads/' . basename($f) . '?v=' . filemtime($f), $newImages);
+                        $entry['image'] = $newImages[0] ?? $entry['image'];
+                        $entry['images'] = $newImages;
+                        break;
                     }
-                    sort($newImages);
-                    $newImages = array_map(fn($f) => 'uploads/' . basename($f) . '?v=' . filemtime($f), $newImages);
-                    $entry['image'] = $newImages[0] ?? $entry['image'];
-                    $entry['images'] = $newImages;
-                    break;
                 }
+                unset($entry);
+                file_put_contents($cacheFile, json_encode($cacheData));
             }
-            unset($entry);
-            file_put_contents($cacheFile, json_encode($cacheData));
         }
     }
 

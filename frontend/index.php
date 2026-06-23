@@ -284,6 +284,14 @@ if (!$is_open) {
         <section class="lg:col-span-3 flex flex-col gap-6">
             <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="text-sm text-slate-600"><?php echo $product_info_html; ?></div>
+                <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+                    <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all" title="Tampilan Grid">
+                        <i class="fa-solid fa-grid-2"></i>
+                    </button>
+                    <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all" title="Tampilan Detail">
+                        <i class="fa-solid fa-list"></i>
+                    </button>
+                </div>
             </div>
 
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
@@ -297,7 +305,7 @@ if (!$is_open) {
                 <p class="text-slate-500 text-sm">Semua stok habis atau di luar kriteria pencarian Anda.</p>
             </div>
 
-            <div id="product-grid" class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))"></div>
+            <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
         </section>
     </main>
 
@@ -392,12 +400,12 @@ if (!$is_open) {
                 </div>
                 
                 <div class="mt-auto pt-4 border-t border-slate-100">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between">
                         <span class="text-sm text-slate-500">Sisa Stok: <strong id="detail-stock" class="text-slate-800"></strong></span>
+                        <a id="detail-wa-btn" href="#" target="_blank" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-lg text-sm" title="Pesan via WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> <span>Pesan</span>
+                        </a>
                     </div>
-                    <a id="detail-wa-btn" href="#" target="_blank" class="w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm">
-                        <i class="fa-brands fa-whatsapp text-xl"></i> Pesan Sekarang via WhatsApp
-                    </a>
                 </div>
             </div>
         </div>
@@ -423,9 +431,22 @@ if (!$is_open) {
         let allProducts = [];
         let filteredProducts = [];
         let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
+        let currentView = localStorage.getItem('viewMode') || 'grid';
         
         let currentDetailImages = [];
         let currentImageIndex = 0;
+
+        function setView(mode) {
+            currentView = mode;
+            localStorage.setItem('viewMode', mode);
+            document.getElementById('view-grid-btn').className = mode === 'grid'
+                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
+                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+            document.getElementById('view-detail-btn').className = mode === 'detail'
+                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
+                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+            renderProductGrid();
+        }
 
         function openDetailModal(id) {
             const product = allProducts.find(p => p.id === id);
@@ -535,8 +556,18 @@ if (!$is_open) {
                 .finally(() => showLoading(false));
         }
 
+        function initViewToggle() {
+            document.getElementById('view-grid-btn').className = currentView === 'grid'
+                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
+                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+            document.getElementById('view-detail-btn').className = currentView === 'detail'
+                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
+                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+        }
+
         function processAndRenderData() {
             generateCategoryFilterOptions();
+            initViewToggle();
             applyFiltersAndSort();
         }
 
@@ -613,7 +644,6 @@ if (!$is_open) {
             renderProductGrid();
         }
 
-        // Fungsi Render yang membungkus foreach agar tidak error
         function renderProductGrid() {
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
@@ -626,40 +656,96 @@ if (!$is_open) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
+
+                if (currentView === 'grid') {
+                    grid.style.gridTemplateColumns = '';
+                    grid.className = 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6';
+                } else {
+                    grid.style.gridTemplateColumns = '1fr';
+                    grid.className = 'flex flex-col gap-3 sm:gap-4';
+                }
                 
                 filteredProducts.forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
-                    const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
-
-                    const waNumber = "6281380686168";
-                    const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
-                    const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
-
-                    const isBekas = (product.name || '').toUpperCase().includes('2ND');
-                    const badgeKondisi = isBekas 
-                        ? `<div class="absolute top-3 left-3 bg-orange-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-orange-400">BEKAS</div>`
-                        : `<div class="absolute top-3 left-3 bg-sky-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-sky-400">BARU</div>`;
-
-                    card.innerHTML = `
-                        <div class="relative overflow-hidden aspect-video bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
-                            <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            ${badgeKondisi}
-                            <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-astra-700 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">
-                                ${product.category}
-                            </div>
-                        </div>
-                        <div class="p-5 flex flex-col flex-grow cursor-pointer" onclick="openDetailModal('${product.id}')">
-                            <h3 class="font-bold text-slate-800 text-lg leading-tight mb-2 line-clamp-2">${product.name}</h3>
-                            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                                <div class="text-xl font-extrabold text-astra-700">${formattedPrice}</div>
-                                <div class="text-xs text-astra-600 font-bold bg-astra-50 px-3 py-1.5 rounded-lg">Detail <i class="fa-solid fa-chevron-right ml-1"></i></div>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
+                    const el = currentView === 'grid'
+                        ? createGridCard(product)
+                        : createDetailCard(product);
+                    grid.appendChild(el);
                 });
             }
+        }
+
+        function createGridCard(product) {
+            const card = document.createElement('div');
+            card.className = "bg-white rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
+            const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+
+            const waNumber = "6281380686168";
+            const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
+            const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
+
+            const isBekas = (product.name || '').toUpperCase().includes('2ND');
+            const badgeKondisi = isBekas 
+                ? `<div class="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 bg-orange-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-lg shadow-sm border border-orange-400">BEKAS</div>`
+                : `<div class="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 bg-sky-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-lg shadow-sm border border-sky-400">BARU</div>`;
+
+            card.innerHTML = `
+                <div class="relative overflow-hidden aspect-video bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    ${badgeKondisi}
+                    <div class="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 bg-white/90 backdrop-blur-sm text-astra-700 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded sm:rounded-lg shadow-sm">
+                        ${product.category}
+                    </div>
+                </div>
+                <div class="p-2.5 sm:p-5 flex flex-col flex-grow">
+                    <h3 class="font-bold text-slate-800 text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
+                    <div class="mt-auto pt-2 sm:pt-4 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                        <div class="text-sm sm:text-xl font-extrabold text-astra-700 truncate min-w-0">${formattedPrice}</div>
+                        <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function createDetailCard(product) {
+            const card = document.createElement('div');
+            card.className = "bg-white rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group";
+            const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+
+            const waNumber = "6281380686168";
+            const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
+            const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
+
+            const isBekas = (product.name || '').toUpperCase().includes('2ND');
+            const badgeKondisi = isBekas
+                ? `<span class="bg-orange-100 text-orange-700 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-200">BEKAS</span>`
+                : `<span class="bg-sky-100 text-sky-700 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded border border-sky-200">BARU</span>`;
+
+            card.innerHTML = `
+                <div class="w-full sm:w-32 md:w-48 shrink-0 bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-28 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <div class="p-3 sm:p-4 md:p-5 flex flex-col flex-grow min-w-0">
+                    <div class="flex items-center gap-1.5 sm:gap-2 mb-1">
+                        ${badgeKondisi}
+                        <span class="text-[9px] sm:text-[10px] font-semibold text-astra-600 bg-astra-50 px-1.5 sm:px-2 py-0.5 rounded">${product.category}</span>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base md:text-lg leading-tight cursor-pointer line-clamp-2 sm:mb-1.5" onclick="openDetailModal('${product.id}')">${product.name}</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 hidden sm:block">${product.description || 'Tidak ada deskripsi rinci untuk produk ini.'}</p>
+                    <div class="mt-auto flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-100">
+                        <div class="text-sm sm:text-lg md:text-xl font-extrabold text-astra-700">${formattedPrice}</div>
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <span class="text-[10px] sm:text-xs text-slate-500">Stok: <strong class="text-slate-700">${product.stock}</strong></span>
+                            <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3.5 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
+                                <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i> <span class="hidden sm:inline">Pesan</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return card;
         }
     </script>
 </body>

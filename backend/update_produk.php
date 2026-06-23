@@ -190,7 +190,11 @@ if ($uploadFiles || !empty($imageOrder)) {
             if (isset($tempPaths[$item['basename']])) {
                 $tempPath = $tempPaths[$item['basename']];
                 $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
-                if ($ext === 'webp' || !gdWebpAvailable()) {
+                if ($ext === 'webp') {
+                    rename($tempPath, $target_file);
+                    touch($target_file);
+                } else if (!gdWebpAvailable()) {
+                    // GD tidak tersedia: tetap rename ke .webp
                     rename($tempPath, $target_file);
                     touch($target_file);
                 } else {
@@ -218,10 +222,7 @@ if ($uploadFiles || !empty($imageOrder)) {
                     move_uploaded_file($file_tmp, $target_file);
                 }
             } else {
-                // GD tidak tersedia: simpan file asli dengan ekstensi asli
-                $ext = pathinfo($item['name'], PATHINFO_EXTENSION);
-                $target_file = $target_dir . $safe_kode . '_' . $index . '.' . ($ext ?: 'jpg');
-                $savedFiles[count($savedFiles) - 1] = basename($target_file);
+                // GD tidak tersedia: tetap simpan sebagai .webp (rename extension)
                 move_uploaded_file($file_tmp, $target_file);
             }
         }
@@ -248,7 +249,17 @@ if ($uploadFiles || !empty($imageOrder)) {
     if (!is_dir($frontend_upload_dir)) {
         @mkdir($frontend_upload_dir, 0777, true);
     }
-    
+
+    // Hapus dulu semua file lawas produk ini dari frontend/ biar tidak ada duplikat
+    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+        $old = glob($frontend_upload_dir . $safe_kode . '_*.' . $ext);
+        if ($old) {
+            foreach ($old as $f) { @unlink($f); }
+        }
+        $legacy = $frontend_upload_dir . $safe_kode . '.' . $ext;
+        if (file_exists($legacy)) { @unlink($legacy); }
+    }
+
     // Copy all saved photos for this product to frontend
     foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
         $saved_photos = glob($target_dir . $safe_kode . '_*.' . $ext);

@@ -18,10 +18,12 @@ if (file_exists($cache_file)) {
                 $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $p['id']);
                 $upload_dir = __DIR__ . "/uploads/";
                 $images = [];
-                $matched_files = [];
-                foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-                    $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
-                    if ($matches) $matched_files = array_merge($matched_files, $matches);
+                $matched_files = glob($upload_dir . $safe_kode . "_*.webp");
+                if (empty($matched_files)) {
+                    foreach (['jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                        $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
+                        if ($matches) $matched_files = array_merge($matched_files, $matches);
+                    }
                 }
                 sort($matched_files);
                 foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
@@ -105,10 +107,12 @@ while($row = pg_fetch_assoc($result)) {
 
     $upload_dir = __DIR__ . "/uploads/";
     $images = [];
-    $matched_files = [];
-    foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-        $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
-        if ($matches) $matched_files = array_merge($matched_files, $matches);
+    $matched_files = glob($upload_dir . $safe_kode . "_*.webp");
+    if (empty($matched_files)) {
+        foreach (['jpg', 'jpeg', 'png', 'gif'] as $ext) {
+            $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
+            if ($matches) $matched_files = array_merge($matched_files, $matches);
+        }
     }
     sort($matched_files);
 

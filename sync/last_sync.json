@@ -1,7 +1,11 @@
 {
-    "last_sync": "2026-06-23 06:49:23",
-    "products": 764,
-    "duration": 0.3023,
+    "last_sync": "2026-06-23 17:06:52",
+    "products": 773,
+    "duration": 0.2267,
+    "db_connected": true,
+    "photos_synced": 0,
+    "success": true,
     "peak_memory": "2 MB",
-    "photos_synced": 0
+    "error": null,
+    "iteration": 1
 }

@@ -128,3 +128,15 @@
 
 ### Flexible Product Grid
 - `frontend/index.php`: Replaced fixed breakpoint grid (`xl:grid-cols-3` → `lg:grid-cols-3 xl:grid-cols-5` → CSS Grid `auto-fill` / `minmax(180px, 1fr)`) — adapts to any screen width, showing 5–7 products per row on desktop
+
+## 2026-06-23 (Session 3) — UI Cramping Fix & DB Config Fixes
+
+### Sync Config Fixes
+- `sync/config.php`: Fixed IP address from `192.168.8.189` (typo, missing digit) to `192.168.18.189` to match backend config
+- `sync/config.php`: Added `date_default_timezone_set('Asia/Jakarta')` so `last_sync.json` timestamps are written in WIB instead of UTC — fixes wrong sync time display in admin panel
+
+### Product Grid & Card Layout Fixes
+- `frontend/index.php`: Replaced cramped `minmax(140px, 1fr)` auto-fill grid with responsive `grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4` — wider columns, less cramped layout
+- `frontend/index.php`: Added `flex-shrink-0` to WhatsApp buttons on all product cards to prevent the WA icon from being cut off/compressed in narrow cards
+- `frontend/index.php`: Added `gap-1.5` to price+WA row for better spacing
+- `frontend/index.php`: Added `truncate min-w-0` to price text to prevent price overflow pushing WA button out
