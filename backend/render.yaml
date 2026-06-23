@@ -1,38 +1,29 @@
 # Royal Komputer — Render Blueprint
-# Deploys the backend/ directory as a PHP web service
+# Deploys the backend/ directory as a Docker container
 # Connected to Neon PostgreSQL for the cloud database
 #
 # How to deploy:
 #   1. Create a Neon project at https://neon.tech
 #   2. Copy the connection string
 #   3. Connect this git repo to Render dashboard
-#   4. Render auto-detects this blueprint
-#   5. Add Neon env vars in Render dashboard → Environment (see envVars below)
+#   4. Render auto-detects this blueprint (use path: backend/render.yaml)
+#   5. Add Neon env vars in Render dashboard → Environment
 #   6. Deploy
 
 services:
   - type: web
     name: royal-backend
-    env: php
+    runtime: docker
     plan: free
 
     # Monorepo: only deploy the backend/ subdirectory
     rootDir: backend
-
-    # No build step — vanilla PHP, no Composer
-    buildCommand: ""
-
-    # PHP built-in server
-    # Serves all .php files directly, no router needed
-    startCommand: php -S 0.0.0.0:$PORT
 
     # Health check — Render pings this every 5 minutes
     healthCheckPath: /index.php
 
     # ── Environment Variables ──
     envVars:
-      # Render auto-injects $PORT
-
       # === NEON DATABASE (set in Render dashboard) ===
       # - key: PGHOST
       #   value: ep-xxxx.us-east-2.aws.neon.tech
@@ -48,12 +39,3 @@ services:
       # App environment
       - key: APP_ENV
         value: production
-
-    # ── Persistent Disk ──
-    # For JSON config files (admins.json, jam_operasional.json, etc.)
-    # Photos are stored in /opt/render/project/src/backend/uploads/
-    # (ephemeral — survives restarts but resets on deploy)
-    disk:
-      name: backend-data
-      mountPath: /opt/render/project/src/backend/data
-      sizeGB: 1
