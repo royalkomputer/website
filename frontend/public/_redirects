@@ -8,10 +8,10 @@
 /product_info.json  https://royal-backend-s3ir.onrender.com/data/product_info.json  200
 /tagline.json  https://royal-backend-s3ir.onrender.com/data/tagline.json  200
 /heading.json  https://royal-backend-s3ir.onrender.com/data/heading.json  200
-/uploads/*  https://royal-backend-s3ir.onrender.com/uploads/:splat  200
-/logo/*  https://royal-backend-s3ir.onrender.com/logo/:splat  200
-/admin/*  https://royal-backend-s3ir.onrender.com/:splat  200
-/login*  https://royal-backend-s3ir.onrender.com/login  200
-/update_*  https://royal-backend-s3ir.onrender.com/:splat  200
-/api_manage_*  https://royal-backend-s3ir.onrender.com/:splat  200
+/uploads/*  https://royal-backend-s3ir.onrender.com/uploads/:splat  200!
+/logo/*  https://royal-backend-s3ir.onrender.com/logo/:splat  200!
+/admin/*  https://royal-backend-s3ir.onrender.com/:splat  200!
+/login*  https://royal-backend-s3ir.onrender.com/login  200!
+/update_*  https://royal-backend-s3ir.onrender.com/:splat  200!
+/api_manage_*  https://royal-backend-s3ir.onrender.com/:splat  200!
 /*  /index.html  200
