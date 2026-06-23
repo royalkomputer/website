@@ -2,6 +2,99 @@
   command = "npm run build"
   publish = "dist"
 
+# Redirects — force=true overrides static files
+[[redirects]]
+  from = "/api_produk.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_produk.php"
+  status = 200
+
+[[redirects]]
+  from = "/api_status.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_status.php"
+  status = 200
+
+[[redirects]]
+  from = "/api_schedules.php"
+  to = "https://royal-backend-s3ir.onrender.com/api_schedules.php"
+  status = 200
+
+[[redirects]]
+  from = "/cache_produk.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/cache_produk.json"
+  status = 200
+
+[[redirects]]
+  from = "/jam_operasional.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/jam_operasional.json"
+  status = 200
+
+[[redirects]]
+  from = "/jadwal_tutup.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/jadwal_tutup.json"
+  status = 200
+
+[[redirects]]
+  from = "/status_toko.txt"
+  to = "https://royal-backend-s3ir.onrender.com/data/status_toko.txt"
+  status = 200
+
+[[redirects]]
+  from = "/product_info.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/product_info.json"
+  status = 200
+
+[[redirects]]
+  from = "/tagline.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/tagline.json"
+  status = 200
+
+[[redirects]]
+  from = "/heading.json"
+  to = "https://royal-backend-s3ir.onrender.com/data/heading.json"
+  status = 200
+
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://royal-backend-s3ir.onrender.com/uploads/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/logo/*"
+  to = "https://royal-backend-s3ir.onrender.com/logo/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/admin/*"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/login*"
+  to = "https://royal-backend-s3ir.onrender.com/login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/update_*"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api_manage_*"
+  to = "https://royal-backend-s3ir.onrender.com/:splat"
+  status = 200
+  force = true
+
+# SPA catch-all — MUST be last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
