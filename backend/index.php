@@ -56,7 +56,7 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
                 <i class="fa-solid fa-right-to-bracket"></i> Login Admin
             </a>
             <div class="mt-8 pt-6 border-t border-slate-100">
-                <?php $store_url = getenv('STOREFRONT_URL') ?: 'https://royal-komputer.netlify.app'; ?>
+                <?php $store_url = getenv('STOREFRONT_URL') ?: 'https://tiny-druid-60182f.netlify.app'; ?>
                 <a href="<?= $store_url ?>" target="_blank" class="text-sm text-slate-400 hover:text-astra-700 transition-colors">
                     <i class="fa-solid fa-store mr-1"></i> Ke Toko
                 </a>

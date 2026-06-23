@@ -81,9 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
         </form>
         <div class="mt-5 text-center">
-            <a href="https://royal-komputer.netlify.app" class="text-xs text-slate-400 hover:text-astra-700 transition-colors">
-                <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Toko
-            </a>
+            <?php $store_url = getenv('STOREFRONT_URL') ?: 'https://tiny-druid-60182f.netlify.app'; ?>
+                <a href="<?= $store_url ?>" class="text-xs text-slate-400 hover:text-astra-700 transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Toko
+                </a>
         </div>
     </div>
 </body>
