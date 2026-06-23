@@ -182,8 +182,8 @@ frontend/
 │   ├── main.js             # Full app: state management, filtering, sorting
 │   └── style.css           # Tailwind imports + astra color theme
 ├── config.php              # DB config (for PHP fallback)
-├── api_produk.php          # Product API (for PHP fallback)
-├── cache_produk.json       # Product cache (written by sync agent + admin)
+├── api_produk.php          # Product API (cache-first, DB fallback)
+├── cache_produk.json       # Product cache (primary data source)
 ├── jam_operasional.json    # Operating hours (synced from admin)
 ├── jadwal_tutup.json       # Closure schedules (synced from admin)
 ├── tagline.json            # Tagline toko (synced from admin)
@@ -300,7 +300,7 @@ Admin dashboard, login, product management, operating hours, closure schedules. 
 | `backend/login.php` | ✅ Complete | None | Login form + authentication |
 | `backend/logout.php` | ✅ Complete | None | Session destroy + redirect |
 | `backend/config.php` | ✅ Complete | Varies | DB + JSON helpers, env var support |
-| `backend/index.php` | ✅ Complete | None | Health check endpoint (JSON) |
+| `backend/index.php` | ✅ Complete | None | Admin landing page (logo + login button) |
 | `backend/update_produk.php` | ✅ Complete | Session | Product description edit + photo upload |
 | `backend/update_admin.php` | ✅ Complete | Session | Admin CRUD + schedules + status (JSON auth) |
 | `backend/update_jam.php` | ✅ Complete | Super Admin | Operating hours (JSON auth) |
@@ -389,6 +389,30 @@ Admin dashboard, login, product management, operating hours, closure schedules. 
     - update_jam.php → frontend/jam_operasional.json
     - set_manual_status → frontend/status_toko.txt
     - Eliminates 1-hour sync agent delay for config changes
+
+[x] Cache-first product API (offline/DB-less mode)
+    - frontend/api_produk.php: reads cache_produk.json first, DB as fallback only
+    - backend/api_produk.php: same cache-first approach with CORS
+    - Photos still refreshed from filesystem each request (?v=timestamp)
+
+[x] Graceful pg_connect() handling
+    - frontend/config.php, backend/config.php: function_exists('pg_connect') guard
+    - Returns false instead of fatal error when pgsql extension not loaded
+
+[x] Sync status tracking
+    - sync/update_produk.php writes last_sync.json after successful run
+    - Contains: timestamp, product count, duration, photos synced, peak memory
+    - Written to both sync/ and backend/data/ directories
+
+[x] Sync status dashboard display
+    - backend/admin.php: shows last-sync time (WIB), product count, duration
+    - Color-coded badge: green < 2h, yellow 2-6h, red > 6h
+    - Shows "Belum pernah sinkron" if no last_sync.json exists
+
+[x] Admin login landing page
+    - backend/index.php: logo + "Login Admin" button + "Ke Toko" link
+    - Auto-redirects to admin.php if already logged in
+    - Render health check still works (HTTP 200)
 ```
 
 ---

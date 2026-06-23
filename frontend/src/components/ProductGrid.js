@@ -1,5 +1,27 @@
 import { ProductCard } from './ProductCard.js'
 
+/** Default fallback product info text */
+const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.'
+
+let _productInfoText = PRODUCT_INFO_DEFAULT
+
+/**
+ * Fetch the product info text from product_info.json (synced from admin).
+ * Falls back to the default if the file isn't available.
+ */
+export async function loadProductInfoText() {
+  try {
+    const res = await fetch('/product_info.json')
+    const data = await res.json()
+    if (data && data.text) {
+      _productInfoText = data.text
+    }
+  } catch {
+    // Use default fallback
+    _productInfoText = PRODUCT_INFO_DEFAULT
+  }
+}
+
 /**
  * ProductGrid Component
  *
@@ -9,14 +31,15 @@ import { ProductCard } from './ProductCard.js'
  * @returns {string} HTML string for the product section
  */
 export function ProductGrid() {
+  const infoHtml = _productInfoText.replace('{count}', '<span class="js-product-count font-bold text-slate-900">0</span>')
+
   return `
 <section class="lg:col-span-3 flex flex-col gap-6">
 
   <!-- Product count info -->
   <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
     <div class="text-sm text-slate-600">
-      Menampilkan <span class="js-product-count font-bold text-slate-900">0</span> produk tersedia.
-      Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.
+      ${infoHtml}
     </div>
   </div>
 

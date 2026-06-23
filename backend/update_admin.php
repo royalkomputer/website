@@ -240,8 +240,54 @@ if ($action === 'delete_schedule') {
 }
 
 // -------------------------------------------------------
+// ACTION: save_heading / get_heading
+// -------------------------------------------------------
+if ($action === 'save_heading') {
+    $prefix = trim($_POST['prefix'] ?? '');
+    $brand  = trim($_POST['brand'] ?? '');
+    if (empty($prefix) || empty($brand)) {
+        echo json_encode(['success'=>false,'message'=>'Prefix dan brand heading tidak boleh kosong.']);
+        exit;
+    }
+    if (saveHeading($prefix, $brand)) {
+        echo json_encode(['success'=>true,'message'=>'Heading toko berhasil disimpan.']);
+    } else {
+        echo json_encode(['success'=>false,'message'=>'Gagal menyimpan heading toko.']);
+    }
+    exit;
+}
+
+if ($action === 'get_heading') {
+    $heading = loadHeading();
+    echo json_encode(['success'=>true, 'data' => $heading]);
+    exit;
+}
+
+// -------------------------------------------------------
 // ACTION: save_tagline / get_tagline
 // -------------------------------------------------------
+// -------------------------------------------------------
+// ACTION: save_product_info / get_product_info
+// -------------------------------------------------------
+if ($action === 'save_product_info') {
+    $text = trim($_POST['text'] ?? '');
+    if (empty($text)) {
+        echo json_encode(['success'=>false,'message'=>'Teks tidak boleh kosong.']);
+        exit;
+    }
+    if (saveProductInfoText($text)) {
+        echo json_encode(['success'=>true,'message'=>'Teks info produk berhasil disimpan.']);
+    } else {
+        echo json_encode(['success'=>false,'message'=>'Gagal menyimpan teks info produk.']);
+    }
+    exit;
+}
+
+if ($action === 'get_product_info') {
+    echo json_encode(['success'=>true, 'data' => ['text' => loadProductInfoText()]]);
+    exit;
+}
+
 if ($action === 'save_tagline') {
     $tagline = trim($_POST['tagline'] ?? '');
     if (empty($tagline)) {

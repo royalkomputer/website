@@ -11,10 +11,14 @@ define('DB_PASS', '2356988');
 // --- PATH FILE ---
 define('JAM_FILE',     __DIR__ . '/jam_operasional.json');
 define('STATUS_FILE',  __DIR__ . '/status_toko.txt');
-define('SCHEDULE_FILE', __DIR__ . '/jadwal_tutup.json');
+define('SCHEDULE_FILE',      __DIR__ . '/jadwal_tutup.json');
+define('PRODUCT_INFO_FILE', __DIR__ . '/product_info.json');
 
 // --- FUNGSI KONEKSI DATABASE ---
 function getDBConnection() {
+    if (!function_exists('pg_connect')) {
+        return false;
+    }
     $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS . " connect_timeout=3";
     return @pg_connect($conn_string);
 }
@@ -56,4 +60,17 @@ function loadSchedules(): array {
 
 function saveSchedules(array $schedules): bool {
     return file_put_contents(SCHEDULE_FILE, json_encode($schedules, JSON_PRETTY_PRINT)) !== false;
+}
+
+// ============================================================
+// PRODUCT INFO TEKS
+// ============================================================
+
+function loadProductInfoText(): string {
+    $default = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.';
+    if (!file_exists(PRODUCT_INFO_FILE)) {
+        return $default;
+    }
+    $data = json_decode(file_get_contents(PRODUCT_INFO_FILE), true);
+    return $data['text'] ?? $default;
 }

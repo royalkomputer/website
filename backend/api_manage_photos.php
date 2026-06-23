@@ -1,7 +1,17 @@
 <?php
 // Mencegah PHP error dari merusak JSON output
 error_reporting(E_ERROR | E_PARSE);
+
+// Naikkan batas upload untuk foto besar
+@ini_set('upload_max_filesize', '64M');
+@ini_set('post_max_size', '128M');
+@ini_set('max_execution_time', '120');
+@ini_set('memory_limit', '256M');
+
 header('Content-Type: application/json');
+
+// Global try-catch: pastikan PHP error selalu dikembalikan sebagai JSON
+try {
 
 require_once __DIR__ . '/cors.php';
 handleCORS();
@@ -114,23 +124,14 @@ if ($action === 'delete') {
             rename($temp_name, $final_name);
             touch($final_name);
         } else {
-            $img = null;
-            $mime = image_type_to_mime_type(exif_imagetype($temp_name));
-            switch ($mime) {
-                case 'image/jpeg': $img = imagecreatefromjpeg($temp_name); break;
-                case 'image/png':
-                    $img = imagecreatefrompng($temp_name);
-                    imagepalettetotruecolor($img);
-                    imagealphablending($img, true);
-                    imagesavealpha($img, true);
-                    break;
-                case 'image/gif': $img = imagecreatefromgif($temp_name); break;
+            $ext = pathinfo($temp_name, PATHINFO_EXTENSION);
+            if ($ext === 'webp' || !gdWebpAvailable()) {
+                rename($temp_name, $final_name);
+                touch($final_name);
+            } else {
+                convertOrCopyImage($temp_name, $final_name);
+                unlink($temp_name);
             }
-            if ($img) {
-                imagewebp($img, $final_name, 85);
-                imagedestroy($img);
-            }
-            unlink($temp_name);
         }
         $index++;
     }
@@ -164,4 +165,8 @@ if ($action === 'delete') {
 }
 
 echo json_encode(["success" => false, "message" => "Aksi tidak dikenal."]);
+
+} catch (Throwable $e) {
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+}
 ?>

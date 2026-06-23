@@ -50,6 +50,26 @@ if (file_exists($tagline_file)) {
     if (!empty($tagline_data['tagline'])) $tagline = $tagline_data['tagline'];
 }
 
+// Baca heading toko
+$heading_file = 'heading.json';
+$heading_prefix = 'Solusi Hardware di';
+$heading_brand = 'Royal Komputer';
+if (file_exists($heading_file)) {
+    $heading_data = json_decode(file_get_contents($heading_file), true);
+    if (!empty($heading_data['prefix'])) $heading_prefix = $heading_data['prefix'];
+    if (!empty($heading_data['brand'])) $heading_brand = $heading_data['brand'];
+}
+
+// Baca teks info produk
+$product_info_file = 'product_info.json';
+$product_info_text = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.';
+if (file_exists($product_info_file)) {
+    $info_data = json_decode(file_get_contents($product_info_file), true);
+    if (!empty($info_data['text'])) $product_info_text = $info_data['text'];
+}
+// Ganti {count} dengan span yang akan diisi JavaScript
+$product_info_html = str_replace('{count}', '<span id="product-count" class="font-bold text-slate-900">0</span>', $product_info_text);
+
 // Menentukan jam buka selanjutnya jika sedang tutup
 $next_buka = '';
 $next_hari = '';
@@ -190,7 +210,7 @@ if (!$is_open) {
 </nav>
 
     <header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white py-12 px-4 shadow-inner relative overflow-hidden">
-        <div class="container mx-auto max-w-6xl text-center relative z-10">
+        <div class="container mx-auto text-center relative z-10">
             
             <?php if ($tutup_sementara): ?>
                 <span class="bg-red-500/20 border border-red-500/50 text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2 shadow-lg"><i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>
@@ -209,12 +229,12 @@ if (!$is_open) {
                 </div>
             <?php endif; ?>
 
-            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Solusi Hardware di <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">Royal Komputer</span></h1>
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4"><?php echo htmlspecialchars($heading_prefix); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300"><?php echo htmlspecialchars($heading_brand); ?></span></h1>
             <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light"><?php echo htmlspecialchars($tagline); ?></p>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-7xl flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         <aside class="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm self-start overflow-hidden">
             
@@ -263,7 +283,7 @@ if (!$is_open) {
 
         <section class="lg:col-span-3 flex flex-col gap-6">
             <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="text-sm text-slate-600">Menampilkan <span id="product-count" class="font-bold text-slate-900">0</span> produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.</div>
+                <div class="text-sm text-slate-600"><?php echo $product_info_html; ?></div>
             </div>
 
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
@@ -277,12 +297,12 @@ if (!$is_open) {
                 <p class="text-slate-500 text-sm">Semua stok habis atau di luar kriteria pencarian Anda.</p>
             </div>
 
-            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            <div id="product-grid" class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))"></div>
         </section>
     </main>
 
     <footer class="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 mt-12 py-12">
-        <div class="container mx-auto px-4 max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+        <div class="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
             
             <div class="flex flex-col gap-3 items-center md:items-start">
                 <img src="logo/logo.webp" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1">

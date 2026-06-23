@@ -1,8 +1,8 @@
 import './style.css'
 import { Navbar, bindNavbarEvents } from './components/Navbar.js'
-import { StoreStatus } from './components/StoreStatus.js'
+import { StoreStatus, loadHeadingText } from './components/StoreStatus.js'
 import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './components/FilterSidebar.js'
-import { ProductGrid, renderProductGrid, showLoading } from './components/ProductGrid.js'
+import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
 import { fetchProducts, fetchStoreStatus } from './lib/api.js'
@@ -67,6 +67,10 @@ function renderApp() {
 // ──────────────────────────────────────────────
 
 async function loadData() {
+  // Load UI text (editable from admin)
+  await loadProductInfoText()
+  await loadHeadingText()
+
   // Load products
   showLoading(true)
   try {

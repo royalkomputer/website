@@ -33,6 +33,11 @@ sync/cache_produk.json
 tests/.phpunit.cache/
 tests/coverage/
 
+# Windows reserved device names
+nul
+NUL
+Nul
+
 # Node / Vite
 node_modules/
 dist/

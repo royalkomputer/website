@@ -34,6 +34,7 @@ if ($current_status === 'tutup') {
 }
 
 $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+$heading = loadHeading();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -92,11 +93,59 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
     </div>
 </div>
 
-<main class="container mx-auto px-4 py-8 max-w-7xl flex-grow">
+<main class="container mx-auto px-4 py-8 flex-grow">
 
     <div class="mb-6 border-b border-slate-200 pb-4">
         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard Admin</h2>
         <p class="text-slate-500 text-sm mt-1">Kelola katalog produk, jam operasional, dan akun admin.</p>
+    </div>
+
+    <!-- SYNC STATUS -->
+    <?php
+    $sync_file = __DIR__ . '/data/last_sync.json';
+    $last_sync = null;
+    if (file_exists($sync_file)) {
+        $last_sync = json_decode(file_get_contents($sync_file), true);
+    }
+    ?>
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm px-5 py-3 mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 text-sm">
+            <i class="fa-solid fa-rotate text-astra-700"></i>
+            <span class="text-slate-600">Sinkronisasi IPOS:</span>
+            <?php if ($last_sync): ?>
+                <span class="font-semibold text-slate-800"><?= date('d M Y H:i', strtotime($last_sync['last_sync'])) ?> WIB</span>
+                <span class="text-slate-400 hidden sm:inline">(&bull; <?= number_format($last_sync['products']) ?> produk, <?= $last_sync['duration'] ?>s)</span>
+            <?php else: ?>
+                <span class="text-red-600 font-semibold">Belum pernah sinkron</span>
+            <?php endif; ?>
+        </div>
+        <?php if ($last_sync): ?>
+        <?php
+        $sync_time = strtotime($last_sync['last_sync']);
+        $diff_hours = (time() - $sync_time) / 3600;
+        $badge_class = $diff_hours < 2 ? 'bg-green-100 text-green-700 border-green-200' : ($diff_hours < 6 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200');
+        $badge_text = $diff_hours < 2 ? 'Terkini' : ($diff_hours < 6 ? $diff_hours < 2 ? 'Terkini' : round($diff_hours) . ' jam lalu' : '>' . round($diff_hours) . ' jam');
+        ?>
+        <span class="text-xs font-bold px-2.5 py-1 rounded-full border <?= $badge_class ?>">
+            <?= $diff_hours < 2 ? '<i class="fa-solid fa-circle-check mr-1"></i>Terkini' : '<i class="fa-solid fa-clock mr-1"></i>' . round($diff_hours) . ' jam lalu' ?>
+        </span>
+        <?php endif; ?>
+        <button onclick="triggerSync()" id="sync-btn" class="text-xs font-bold px-3 py-1.5 rounded-full border border-astra-700 bg-astra-700 text-white hover:bg-astra-800 transition-colors flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate" id="sync-icon"></i> Sync Now
+        </button>
+    </div>
+
+    <!-- SYNC MODAL -->
+    <div id="sync-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate text-astra-700"></i> Sinkronisasi IPOS
+                </h3>
+                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
+            </div>
+            <pre id="sync-output" class="p-6 overflow-auto text-sm font-mono bg-slate-900 text-green-300 leading-relaxed whitespace-pre-wrap flex-grow rounded-b-2xl">Memulai sinkronisasi...</pre>
+        </div>
     </div>
 
     <!-- TAB NAV -->
@@ -115,6 +164,9 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
             <i class="fa-solid fa-users-gear"></i> Kelola Admin
         </button>
         <?php endif; ?>
+        <button onclick="switchTab('ui')" id="tab-ui" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-paintbrush"></i> UI Toko
+        </button>
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya
         </button>
@@ -122,22 +174,6 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
 
     <!-- PANEL KATALOG -->
     <div id="panel-katalog">
-
-        <!-- TAGLINE EDITOR -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-quote-right text-astra-700"></i> Tagline Toko</h4>
-            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di halaman utama toko, di bawah judul &quot;Solusi Hardware di Royal Komputer&quot;.</p>
-            <div class="flex gap-3 items-start">
-                <textarea id="tagline-input" rows="2"
-                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                    placeholder="Tulis tagline toko..."><?php echo htmlspecialchars(loadTagline()); ?></textarea>
-                <button type="button" onclick="saveTagline()" id="btn-simpan-tagline"
-                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan
-                </button>
-            </div>
-            <span id="tagline-feedback" class="text-sm font-semibold hidden mt-2"></span>
-        </div>
 
         <!-- FILTER + HEADER KATALOG MENYATU -->
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
@@ -352,6 +388,81 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
         </div>
     </div>
     <?php endif; ?>
+
+    <!-- PANEL UI TOKO -->
+    <div id="panel-ui" class="hidden">
+        <div class="mb-5">
+            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                <i class="fa-solid fa-paintbrush text-astra-700"></i> Tampilan Toko (UI)
+            </h3>
+            <p class="text-sm text-slate-500 mt-0.5">Sesuaikan teks yang muncul di halaman utama toko.</p>
+        </div>
+
+        <!-- HEADING EDITOR -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-heading text-astra-700"></i> Judul Header Toko</h4>
+            <p class="text-xs text-slate-500 mb-3">Judul besar di halaman utama. Bagian <strong>brand</strong> akan di-highlight dengan warna gradasi biru.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Teks Awal</label>
+                    <input type="text" id="heading-prefix-input"
+                        value="<?php echo htmlspecialchars($heading['prefix']); ?>"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                        placeholder="Contoh: Solusi Hardware di">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Brand <span class="text-slate-400 font-normal normal-case">(akan di-highlight)</span></label>
+                    <input type="text" id="heading-brand-input"
+                        value="<?php echo htmlspecialchars($heading['brand']); ?>"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                        placeholder="Contoh: Royal Komputer">
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="saveHeading()" id="btn-simpan-heading"
+                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Heading
+                </button>
+                <span id="heading-feedback" class="text-sm font-semibold hidden"></span>
+            </div>
+            <!-- Preview -->
+            <div class="mt-4 p-3 bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 rounded-lg text-center">
+                <p class="text-white text-lg font-bold" id="heading-preview"><?php echo htmlspecialchars($heading['prefix']); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300"><?php echo htmlspecialchars($heading['brand']); ?></span></p>
+            </div>
+        </div>
+
+        <!-- TAGLINE EDITOR -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-quote-right text-astra-700"></i> Tagline Toko</h4>
+            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di bawah judul header toko.</p>
+            <div class="flex gap-3 items-start">
+                <textarea id="tagline-input" rows="2"
+                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                    placeholder="Tulis tagline toko..."><?php echo htmlspecialchars(loadTagline()); ?></textarea>
+                <button type="button" onclick="saveTagline()" id="btn-simpan-tagline"
+                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan
+                </button>
+            </div>
+            <span id="tagline-feedback" class="text-sm font-semibold hidden mt-2"></span>
+        </div>
+
+        <!-- PRODUCT INFO TEXT EDITOR -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-circle-info text-astra-700"></i> Teks Info Produk</h4>
+            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di atas daftar produk, &quot;Menampilkan X produk tersedia...&quot;. Gunakan <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold">{count}</code> untuk menampilkan jumlah produk.</p>
+            <div class="flex gap-3 items-start">
+                <textarea id="product-info-input" rows="3"
+                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                    placeholder="Tulis teks info produk..."><?php echo htmlspecialchars(loadProductInfoText()); ?></textarea>
+                <button type="button" onclick="saveProductInfo()" id="btn-simpan-produk-info"
+                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan
+                </button>
+            </div>
+            <span id="product-info-feedback" class="text-sm font-semibold hidden mt-2"></span>
+        </div>
+    </div>
 
     <!-- PANEL PROFIL SAYA -->
     <div id="panel-profil" class="hidden">
@@ -575,7 +686,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','profil'];
+    const panels = ['katalog','jam','schedule','admin','ui','profil'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -853,6 +964,59 @@ function submitForm(event){
         .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan';});
 }
 
+// HEADING
+function saveHeading(){
+    const btn=document.getElementById('btn-simpan-heading');
+    const fb=document.getElementById('heading-feedback');
+    const prefix=document.getElementById('heading-prefix-input').value.trim();
+    const brand=document.getElementById('heading-brand-input').value.trim();
+    if(!prefix||!brand){ showNotification('Prefix dan brand heading tidak boleh kosong.', 'error'); return; }
+    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+    fb.classList.add('hidden');
+    const fd=new FormData();
+    fd.append('action','save_heading');
+    fd.append('prefix',prefix);
+    fd.append('brand',brand);
+    fetch('update_admin.php',{method:'POST',body:fd})
+        .then(r=>r.json()).then(data=>{
+            showNotification(data.message, data.success ? 'success' : 'error');
+        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
+        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Heading';});
+}
+
+// Live preview heading
+function updateHeadingPreview(){
+    const prefix=document.getElementById('heading-prefix-input').value.trim();
+    const brand=document.getElementById('heading-brand-input').value.trim();
+    const preview=document.getElementById('heading-preview');
+    if(preview) preview.innerHTML=prefix+' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">'+escHtml(brand)+'</span>';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    const p=document.getElementById('heading-prefix-input');
+    const b=document.getElementById('heading-brand-input');
+    if(p) p.addEventListener('input', updateHeadingPreview);
+    if(b) b.addEventListener('input', updateHeadingPreview);
+});
+
+// PRODUCT INFO
+function saveProductInfo(){
+    const btn=document.getElementById('btn-simpan-produk-info');
+    const fb=document.getElementById('product-info-feedback');
+    const text=document.getElementById('product-info-input').value.trim();
+    if(!text){ showNotification('Teks info produk tidak boleh kosong.', 'error'); return; }
+    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+    fb.classList.add('hidden');
+    const fd=new FormData();
+    fd.append('action','save_product_info');
+    fd.append('text',text);
+    fetch('update_admin.php',{method:'POST',body:fd})
+        .then(r=>r.json()).then(data=>{
+            showNotification(data.message, data.success ? 'success' : 'error');
+        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
+        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan';});
+}
+
 // TAGLINE
 function saveTagline(){
     const btn=document.getElementById('btn-simpan-tagline');
@@ -1091,6 +1255,40 @@ function setManualStatus(){
 
 function escHtml(str){
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function triggerSync(){
+    const btn = document.getElementById('sync-btn');
+    const icon = document.getElementById('sync-icon');
+    btn.disabled = true;
+    icon.className = 'fa-solid fa-spinner animate-spin';
+    document.getElementById('sync-modal').classList.remove('hidden');
+    document.getElementById('sync-modal').classList.add('flex');
+    document.getElementById('sync-output').textContent = 'Memulai sinkronisasi...';
+    fetch('trigger_sync.php', {method:'POST'})
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('sync-output').textContent = data.output || '(tidak ada output)';
+            if(data.success){
+                showNotification('Sinkronisasi berhasil! ' + (data.output.match(/(\d+)\s*products?/i) ? data.output.match(/(\d+)\s*products?/i)[1] + ' produk' : ''), 'success');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showNotification('Sinkronisasi gagal (exit code: ' + data.exit_code + ')', 'error');
+            }
+        })
+        .catch(() => {
+            document.getElementById('sync-output').textContent = 'Gagal menghubungi server.';
+            showNotification('Gagal terhubung ke server.', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            icon.className = 'fa-solid fa-rotate';
+        });
+}
+
+function closeSyncModal(){
+    document.getElementById('sync-modal').classList.add('hidden');
+    document.getElementById('sync-modal').classList.remove('flex');
 }
 </script>
 </body>

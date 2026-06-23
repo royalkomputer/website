@@ -97,3 +97,34 @@
 
 ### Test Suite Refactor (PHP 8.5 Compatibility)
 - `backend/tests/test_api.php`: Refactored `$http_response_header` parsing to use `http_get_last_response_headers()` (PHP 8.5+ API); added `error_reporting(E_ALL & ~E_DEPRECATED)` to suppress deprecation warnings; output now shows `[7/7]` sections; removed unused `assertContentType()` helper
+
+## 2026-06-23 — Offline-First Architecture & Admin Improvements
+
+### Admin Login Landing Page
+- `backend/index.php`: Replaced JSON health check endpoint with a landing page showing logo, "Royal Admin Panel" heading, and a "Login Admin" button linking to `login.php`
+- If already logged in, redirects directly to `admin.php`
+- Health check on Render still works (returns HTTP 200)
+
+### Offline-First Product API
+- `frontend/api_produk.php`, `backend/api_produk.php`: Switched to cache-first strategy — reads `cache_produk.json` as primary data source, only falls back to live DB if cache doesn't exist
+- Photos are still refreshed from filesystem on every request (cachebuster `?v=timestamp`)
+- System works fully without PostgreSQL connection or `php_pgsql` extension
+
+### Graceful Extension Handling
+- `frontend/config.php`, `backend/config.php`: Added `function_exists('pg_connect')` guard in `getDBConnection()` — returns `false` instead of fatal error when the PostgreSQL extension isn't loaded in Apache's PHP module
+
+### Sync Status Tracking
+- `sync/update_produk.php`: After successful sync, writes `last_sync.json` to `sync/` and `backend/data/` with timestamp, product count, duration, and photo count
+- `backend/admin.php`: Added sync status bar below the dashboard header showing last sync time, product count, duration, and a color-coded badge (green < 2h, yellow 2-6h, red > 6h)
+
+## 2026-06-23 (Session 2) — Web Sync Trigger & Full-Width UI
+
+### Web-Triggered Sync
+- `backend/trigger_sync.php`: New POST endpoint that runs `sync/update_produk.php` via `exec()` and returns JSON with full output
+- `backend/admin.php`: Added "Sync Now" button in the sync status bar, opens a modal showing real-time terminal output, auto-reloads page on success
+
+### Full-Width Desktop Layout
+- `frontend/index.php`, `backend/admin.php`: Removed `max-w-7xl` and `max-w-6xl` constraints from hero, main grid, footer, and admin container — layout now uses `container`'s responsive max (1536px) or fills wider screens
+
+### Flexible Product Grid
+- `frontend/index.php`: Replaced fixed breakpoint grid (`xl:grid-cols-3` → `lg:grid-cols-3 xl:grid-cols-5` → CSS Grid `auto-fill` / `minmax(180px, 1fr)`) — adapts to any screen width, showing 5–7 products per row on desktop

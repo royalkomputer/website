@@ -242,10 +242,25 @@ foreach ($targets as $path => $label) {
     }
 }
 
-// --- SUMMARY ---
+// --- WRITE LAST SYNC TIMESTAMP ---
 $total_duration = round(microtime(true) - $start_time, 4);
 $peak_memory = memory_get_peak_usage(true);
 $count = count($produk);
+
+$last_sync = [
+    'last_sync' => date('Y-m-d H:i:s'),
+    'products' => $count,
+    'duration' => $total_duration,
+    'peak_memory' => format_bytes($peak_memory),
+    'photos_synced' => $synced ?? 0,
+];
+$sync_targets = [
+    __DIR__ . '/last_sync.json',
+    __DIR__ . '/../backend/data/last_sync.json',
+];
+foreach ($sync_targets as $path) {
+    file_put_contents($path, json_encode($last_sync, JSON_PRETTY_PRINT));
+}
 
 write_log("=== SYNC COMPLETE ===");
 write_log("Products: $count | Duration: {$total_duration}s | Peak memory: " . format_bytes($peak_memory));

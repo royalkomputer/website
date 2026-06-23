@@ -49,6 +49,21 @@
   to = "https://royal-backend.onrender.com/status_toko.txt"
   status = 200
 
+[[redirects]]
+  from = "/product_info.json"
+  to = "https://royal-backend.onrender.com/product_info.json"
+  status = 200
+
+[[redirects]]
+  from = "/tagline.json"
+  to = "https://royal-backend.onrender.com/tagline.json"
+  status = 200
+
+[[redirects]]
+  from = "/heading.json"
+  to = "https://royal-backend.onrender.com/heading.json"
+  status = 200
+
 # 6. Admin panel paths → Render backend
 [[redirects]]
   from = "/admin/*"

@@ -1,3 +1,25 @@
+/** Default heading text */
+const HEADING_DEFAULT_PREFIX = 'Solusi Hardware di'
+const HEADING_DEFAULT_BRAND = 'Royal Komputer'
+
+let _headingPrefix = HEADING_DEFAULT_PREFIX
+let _headingBrand = HEADING_DEFAULT_BRAND
+
+/**
+ * Fetch the heading text from heading.json (synced from admin).
+ */
+export async function loadHeadingText() {
+  try {
+    const res = await fetch('/heading.json')
+    const data = await res.json()
+    if (data && data.prefix) _headingPrefix = data.prefix
+    if (data && data.brand) _headingBrand = data.brand
+  } catch {
+    _headingPrefix = HEADING_DEFAULT_PREFIX
+    _headingBrand = HEADING_DEFAULT_BRAND
+  }
+}
+
 /**
  * StoreStatus Component
  *
@@ -54,7 +76,7 @@ export function StoreStatus(status) {
   <div class="container mx-auto max-w-6xl text-center relative z-10">
     ${badgeHTML}
     ${scheduleHTML}
-    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">Solusi Hardware di <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">Royal Komputer</span></h1>
+    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">${_headingPrefix} <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">${_headingBrand}</span></h1>
     <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light">${tagline || 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.'}</p>
   </div>
 </header>`

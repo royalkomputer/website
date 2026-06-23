@@ -4,20 +4,60 @@ header('Access-Control-Allow-Origin: *');
 
 require_once 'config.php';
 
-$conn = getDBConnection();
+$cache_file = __DIR__ . '/cache_produk.json';
 
-if (!$conn) {
-    // Coba baca dari cache jika database mati
-    $cache_file = __DIR__ . '/cache_produk.json';
-    if (file_exists($cache_file)) {
-        echo file_get_contents($cache_file);
+// Baca dari cache sebagai sumber data utama
+if (file_exists($cache_file)) {
+    $cache_data = file_get_contents($cache_file);
+    $produk = json_decode($cache_data, true);
+
+    // Refresh foto dari filesystem (update timestamp cachebuster)
+    if (is_array($produk)) {
+        foreach ($produk as &$p) {
+            if (isset($p['id'])) {
+                $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $p['id']);
+                $upload_dir = __DIR__ . "/uploads/";
+                $images = [];
+                $matched_files = [];
+                foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                    $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
+                    if ($matches) $matched_files = array_merge($matched_files, $matches);
+                }
+                sort($matched_files);
+                foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
+                    $legacy_file = $upload_dir . $safe_kode . "." . $ext;
+                    if (file_exists($legacy_file)) {
+                        array_unshift($matched_files, $legacy_file);
+                        break;
+                    }
+                }
+                if (!empty($matched_files)) {
+                    $images = [];
+                    foreach ($matched_files as $file) {
+                        $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
+                    }
+                    $p['image'] = $images[0];
+                    $p['images'] = $images;
+                } elseif (empty($p['image']) || strpos($p['image'], 'unsplash') !== false) {
+                    $default_img = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500";
+                    $p['image'] = $default_img;
+                    $p['images'] = [$default_img];
+                }
+            }
+        }
+        unset($p);
+        echo json_encode($produk);
         exit;
     }
+}
+
+// Jika cache tidak ada, coba dari database
+$conn = getDBConnection();
+if (!$conn) {
     echo json_encode(["error" => "Koneksi database gagal dan tidak ada data cache yang tersedia."]);
     exit;
 }
 
-// --- FITUR AUTO-CREATE TABEL ---
 $check_table = "SELECT EXISTS (
     SELECT 1 FROM information_schema.tables 
     WHERE table_name = 'tbl_web_deskripsi'
@@ -33,7 +73,6 @@ if ($table_exists == 'f') {
     pg_query($conn, $create_sql);
 }
 
-// Mengubah fallback tulisan 'Tidak ada deskripsi tersedia.' menjadi string kosong
 $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.hargajual1 AS price, 
             COALESCE(s.total_stok, 0) AS stock,
             COALESCE(w.deskripsi, '') AS description
@@ -45,7 +84,7 @@ $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.harg
             HAVING SUM(stok) > 0
         ) s ON i.kodeitem = s.kodeitem
         LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem";
-        
+
 $result = @pg_query($conn, $sql);
 
 if (!$result) {
@@ -61,9 +100,9 @@ while($row = pg_fetch_assoc($result)) {
     $row['price'] = (float) $row['price'];
     $row['stock'] = (float) $row['stock'];
     if (empty(trim($row['category']))) $row['category'] = 'Lainnya';
-    
+
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
-    
+
     $upload_dir = __DIR__ . "/uploads/";
     $images = [];
     $matched_files = [];
@@ -72,7 +111,7 @@ while($row = pg_fetch_assoc($result)) {
         if ($matches) $matched_files = array_merge($matched_files, $matches);
     }
     sort($matched_files);
-    
+
     foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
         $legacy_file = $upload_dir . $safe_kode . "." . $ext;
         if (file_exists($legacy_file)) {
@@ -80,7 +119,7 @@ while($row = pg_fetch_assoc($result)) {
             break;
         }
     }
-    
+
     if (!empty($matched_files)) {
         foreach ($matched_files as $file) {
             $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
@@ -92,14 +131,11 @@ while($row = pg_fetch_assoc($result)) {
         $row['image'] = $default_img;
         $row['images'] = [$default_img];
     }
-    
+
     $produk[] = $row;
 }
 
-// If query returned no results (e.g., DB has the schema but no IPOS data),
-// fall back to the cache file written by the sync agent
 if (!$query_has_results) {
-    $cache_file = __DIR__ . '/cache_produk.json';
     if (file_exists($cache_file)) {
         echo file_get_contents($cache_file);
         pg_close($conn);
@@ -107,9 +143,7 @@ if (!$query_has_results) {
     }
 }
 
-// Simpan hasil terbaru ke dalam file cache untuk antisipasi database mati
-file_put_contents(__DIR__ . '/cache_produk.json', json_encode($produk));
+file_put_contents($cache_file, json_encode($produk));
 
 echo json_encode($produk);
 pg_close($conn);
-?>

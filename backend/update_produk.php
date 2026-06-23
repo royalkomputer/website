@@ -1,6 +1,16 @@
 <?php
 error_reporting(E_ERROR | E_PARSE);
+
+// Naikkan batas upload untuk foto besar (default XAMPP: 2MB per file, 8MB total)
+@ini_set('upload_max_filesize', '64M');
+@ini_set('post_max_size', '128M');
+@ini_set('max_execution_time', '120');
+@ini_set('memory_limit', '256M');
+
 header('Content-Type: application/json');
+
+// Global try-catch: pastikan PHP error selalu dikembalikan sebagai JSON
+try {
 
 require_once 'config.php';
 
@@ -180,52 +190,39 @@ if ($uploadFiles || !empty($imageOrder)) {
             if (isset($tempPaths[$item['basename']])) {
                 $tempPath = $tempPaths[$item['basename']];
                 $ext = pathinfo($tempPath, PATHINFO_EXTENSION);
-                if ($ext === 'webp') {
+                if ($ext === 'webp' || !gdWebpAvailable()) {
                     rename($tempPath, $target_file);
                     touch($target_file);
                 } else {
-                    $img = null;
-                    $mime = image_type_to_mime_type(exif_imagetype($tempPath));
-                    switch ($mime) {
-                        case 'image/jpeg': $img = imagecreatefromjpeg($tempPath); break;
-                        case 'image/png':
-                            $img = imagecreatefrompng($tempPath);
-                            imagepalettetotruecolor($img);
-                            imagealphablending($img, true);
-                            imagesavealpha($img, true);
-                            break;
-                        case 'image/gif': $img = imagecreatefromgif($tempPath); break;
-                    }
-                    if ($img) {
-                        imagewebp($img, $target_file, 85);
-                        imagedestroy($img);
-                    }
+                    convertOrCopyImage($tempPath, $target_file);
                     unlink($tempPath);
                 }
             }
         } elseif ($item['type'] === 'new') {
             $file_tmp = $item['tmp_name'];
-            $img_info = getimagesize($file_tmp);
-            if ($img_info) {
-                $mime = $img_info['mime'];
-                $image = null;
-                switch ($mime) {
-                    case 'image/jpeg': $image = imagecreatefromjpeg($file_tmp); break;
-                    case 'image/png':
-                        $image = imagecreatefrompng($file_tmp);
-                        imagepalettetotruecolor($image);
-                        imagealphablending($image, true);
-                        imagesavealpha($image, true);
-                        break;
-                    case 'image/webp': $image = imagecreatefromwebp($file_tmp); break;
-                    case 'image/gif': $image = imagecreatefromgif($file_tmp); break;
-                }
-                if ($image) {
-                    imagewebp($image, $target_file, 85);
-                    imagedestroy($image);
+            if (gdWebpAvailable()) {
+                $img = createImageFromFile($file_tmp);
+                if ($img) {
+                    if (function_exists('imagepalettetotruecolor')) {
+                        @imagepalettetotruecolor($img);
+                    }
+                    if (function_exists('imagealphablending')) {
+                        @imagealphablending($img, true);
+                    }
+                    if (function_exists('imagesavealpha')) {
+                        @imagesavealpha($img, true);
+                    }
+                    @imagewebp($img, $target_file, 85);
+                    @imagedestroy($img);
                 } else {
                     move_uploaded_file($file_tmp, $target_file);
                 }
+            } else {
+                // GD tidak tersedia: simpan file asli dengan ekstensi asli
+                $ext = pathinfo($item['name'], PATHINFO_EXTENSION);
+                $target_file = $target_dir . $safe_kode . '_' . $index . '.' . ($ext ?: 'jpg');
+                $savedFiles[count($savedFiles) - 1] = basename($target_file);
+                move_uploaded_file($file_tmp, $target_file);
             }
         }
         $index++;
@@ -336,5 +333,9 @@ if (!$db_available && $desc_provided) {
     echo json_encode(["success" => true, "warning" => true, "message" => "Foto dan deskripsi berhasil disimpan (offline mode). Database tidak terhubung, data disimpan di cache."]);
 } else {
     echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
+}
+
+} catch (Throwable $e) {
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
 }
 ?>

@@ -2,7 +2,7 @@
 // sync/config.php — Minimal DB config for headless IPOS sync agent
 // No session, no admin helpers, no JSON file management
 
-define('DB_HOST', '192.168.18.189');
+define('DB_HOST', '192.168.8.189');
 define('DB_PORT', '5444');
 define('DB_NAME', 'i4_ROYAL');
 define('DB_USER', 'admin');

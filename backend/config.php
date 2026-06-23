@@ -14,10 +14,15 @@ define('ADMINS_FILE',  __DIR__ . '/data/admins.json');
 define('JAM_FILE',     __DIR__ . '/data/jam_operasional.json');
 define('SCHEDULE_FILE', __DIR__ . '/data/jadwal_tutup.json');
 define('STATUS_FILE',  __DIR__ . '/data/status_toko.txt');
-define('TAGLINE_FILE', __DIR__ . '/data/tagline.json');
+define('TAGLINE_FILE',    __DIR__ . '/data/tagline.json');
+define('PRODUCT_INFO_FILE', __DIR__ . '/data/product_info.json');
+define('HEADING_FILE',      __DIR__ . '/data/heading.json');
 
 // --- FUNGSI KONEKSI DATABASE ---
 function getDBConnection() {
+    if (!function_exists('pg_connect')) {
+        return false;
+    }
     $conn_string = "host=" . DB_HOST . " port=" . DB_PORT . " dbname=" . DB_NAME . " user=" . DB_USER . " password=" . DB_PASS . " connect_timeout=3";
     return @pg_connect($conn_string);
 }
@@ -136,6 +141,141 @@ function saveTagline(string $tagline): bool {
         @file_put_contents(__DIR__ . '/../frontend/tagline.json', json_encode(['tagline' => $tagline], JSON_PRETTY_PRINT));
     }
     return $result !== false;
+}
+
+// ============================================================
+// PRODUCT INFO TEKS
+// ============================================================
+
+define('PRODUCT_INFO_DEFAULT', 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.');
+
+function loadProductInfoText(): string {
+    if (!file_exists(PRODUCT_INFO_FILE)) {
+        @file_put_contents(PRODUCT_INFO_FILE, json_encode(['text' => PRODUCT_INFO_DEFAULT], JSON_PRETTY_PRINT));
+        return PRODUCT_INFO_DEFAULT;
+    }
+    $data = json_decode(file_get_contents(PRODUCT_INFO_FILE), true);
+    return $data['text'] ?? PRODUCT_INFO_DEFAULT;
+}
+
+function saveProductInfoText(string $text): bool {
+    $result = file_put_contents(PRODUCT_INFO_FILE, json_encode(['text' => $text], JSON_PRETTY_PRINT));
+    // Sync ke frontend untuk immediate update
+    if ($result !== false) {
+        @file_put_contents(__DIR__ . '/../frontend/product_info.json', json_encode(['text' => $text], JSON_PRETTY_PRINT));
+    }
+    return $result !== false;
+}
+
+// ============================================================
+// HEADING TOKO
+// ============================================================
+
+define('HEADING_DEFAULT_PREFIX', 'Solusi Hardware di');
+define('HEADING_DEFAULT_BRAND', 'Royal Komputer');
+
+function loadHeading(): array {
+    $default = ['prefix' => HEADING_DEFAULT_PREFIX, 'brand' => HEADING_DEFAULT_BRAND];
+    if (!file_exists(HEADING_FILE)) {
+        @file_put_contents(HEADING_FILE, json_encode($default, JSON_PRETTY_PRINT));
+        return $default;
+    }
+    $data = json_decode(file_get_contents(HEADING_FILE), true);
+    return [
+        'prefix' => $data['prefix'] ?? HEADING_DEFAULT_PREFIX,
+        'brand'  => $data['brand']  ?? HEADING_DEFAULT_BRAND,
+    ];
+}
+
+function saveHeading(string $prefix, string $brand): bool {
+    $data = ['prefix' => $prefix, 'brand' => $brand];
+    $result = file_put_contents(HEADING_FILE, json_encode($data, JSON_PRETTY_PRINT));
+    // Sync ke frontend untuk immediate update
+    if ($result !== false) {
+        @file_put_contents(__DIR__ . '/../frontend/heading.json', json_encode($data, JSON_PRETTY_PRINT));
+    }
+    return $result !== false;
+}
+
+// ============================================================
+// HELPER: IMAGE MIME TYPE (safe fallback)
+// ============================================================
+
+/**
+ * Get MIME type of an image file, with safe fallback.
+ * Uses getimagesize() (core PHP) instead of exif_imagetype() (requires ext-exif).
+ * Returns false on failure.
+ */
+function getImageMimeType(string $filepath): string|false {
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        return false;
+    }
+    $info = @getimagesize($filepath);
+    if ($info === false || !isset($info['mime'])) {
+        return false;
+    }
+    return $info['mime'];
+}
+
+// ============================================================
+// HELPER: IMAGE PROCESSING (safe, no GD dependency)
+// ============================================================
+
+/**
+ * Check if GD extension with WebP support is available.
+ */
+function gdWebpAvailable(): bool {
+    return function_exists('imagecreatefromjpeg') && function_exists('imagewebp');
+}
+
+/**
+ * Try to create an image resource from a file.
+ * Returns GD resource on success, or false if GD is not available.
+ */
+function createImageFromFile(string $filepath): mixed {
+    if (!function_exists('imagecreatefromjpeg')) {
+        return false;
+    }
+    $mime = getImageMimeType($filepath);
+    if ($mime === false) return false;
+    return match ($mime) {
+        'image/jpeg' => @imagecreatefromjpeg($filepath),
+        'image/png' => @imagecreatefrompng($filepath),
+        'image/webp' => @imagecreatefromwebp($filepath),
+        'image/gif' => @imagecreatefromgif($filepath),
+        default => false,
+    };
+}
+
+/**
+ * Convert image to WebP. Falls back to original file if GD is not available.
+ *
+ * @param string $sourceFile Path to source image
+ * @param string $destFile   Path to save WebP (or original if GD unavailable)
+ * @param int $quality       WebP quality (0-100)
+ * @return bool True on success
+ */
+function convertOrCopyImage(string $sourceFile, string $destFile, int $quality = 85): bool {
+    // Coba konversi ke WebP jika GD tersedia
+    if (gdWebpAvailable()) {
+        $img = createImageFromFile($sourceFile);
+        if ($img) {
+            if (function_exists('imagepalettetotruecolor')) {
+                @imagepalettetotruecolor($img);
+            }
+            if (function_exists('imagealphablending')) {
+                @imagealphablending($img, true);
+            }
+            if (function_exists('imagesavealpha')) {
+                @imagesavealpha($img, true);
+            }
+            $result = @imagewebp($img, $destFile, $quality);
+            @imagedestroy($img);
+            if ($result) return true;
+        }
+    }
+    // Fallback: copy file as-is (format asli tetap dipertahankan)
+    return copy($sourceFile, $destFile);
 }
 
 // ============================================================
