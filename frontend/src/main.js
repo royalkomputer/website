@@ -21,6 +21,7 @@ const state = {
     sortBy: 'default',
     condition: 'Semua',
   },
+  viewMode: 'grid',
   status: null,
   hours: null,
 }
@@ -36,7 +37,7 @@ function renderApp() {
     <div class="js-status-container"></div>
     <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div class="js-filter-container"></div>
-      ${ProductGrid()}
+      ${ProductGrid({ viewMode: state.viewMode, onViewModeChange: handleViewModeChange })}
     </main>
     <div class="js-footer-container"></div>
     ${ProductModal()}
@@ -167,7 +168,7 @@ function applyFiltersAndRender() {
   updateCategoryButtons(category)
 
   // Render
-  renderProductGrid(state.filteredProducts, handleProductClick)
+  renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode)
 }
 
 // ──────────────────────────────────────────────
@@ -182,6 +183,31 @@ function handleSearch(query) {
 function handleProductClick(id) {
   const product = state.allProducts.find(p => p.id === id)
   if (product) openModal(product)
+}
+
+function handleViewModeChange(mode) {
+  state.viewMode = mode
+  applyFiltersAndRender()
+  updateViewToggleUI()
+}
+
+function updateViewToggleUI() {
+  document.querySelectorAll('.js-view-toggle').forEach(btn => {
+    const isActive = btn.dataset.view === state.viewMode
+    btn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`
+  })
+
+  // Update grid container class
+  const grid = document.querySelector('.js-product-grid')
+  if (grid) {
+    if (state.viewMode === 'detail') {
+      grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-4', 'xl:grid-cols-5', '2xl:grid-cols-6', 'gap-6')
+      grid.classList.add('flex', 'flex-col', 'gap-4')
+    } else {
+      grid.classList.remove('flex', 'flex-col', 'gap-4')
+      grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-4', 'xl:grid-cols-5', '2xl:grid-cols-6', 'gap-6')
+    }
+  }
 }
 
 // ──────────────────────────────────────────────
