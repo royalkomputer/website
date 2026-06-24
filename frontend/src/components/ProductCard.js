@@ -29,12 +29,12 @@ export function ProductCard(product, onDetail) {
       ${product.category}
     </div>
   </div>
-  <div class="p-5 flex flex-col flex-grow">
-    <h3 class="font-bold text-slate-800 text-lg leading-tight mb-2 line-clamp-2">${product.name}</h3>
-    <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-      <div class="text-xl font-extrabold text-astra-700">${formattedPrice}</div>
-      <div class="text-xs text-astra-600 font-bold bg-astra-50 px-3 py-1.5 rounded-lg">
-        Detail <i class="fa-solid fa-chevron-right ml-1"></i>
+  <div class="p-3 md:p-4 flex flex-col flex-grow">
+    <h3 class="font-bold text-slate-800 text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
+    <div class="mt-auto pt-2 md:pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
+      <div class="text-sm md:text-base font-extrabold text-astra-700 truncate">${formattedPrice}</div>
+      <div class="text-[10px] md:text-xs text-astra-600 font-bold bg-astra-50 px-2 md:px-3 py-1 rounded-lg whitespace-nowrap">
+        Detail <i class="fa-solid fa-chevron-right ml-0.5"></i>
       </div>
     </div>
   </div>

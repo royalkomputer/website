@@ -24,7 +24,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   </button>
 
   <!-- Filter content -->
-  <div class="js-filter-content hidden lg:block p-4 pt-4 lg:p-6 lg:pt-0">
+  <div class="js-filter-content hidden lg:block p-3 lg:p-4 lg:pt-0">
 
     <!-- Reset button -->
     <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100">
