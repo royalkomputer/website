@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ERROR | E_PARSE);
+
 /**
  * backend/api_status.php — Public Store Status Endpoint
  *

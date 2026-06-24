@@ -7,6 +7,13 @@ date_default_timezone_set('Asia/Jakarta');
 $current_admin = getCurrentAdmin();
 $is_super      = isSuperAdmin();
 
+// Jika session tidak valid (admin tidak ditemukan di DB/file), redirect ke logout
+if (!$current_admin) {
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 $current_status = loadStatus();
 
 $jam_buka     = loadJamOperasional();
