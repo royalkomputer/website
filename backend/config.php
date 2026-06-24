@@ -56,8 +56,8 @@ function migrateConfigTables($conn): void {
         nama VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    INSERT INTO admins (username, password_hash, role, nama)
-    SELECT 'superadmin', '" . pg_escape_string($conn, password_hash('royal2026', PASSWORD_BCRYPT)) . "', 'super_admin', 'Super Admin'
+    INSERT INTO admins (id, username, password_hash, role, nama)
+    SELECT 1, 'superadmin', '" . pg_escape_string($conn, password_hash('royal2026', PASSWORD_BCRYPT)) . "', 'super_admin', 'Super Admin'
     WHERE NOT EXISTS (SELECT 1 FROM admins);
 
     CREATE TABLE IF NOT EXISTS jam_operasional (
@@ -153,12 +153,13 @@ function saveAdmins(array $admins): bool {
     if ($db) {
         @pg_query($db, "DELETE FROM admins");
         foreach ($admins as $a) {
+            $id = (int)($a['id'] ?? 0);
             $u = pg_escape_string($db, $a['username']);
             $p = pg_escape_string($db, $a['password_hash']);
             $r = pg_escape_string($db, $a['role'] ?? 'admin');
             $n = pg_escape_string($db, $a['nama'] ?? $a['username']);
             $c = pg_escape_string($db, $a['created_at'] ?? date('Y-m-d'));
-            @pg_query($db, "INSERT INTO admins (username, password_hash, role, nama, created_at) VALUES ('$u', '$p', '$r', '$n', '$c'::date)");
+            @pg_query($db, "INSERT INTO admins (id, username, password_hash, role, nama, created_at) VALUES ($id, '$u', '$p', '$r', '$n', '$c'::date)");
         }
     }
     return file_put_contents(ADMINS_FILE, json_encode(['admins' => $admins], JSON_PRETTY_PRINT)) !== false;

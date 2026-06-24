@@ -29,7 +29,7 @@ export function Footer(hours) {
 
   return `
 <footer class="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 mt-12 py-12">
-  <div class="container mx-auto px-4 max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+  <div class="px-4 md:px-8 lg:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
 
     <!-- Logo & Address -->
     <div class="flex flex-col gap-3 items-center md:items-start">

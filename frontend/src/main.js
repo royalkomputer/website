@@ -34,7 +34,7 @@ function renderApp() {
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
     <div class="js-status-container"></div>
-    <main class="container mx-auto px-4 py-8 max-w-7xl flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div class="js-filter-container"></div>
       ${ProductGrid()}
     </main>

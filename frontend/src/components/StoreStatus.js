@@ -32,7 +32,7 @@ export async function loadHeadingText() {
 export function StoreStatus(status) {
   if (!status) {
     return `<header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white py-12 px-4 relative overflow-hidden">
-      <div class="container mx-auto max-w-6xl text-center relative z-10">
+      <div class="px-4 md:px-8 lg:px-12 text-center relative z-10">
         <div class="animate-pulse space-y-4">
           <div class="h-6 bg-slate-700 rounded-full w-48 mx-auto"></div>
           <div class="h-10 bg-slate-700 rounded-lg w-96 mx-auto"></div>
@@ -73,7 +73,7 @@ export function StoreStatus(status) {
 
   return `
 <header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white py-12 px-4 shadow-inner relative overflow-hidden">
-  <div class="container mx-auto max-w-6xl text-center relative z-10">
+  <div class="px-4 md:px-8 lg:px-12 text-center relative z-10">
     ${badgeHTML}
     ${scheduleHTML}
     <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">${_headingPrefix} <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">${_headingBrand}</span></h1>

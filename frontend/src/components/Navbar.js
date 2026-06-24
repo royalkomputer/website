@@ -11,7 +11,7 @@
 export function Navbar({ onSearch }) {
   return `
 <nav class="bg-astra-950 text-white sticky top-0 z-50">
-  <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+  <div class="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between gap-4">
 
     <!-- Logo -->
     <a href="#" class="flex items-center gap-2 flex-shrink-0">
