@@ -175,3 +175,24 @@
 - Solution: serve images via absolute Render URLs, use exact-path Netlify redirects for fixed paths like `/logo/logo.webp`
 - For wildcards that must work: admin paths (`/admin/*`, `/update_*`, `/api_manage_*`) — these are only accessed by admins and `force = true` may work for some
 - Netlify deploy preview URLs (`*-*-*--*.netlify.app`) may serve stale builds; use canonical URL (`*.netlify.app`)
+
+## 2026-06-24 — Admin History Logging
+
+### Feature: History Menu in Admin Panel
+- Added `admin_history` PostgreSQL table with `migrateConfigTables()` for auto-creation
+- Added `logAdminHistory()` function in `config.php` that skips logging for superadmin
+- Logged all CRUD operations: product updates, admin management (tambah/edit/hapus), jam operasional, status toko, schedules, heading, tagline, product info, and sync trigger
+
+### Files Modified
+- `backend/config.php`: admin_history table, logAdminHistory() helper
+- `backend/update_produk.php`: log on product description/photo update
+- `backend/update_jam.php`: log on operating hours change
+- `backend/trigger_sync.php`: log on product sync
+- `backend/update_admin.php`: logging at 10 CRUD success points + `get_history` endpoint with pagination
+- `backend/admin.php`: new History nav tab, panel with table UI, loadHistory/refreshHistory JS functions, pagination (50 per page)
+
+### Key Details
+- Superadmin actions are excluded from history per user request
+- get_history endpoint uses integer-cast limit/offset for SQL injection safety
+- All string parameters use pg_escape_string() in logAdminHistory()
+- UI labels are in Bahasa Indonesia

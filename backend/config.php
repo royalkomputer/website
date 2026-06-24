@@ -109,6 +109,18 @@ function migrateConfigTables($conn): void {
         brand VARCHAR(255) NOT NULL DEFAULT 'Royal Komputer'
     );
     INSERT INTO heading (id, prefix, brand) VALUES (1, 'Solusi Hardware di', 'Royal Komputer') ON CONFLICT (id) DO NOTHING;
+
+    CREATE TABLE IF NOT EXISTS admin_history (
+        id SERIAL PRIMARY KEY,
+        admin_id INTEGER NOT NULL,
+        admin_username VARCHAR(100) NOT NULL,
+        admin_nama VARCHAR(255) NOT NULL DEFAULT '',
+        action VARCHAR(50) NOT NULL,
+        target_type VARCHAR(50) DEFAULT '',
+        target_id VARCHAR(100) DEFAULT '',
+        detail TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
     ";
     @pg_query($conn, $sql);
 }
@@ -526,4 +538,27 @@ function requireLogin(): void {
         header("Location: login.php");
         exit;
     }
+}
+// ============================================================
+// HELPER: ADMIN HISTORY LOGGING (superadmin tidak dicatat)
+// ============================================================
+
+function logAdminHistory(string $action, string $target_type = '', string $target_id = '', string $detail = ''): void {
+    if (isSuperAdmin()) return;
+    
+    $admin = getCurrentAdmin();
+    if (!$admin) return;
+    
+    $admin_id = (int)$admin['id'];
+    $db = getDB();
+    if (!$db) return;
+    
+    $username = pg_escape_string($db, $admin['username']);
+    $nama = pg_escape_string($db, $admin['nama'] ?? $admin['username']);
+    $act = pg_escape_string($db, $action);
+    $tt = pg_escape_string($db, $target_type);
+    $ti = pg_escape_string($db, $target_id);
+    $det = pg_escape_string($db, $detail);
+    
+    @pg_query($db, "INSERT INTO admin_history (admin_id, admin_username, admin_nama, action, target_type, target_id, detail) VALUES ($admin_id, '$username', '$nama', '$act', '$tt', '$ti', '$det')");
 }

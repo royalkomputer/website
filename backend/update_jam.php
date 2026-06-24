@@ -57,4 +57,6 @@ if (!saveJamOperasional($jam_baru)) {
     exit;
 }
 
+// Catat history
+logAdminHistory('update_jam', 'jam_operasional', '', 'Jam operasional toko diperbarui');
 echo json_encode(['success' => true, 'message' => 'Jam operasional berhasil disimpan.']);

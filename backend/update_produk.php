@@ -370,7 +370,10 @@ if ($db_available) {
 if (!$db_available && $desc_provided) {
     echo json_encode(["success" => true, "warning" => true, "message" => "Foto dan deskripsi berhasil disimpan (offline mode). Database tidak terhubung, data disimpan di cache."]);
 } else {
-    echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
+    
+// Catat history
+logAdminHistory('update_produk', 'product', $_POST['kodeitem'] ?? '', 'Deskripsi dan foto produk diperbarui');
+echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
 }
 
 } catch (Throwable $e) {

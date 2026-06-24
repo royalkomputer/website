@@ -174,6 +174,10 @@ $heading = loadHeading();
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya
         </button>
+        <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-clock-rotate-left"></i> History
+        </button>
+
     </div>
 
     <!-- PANEL KATALOG -->
@@ -511,7 +515,58 @@ $heading = loadHeading();
         </div>
     </div>
 
-</main>
+    <!-- PANEL HISTORY -->
+    <div id="panel-history" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-astra-700"></i> Riwayat Aktivitas Admin
+                </h3>
+                <button onclick="refreshHistory()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+            <p class="text-sm text-slate-500 mb-5">Riwayat perubahan yang dilakukan oleh admin (aktivitas superadmin tidak dicatat).</p>
+
+            <div id="history-loading" class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
+                <p class="text-sm">Memuat riwayat...</p>
+            </div>
+
+            <div id="history-empty" class="hidden py-8 text-center">
+                <i class="fa-solid fa-clock-rotate-left text-4xl text-slate-300 mb-3"></i>
+                <p class="text-slate-500 text-sm">Belum ada riwayat aktivitas.</p>
+            </div>
+
+            <div id="history-table-wrapper" class="hidden overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <th class="pb-3 pr-4 whitespace-nowrap">Waktu</th>
+                            <th class="pb-3 pr-4 whitespace-nowrap">Admin</th>
+                            <th class="pb-3 pr-4 whitespace-nowrap">Aksi</th>
+                            <th class="pb-3 pr-4 whitespace-nowrap">Target</th>
+                            <th class="pb-3 pr-2 whitespace-nowrap">Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+                <div id="history-pagination" class="flex items-center justify-between pt-4 border-t border-slate-100 mt-4">
+                    <span id="history-info" class="text-xs text-slate-400"></span>
+                    <div class="flex gap-2">
+                        <button id="history-prev" onclick="loadHistory(historyOffset - historyLimit)" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                        </button>
+                        <button id="history-next" onclick="loadHistory(historyOffset + historyLimit)" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
+                            Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </main>
 
 <!-- MODAL KELOLA PRODUK -->
 <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -705,6 +760,8 @@ function showPanel(name){
     });
     if (name === 'admin' && IS_SUPER) loadAdminList();
     if (name === 'schedule') loadSchedules();
+    if (name === 'history') loadHistory();
+    if (name === 'history') loadHistory();
 }
 
 function switchTab(tab){ showPanel(tab); }
@@ -1142,6 +1199,131 @@ function submitAdmin(){
             fb.className='text-sm font-semibold p-3 rounded-lg bg-green-50 text-green-700 border border-green-200';
             fb.innerHTML='<i class="fa-solid fa-check-circle mr-1"></i>'+data.message;
             setTimeout(()=>{closeModalAdmin();loadAdminList();},1200);
+
+    // ============================================================
+    // HISTORY
+    // ============================================================
+    let historyLimit = 50;
+    let historyOffset = 0;
+    let historyTotal = 0;
+
+    function loadHistory(offset) {
+        if (offset !== undefined) historyOffset = offset;
+        if (historyOffset < 0) historyOffset = 0;
+
+        const loading = document.getElementById('history-loading');
+        const empty = document.getElementById('history-empty');
+        const wrapper = document.getElementById('history-table-wrapper');
+        const tbody = document.getElementById('history-body');
+
+        if (loading) loading.classList.remove('hidden');
+        if (empty) empty.classList.add('hidden');
+        if (wrapper) wrapper.classList.add('hidden');
+
+        const formData = new FormData();
+        formData.append('action', 'get_history');
+        formData.append('limit', historyLimit);
+        formData.append('offset', historyOffset);
+
+        fetch('update_admin.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (loading) loading.classList.add('hidden');
+
+                if (!data.success || !data.data || data.data.length === 0) {
+                    if (empty) empty.classList.remove('hidden');
+                    return;
+                }
+
+                historyTotal = data.total || 0;
+
+                if (wrapper) wrapper.classList.remove('hidden');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    data.data.forEach(function(item) {
+                        const actionLabels = {
+                            'update_produk': 'Update Produk',
+                            'tambah_admin': 'Tambah Admin',
+                            'edit_admin': 'Edit Admin',
+                            'hapus_admin': 'Hapus Admin',
+                            'update_jam': 'Update Jam',
+                            'update_status': 'Update Status',
+                            'add_schedule': 'Tambah Jadwal',
+                            'edit_schedule': 'Edit Jadwal',
+                            'delete_schedule': 'Hapus Jadwal',
+                            'update_heading': 'Update Heading',
+                            'update_product_info': 'Update Info Produk',
+                            'update_tagline': 'Update Tagline',
+                            'sync_produk': 'Sinkronisasi Produk'
+                        };
+
+                        const targetLabels = {
+                            'product': 'Produk',
+                            'admin': 'Admin',
+                            'jam_operasional': 'Jam Operasional',
+                            'status_toko': 'Status Toko',
+                            'jadwal_tutup': 'Jadwal Tutup',
+                            'heading': 'Heading',
+                            'product_info': 'Info Produk',
+                            'tagline': 'Tagline'
+                        };
+
+                        const actionLabel = actionLabels[item.action] || item.action;
+                        const targetLabel = targetLabels[item.target_type] || item.target_type;
+
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+
+                        var targetDisplay = escHtml(targetLabel);
+                        if (item.target_id) {
+                            targetDisplay += ' <span class="text-xs text-slate-400">#' + escHtml(item.target_id) + '</span>';
+                        }
+
+                        var detailDisplay = (item.detail && item.detail !== '-') ? escHtml(item.detail) : '-';
+
+                        tr.innerHTML = '<td class="py-3 pr-4 text-xs text-slate-500 whitespace-nowrap">' + escHtml(item.created_at) + '</td>' +
+                            '<td class="py-3 pr-4 whitespace-nowrap">' +
+                                '<span class="font-semibold text-slate-800 text-sm">' + escHtml(item.admin_nama) + '</span>' +
+                                '<span class="text-xs text-slate-400 block">@' + escHtml(item.admin_username) + '</span>' +
+                            '</td>' +
+                            '<td class="py-3 pr-4"><span class="text-xs font-bold px-2 py-1 rounded-lg bg-astra-50 text-astra-700 whitespace-nowrap">' + escHtml(actionLabel) + '</span></td>' +
+                            '<td class="py-3 pr-4 text-sm text-slate-600 whitespace-nowrap">' + targetDisplay + '</td>' +
+                            '<td class="py-3 pr-2 text-sm text-slate-500 max-w-[250px] truncate" title="' + escHtml(item.detail || '') + '">' + detailDisplay + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                const info = document.getElementById('history-info');
+                const prevBtn = document.getElementById('history-prev');
+                const nextBtn = document.getElementById('history-next');
+
+                if (info) {
+                    info.textContent = 'Menampilkan ' + (historyOffset + 1) + '-' + Math.min(historyOffset + historyLimit, historyTotal) + ' dari ' + historyTotal + ' riwayat';
+                }
+                if (prevBtn) {
+                    prevBtn.disabled = historyOffset <= 0;
+                    if (historyOffset <= 0) prevBtn.classList.add('opacity-40'); else prevBtn.classList.remove('opacity-40');
+                }
+                if (nextBtn) {
+                    nextBtn.disabled = (historyOffset + historyLimit) >= historyTotal;
+                    if ((historyOffset + historyLimit) >= historyTotal) nextBtn.classList.add('opacity-40'); else nextBtn.classList.remove('opacity-40');
+                }
+            })
+            .catch(function(err) {
+                console.error('Error loading history:', err);
+                if (loading) loading.classList.add('hidden');
+                if (empty) {
+                    empty.classList.remove('hidden');
+                    empty.innerHTML = '<i class="fa-solid fa-circle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-red-500 text-sm">Gagal memuat riwayat.</p>';
+                }
+            });
+    }
+
+    function refreshHistory() {
+        historyOffset = 0;
+        loadHistory(0);
+    }
+
         }else{
             fb.className='text-sm font-semibold p-3 rounded-lg bg-red-50 text-red-700 border border-red-200';
             fb.innerHTML='<i class="fa-solid fa-triangle-exclamation mr-1"></i>'+data.message;

@@ -17,6 +17,9 @@ $cmd = 'php ' . escapeshellarg($script) . ' 2>&1';
 exec($cmd, $output, $return_var);
 
 $output_text = implode("\n", $output);
+// Catat history
+logAdminHistory('sync_produk', 'product', '', 'Melakukan sinkronisasi produk dari database');
+
 
 echo json_encode([
     'success' => $return_var === 0,

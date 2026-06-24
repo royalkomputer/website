@@ -39,7 +39,8 @@ if ($action === 'tambah_admin') {
         'created_at'    => date('Y-m-d'),
     ];
     saveAdmins($admins);
-    echo json_encode(['success'=>true,'message'=>'Admin baru berhasil ditambahkan.']);
+    logAdminHistory('tambah_admin', 'admin', $id_new, 'Menambahkan admin: ' . ($_POST['nama'] ?? $_POST['username']));
+echo json_encode(['success'=>true,'message'=>'Admin baru berhasil ditambahkan.']);
     exit;
 }
 
@@ -59,7 +60,8 @@ if ($action === 'hapus_admin') {
     if ($super_count < 1) { echo json_encode(['success'=>false,'message'=>'Harus ada minimal 1 super admin.']); exit; }
 
     saveAdmins($admins);
-    echo json_encode(['success'=>true,'message'=>'Admin berhasil dihapus.']);
+    logAdminHistory('hapus_admin', 'admin', $_POST['target_id'] ?? '', 'Menghapus admin ID: ' . ($_POST['target_id'] ?? ''));
+echo json_encode(['success'=>true,'message'=>'Admin berhasil dihapus.']);
     exit;
 }
 
@@ -124,7 +126,8 @@ if ($action === 'edit_admin') {
         $_SESSION['admin_username'] = $new_username;
     }
 
-    echo json_encode(['success'=>true,'message'=>'Data admin berhasil diperbarui.']);
+    logAdminHistory('edit_admin', 'admin', $_POST['id'] ?? '', 'Mengedit admin: ' . ($_POST['username'] ?? ''));
+echo json_encode(['success'=>true,'message'=>'Data admin berhasil diperbarui.']);
     exit;
 }
 
@@ -153,7 +156,8 @@ if ($action === 'get_schedules') {
 if ($action === 'set_manual_status') {
     $status = ($_POST['status'] ?? 'buka') === 'tutup' ? 'tutup' : 'buka';
     if (saveStatus($status)) {
-        echo json_encode(['success'=>true,'message'=>'Status manual berhasil disimpan.']);
+        logAdminHistory('update_status', 'status_toko', '', 'Mengubah status toko menjadi: ' . ($_POST['status'] ?? ''));
+echo json_encode(['success'=>true,'message'=>'Status manual berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan status.']);
     }
@@ -188,7 +192,8 @@ if ($action === 'add_schedule') {
     ];
 
     if (saveSchedules($schedules)) {
-        echo json_encode(['success'=>true,'message'=>'Jadwal tutup sementara berhasil ditambahkan.']);
+        logAdminHistory('add_schedule', 'jadwal_tutup', '', 'Menambahkan jadwal tutup sementara');
+echo json_encode(['success'=>true,'message'=>'Jadwal tutup sementara berhasil ditambahkan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan jadwal.']);
     }
@@ -224,7 +229,7 @@ if ($action === 'edit_schedule') {
     }
     unset($s);
     if (!$found) { echo json_encode(['success'=>false,'message'=>'Jadwal tidak ditemukan.']); exit; }
-    if (saveSchedules($schedules)) echo json_encode(['success'=>true,'message'=>'Jadwal berhasil diperbarui.']);
+    if (saveSchedules($schedules)) { logAdminHistory('edit_schedule', 'jadwal_tutup', '', 'Mengedit jadwal tutup sementara'); echo json_encode(['success'=>true,'message'=>'Jadwal berhasil diperbarui.']); }
     else echo json_encode(['success'=>false,'message'=>'Gagal menyimpan jadwal.']);
     exit;
 }
@@ -233,7 +238,7 @@ if ($action === 'delete_schedule') {
     $id = $_POST['id'] ?? '';
     if (empty($id)) { echo json_encode(['success'=>false,'message'=>'ID jadwal tidak ditemukan.']); exit; }
     $schedules = array_values(array_filter(loadSchedules(), function($s) use($id){ return ($s['id'] ?? '') !== $id; }));
-    if (saveSchedules($schedules)) echo json_encode(['success'=>true,'message'=>'Jadwal berhasil dihapus.']);
+    if (saveSchedules($schedules)) { logAdminHistory('delete_schedule', 'jadwal_tutup', $id ?? '', 'Menghapus jadwal tutup sementara'); echo json_encode(['success'=>true,'message'=>'Jadwal berhasil dihapus.']); }
     else echo json_encode(['success'=>false,'message'=>'Gagal menghapus jadwal.']);
     exit;
 }
@@ -249,7 +254,8 @@ if ($action === 'save_heading') {
         exit;
     }
     if (saveHeading($prefix, $brand)) {
-        echo json_encode(['success'=>true,'message'=>'Heading toko berhasil disimpan.']);
+        logAdminHistory('update_heading', 'heading', '', 'Mengupdate heading toko');
+echo json_encode(['success'=>true,'message'=>'Heading toko berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan heading toko.']);
     }
@@ -275,7 +281,8 @@ if ($action === 'save_product_info') {
         exit;
     }
     if (saveProductInfoText($text)) {
-        echo json_encode(['success'=>true,'message'=>'Teks info produk berhasil disimpan.']);
+        logAdminHistory('update_product_info', 'product_info', '', 'Mengupdate info produk di halaman toko');
+echo json_encode(['success'=>true,'message'=>'Teks info produk berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan teks info produk.']);
     }
@@ -294,7 +301,8 @@ if ($action === 'save_tagline') {
         exit;
     }
     if (saveTagline($tagline)) {
-        echo json_encode(['success'=>true,'message'=>'Tagline berhasil disimpan.']);
+        logAdminHistory('update_tagline', 'tagline', '', 'Mengupdate tagline toko');
+echo json_encode(['success'=>true,'message'=>'Tagline berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan tagline.']);
     }
@@ -303,6 +311,38 @@ if ($action === 'save_tagline') {
 
 if ($action === 'get_tagline') {
     echo json_encode(['success'=>true, 'data' => ['tagline' => loadTagline()]]);
+    exit;
+}
+
+
+// ============================================================
+// GET ADMIN HISTORY
+// ============================================================
+if ($action === 'get_history') {
+    $db = getDB();
+    if (!$db) {
+        echo json_encode(['success'=>false,'message'=>'Database tidak tersedia.']);
+        exit;
+    }
+    
+    $limit = (int)($_POST['limit'] ?? 50);
+    $offset = (int)($_POST['offset'] ?? 0);
+    
+    $result = @pg_query($db, "SELECT id, admin_id, admin_username, admin_nama, action, target_type, target_id, detail, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM admin_history ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
+    if (!$result) {
+        echo json_encode(['success'=>false,'message'=>'Gagal mengambil history.']);
+        exit;
+    }
+    
+    $history = [];
+    while ($row = pg_fetch_assoc($result)) {
+        $history[] = $row;
+    }
+    
+    $count_result = @pg_query($db, "SELECT COUNT(*) AS total FROM admin_history");
+    $total = $count_result ? (int)pg_fetch_result($count_result, 0, 'total') : 0;
+    
+    echo json_encode(['success'=>true, 'data' => $history, 'total' => $total]);
     exit;
 }
 
