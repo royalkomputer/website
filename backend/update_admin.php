@@ -151,9 +151,7 @@ if ($action === 'get_schedules') {
 
 if ($action === 'set_manual_status') {
     $status = ($_POST['status'] ?? 'buka') === 'tutup' ? 'tutup' : 'buka';
-    if (file_put_contents(STATUS_FILE, $status) !== false) {
-        // Sync ke frontend untuk immediate update
-        @file_put_contents(__DIR__ . '/../frontend/status_toko.txt', $status);
+    if (saveStatus($status)) {
         echo json_encode(['success'=>true,'message'=>'Status manual berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan status.']);

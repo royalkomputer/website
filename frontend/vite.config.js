@@ -20,23 +20,6 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
-      // Also proxy direct JSON file requests for fallback data
-      '/cache_produk.json': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      },
-      '/jam_operasional.json': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      },
-      '/jadwal_tutup.json': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      },
-      '/status_toko.txt': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      },
       // Proxy admin paths during dev
       '/admin.php': {
         target: 'http://localhost:8081',

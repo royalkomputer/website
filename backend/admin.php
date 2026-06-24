@@ -7,10 +7,7 @@ date_default_timezone_set('Asia/Jakarta');
 $current_admin = getCurrentAdmin();
 $is_super      = isSuperAdmin();
 
-$current_status = 'buka';
-if (file_exists(STATUS_FILE)) {
-    $current_status = trim(file_get_contents(STATUS_FILE));
-}
+$current_status = loadStatus();
 
 $jam_buka     = loadJamOperasional();
 $hari_inggris = date('l');

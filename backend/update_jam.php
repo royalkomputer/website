@@ -51,12 +51,9 @@ foreach ($hari_valid as $hari) {
     }
 }
 
-if (file_put_contents(JAM_FILE, json_encode($jam_baru, JSON_PRETTY_PRINT)) === false) {
-    echo json_encode(['success' => false, 'message' => 'Gagal menyimpan file jam operasional.']);
+if (!saveJamOperasional($jam_baru)) {
+    echo json_encode(['success' => false, 'message' => 'Gagal menyimpan jam operasional.']);
     exit;
 }
-
-// Sync ke frontend untuk immediate update
-@file_put_contents(__DIR__ . '/../frontend/jam_operasional.json', json_encode($jam_baru, JSON_PRETTY_PRINT));
 
 echo json_encode(['success' => true, 'message' => 'Jam operasional berhasil disimpan.']);

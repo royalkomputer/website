@@ -34,10 +34,7 @@ require_once __DIR__ . '/config.php';
 date_default_timezone_set('Asia/Jakarta');
 
 // ── 1. Manual override ──
-$tutup_sementara = false;
-if (file_exists(STATUS_FILE)) {
-    $tutup_sementara = trim(file_get_contents(STATUS_FILE)) === 'tutup';
-}
+$tutup_sementara = loadStatus() === 'tutup';
 
 // ── 2. Operating hours check ──
 $hari_inggris = date('l');
