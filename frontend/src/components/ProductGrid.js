@@ -31,10 +31,9 @@ export async function loadProductInfoText() {
  *
  * @param {Object} options
  * @param {'grid'|'detail'} [options.viewMode] — current view mode
- * @param {(mode: 'grid'|'detail') => void} [options.onViewModeChange] — callback when view mode changes
  * @returns {string} HTML string for the product section
  */
-export function ProductGrid({ viewMode = 'grid', onViewModeChange } = {}) {
+export function ProductGrid({ viewMode = 'grid' } = {}) {
   const infoHtml = _productInfoText.replace('{count}', '<span class="js-product-count font-bold text-slate-900">0</span>')
 
   const isGrid = viewMode === 'grid'
@@ -49,7 +48,7 @@ export function ProductGrid({ viewMode = 'grid', onViewModeChange } = {}) {
     </div>
     <div class="flex items-center gap-1 bg-slate-50 rounded-lg p-1 border border-slate-200">
       <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}" data-view="grid">
-        <i class="fa-solid fa-grid-2"></i>
+        <i class="fa-solid fa-th"></i>
         <span class="hidden sm:inline">Grid</span>
       </button>
       <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}" data-view="detail">
