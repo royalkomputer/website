@@ -46,8 +46,9 @@ export function FilterSidebar(filters, categories, categoryCounts) {
           return `<button class="js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
             isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'
           }" data-category="${cat}">
+            ${isSelected ? '<i class="fa-solid fa-check mr-1.5 text-white"></i>' : ''}
             <span>${cat}</span>
-            <span class="${isSelected ? 'bg-astra-900/40' : 'bg-slate-100 text-slate-500'} text-xs px-2 py-0.5 rounded-full">${count}</span>
+            <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'} text-xs px-2 py-0.5 rounded-full">${count}</span>
           </button>`
         }).join('')}
       </div>
@@ -161,8 +162,25 @@ export function bindFilterEvents(filters, onFilterChange) {
 export function updateCategoryButtons(selectedCategory) {
   document.querySelectorAll('.js-cat-btn').forEach(btn => {
     const isSelected = btn.dataset.category === selectedCategory
-    btn.className = `w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
-      isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'
-    }`
+    const name = btn.querySelector('span')
+    const countBadge = btn.querySelectorAll('span')[1]
+    if (isSelected) {
+      btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between bg-astra-700 text-white font-semibold shadow-sm'
+      if (!btn.querySelector('.fa-check')) {
+        const icon = document.createElement('i')
+        icon.className = 'fa-solid fa-check mr-1.5 text-white'
+        btn.insertBefore(icon, name)
+      }
+      if (countBadge) {
+        countBadge.className = 'bg-white/20 text-white text-xs px-2 py-0.5 rounded-full'
+      }
+    } else {
+      btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between text-slate-600 hover:bg-slate-100'
+      const icon = btn.querySelector('.fa-check')
+      if (icon) icon.remove()
+      if (countBadge) {
+        countBadge.className = 'bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full'
+      }
+    }
   })
 }
