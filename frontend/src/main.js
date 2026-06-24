@@ -1,7 +1,7 @@
 import './style.css'
 import { Navbar, bindNavbarEvents } from './components/Navbar.js'
 import { StoreStatus, loadHeadingText } from './components/StoreStatus.js'
-import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './components/FilterSidebar.js'
+import { FilterSidebar, bindFilterEvents } from './components/FilterSidebar.js'
 import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
@@ -142,33 +142,31 @@ function applyFiltersAndRender() {
   const { category, search, sortBy, condition } = state.filters
 
   state.filteredProducts = state.allProducts.filter(p => {
-    // Category filter
     const matchCategory = category === 'Semua' || p.category === category
-
-    // Search filter
     const searchStr = (search || '').toLowerCase()
     const matchSearch = (p.name || '').toLowerCase().includes(searchStr)
-
-    // Condition filter
     const bekas = isBekas(p)
     let matchCondition = true
     if (condition === 'Baru') matchCondition = !bekas
     if (condition === 'Bekas') matchCondition = bekas
-
     return matchCategory && matchSearch && matchCondition
   })
 
-  // Sort
   if (sortBy === 'low-high') {
     state.filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0))
   } else if (sortBy === 'high-low') {
     state.filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0))
   }
 
-  // Update category button visuals
-  updateCategoryButtons(category)
+  // Re-render FilterSidebar to ensure visual state matches current filters
+  const categories = getUniqueCategories()
+  const categoryCounts = getCategoryCounts()
+  const filterContainer = document.querySelector('.js-filter-container')
+  if (filterContainer) {
+    filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
+    bindFilterEvents(state.filters, applyFiltersAndRender)
+  }
 
-  // Render
   renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode)
 }
 
