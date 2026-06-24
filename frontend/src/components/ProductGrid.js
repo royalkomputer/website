@@ -72,7 +72,7 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   </div>
 
   <!-- Product cards grid/list -->
-  <div class="js-product-grid ${isGrid ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'flex flex-col gap-4'}"></div>
+  <div class="js-product-grid ${isGrid ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4' : 'flex flex-col gap-3 sm:gap-4'}"></div>
 
 </section>`
 }
@@ -93,11 +93,11 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
 
   // Ensure correct grid/list class
   if (viewMode === 'detail') {
-    grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-4')
-    grid.classList.add('flex', 'flex-col', 'gap-4')
+    grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
+    grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
   } else {
-    grid.classList.remove('flex', 'flex-col', 'gap-4')
-    grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-4')
+    grid.classList.remove('flex', 'flex-col', 'gap-3', 'sm:gap-4')
+    grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
   }
 
   grid.innerHTML = ''

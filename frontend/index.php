@@ -117,21 +117,32 @@ if (!$is_open) {
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #0254A3; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #0254A3; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0b3c70; }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.8s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
     <!-- Navbar -->
-<nav class="bg-astra-950 text-white sticky top-0 z-50">
+<nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
         
         <!-- Logo -->
         <a href="#" class="flex items-center gap-2 flex-shrink-0">
             <img src="logo/logo.webp" alt="Logo" class="h-8 md:h-10 w-auto">
-            <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400">KOMPUTER</span></span>
+            <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
         </a>
         
         <!-- Search Bar (tengah, hanya desktop) -->
@@ -379,7 +390,11 @@ if (!$is_open) {
             
             <!-- Kiri: Galeri Foto -->
             <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
-                <img id="detail-image" src="" alt="Detail" class="w-full h-full object-contain max-h-[500px]">
+                <img id="detail-image" src="" alt="Detail" class="w-full h-full object-contain max-h-[500px]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div id="detail-image-fallback" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-image text-5xl mb-2"></i>
+                    <span class="text-sm">Gambar tidak tersedia</span>
+                </div>
                 
                 <!-- Navigasi Carousel -->
                 <button id="btn-prev-img" onclick="changeImage(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-left"></i></button>
@@ -689,8 +704,8 @@ if (!$is_open) {
                 : `<div class="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 bg-sky-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-lg shadow-sm border border-sky-400">BARU</div>`;
 
             card.innerHTML = `
-                <div class="relative overflow-hidden aspect-video bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
-                    <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="relative overflow-hidden aspect-[4/3] bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27300%27 viewBox=%270 0 400 300%27%3E%3Crect fill=%27%23f1f5f9%27 width=%27400%27 height=%27300%27/%3E%3Ctext fill=%27%2394a3b8%27 font-family=%27sans-serif%27 font-size=%2714%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     ${badgeKondisi}
                     <div class="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 bg-white/90 backdrop-blur-sm text-astra-700 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded sm:rounded-lg shadow-sm">
                         ${product.category}
@@ -724,8 +739,8 @@ if (!$is_open) {
                 : `<span class="bg-sky-100 text-sky-700 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded border border-sky-200">BARU</span>`;
 
             card.innerHTML = `
-                <div class="w-full sm:w-32 md:w-48 shrink-0 bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
-                    <img src="${product.image}" alt="${product.name}" loading="lazy" class="w-full h-28 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="w-24 sm:w-32 md:w-48 shrink-0 bg-slate-100 cursor-pointer" onclick="openDetailModal('${product.id}')">
+                    <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27150%27 viewBox=%270 0 200 150%27%3E%3Crect fill=%27%23f1f5f9%27 width=%27200%27 height=%27150%27/%3E%3Ctext fill=%27%2394a3b8%27 font-family=%27sans-serif%27 font-size=%2712%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 </div>
                 <div class="p-3 sm:p-4 md:p-5 flex flex-col flex-grow min-w-0">
                     <div class="flex items-center gap-1.5 sm:gap-2 mb-1">

@@ -10,13 +10,13 @@
  */
 export function Navbar({ onSearch }) {
   return `
-<nav class="bg-astra-950 text-white sticky top-0 z-50">
-  <div class="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between gap-4">
+<nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
+  <div class="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between gap-2">
 
     <!-- Logo -->
     <a href="#" class="flex items-center gap-2 flex-shrink-0">
       <img src="/logo/logo.webp" alt="Logo" class="h-8 md:h-10 w-auto">
-      <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400">KOMPUTER</span></span>
+      <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
     </a>
 
     <!-- Search Bar (desktop) -->
@@ -51,14 +51,19 @@ export function Navbar({ onSearch }) {
       </a>
     </div>
 
-    <!-- Hamburger (mobile) -->
-    <button class="js-nav-toggle md:hidden flex items-center justify-center text-slate-300 hover:text-white focus:outline-none h-9 w-9 bg-slate-900 border border-slate-700 rounded-lg flex-shrink-0">
-      <i class="fa-solid fa-bars text-lg"></i>
-    </button>
+    <!-- Mobile: Search toggle + Hamburger -->
+    <div class="flex md:hidden items-center gap-2">
+      <button class="js-search-toggle flex items-center justify-center text-slate-300 hover:text-white focus:outline-none h-9 w-9 bg-slate-900 border border-slate-700 rounded-lg flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+      </button>
+      <button class="js-nav-toggle flex items-center justify-center text-slate-300 hover:text-white focus:outline-none h-9 w-9 bg-slate-900 border border-slate-700 rounded-lg flex-shrink-0">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
+    </div>
   </div>
 
-  <!-- Search Bar (mobile) -->
-  <div class="md:hidden px-4 pb-3">
+  <!-- Search Bar (mobile, toggled) -->
+  <div class="js-mobile-search hidden md:hidden px-4 pb-3">
     <div class="relative">
       <input type="text"
              class="js-search-input-mobile w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
@@ -100,6 +105,29 @@ export function bindNavbarEvents(onSearch) {
   if (toggleBtn && sosmedMenu) {
     toggleBtn.addEventListener('click', () => {
       sosmedMenu.classList.toggle('hidden')
+      // Close search when opening menu
+      const mobileSearch = document.querySelector('.js-mobile-search')
+      if (mobileSearch && !mobileSearch.classList.contains('hidden')) {
+        mobileSearch.classList.add('hidden')
+      }
+    })
+  }
+
+  // Toggle mobile search
+  const searchToggle = document.querySelector('.js-search-toggle')
+  const mobileSearch = document.querySelector('.js-mobile-search')
+  if (searchToggle && mobileSearch) {
+    searchToggle.addEventListener('click', () => {
+      mobileSearch.classList.toggle('hidden')
+      // Focus input when opening
+      if (!mobileSearch.classList.contains('hidden')) {
+        const input = mobileSearch.querySelector('.js-search-input-mobile')
+        if (input) setTimeout(() => input.focus(), 100)
+      }
+      // Close sosmed menu when opening search
+      if (sosmedMenu && !sosmedMenu.classList.contains('hidden')) {
+        sosmedMenu.classList.add('hidden')
+      }
     })
   }
 

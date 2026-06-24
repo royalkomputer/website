@@ -21,7 +21,11 @@ export function ProductModal() {
 
     <!-- Left: Image gallery -->
     <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
-      <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="" alt="Detail">
+      <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="" alt="Detail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="js-modal-image-fallback hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
+        <i class="fa-solid fa-image text-5xl mb-2"></i>
+        <span class="text-sm">Gambar tidak tersedia</span>
+      </div>
 
       <!-- Carousel navigation -->
       <button class="js-prev-img absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden">
@@ -51,7 +55,7 @@ export function ProductModal() {
           <span class="text-sm text-slate-500">Sisa Stok: <strong class="js-detail-stock text-slate-800"></strong></span>
         </div>
         <a class="js-detail-wa-btn w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm" href="#" target="_blank">
-          <i class="fa-brands fa-whatsapp text-xl"></i> Pesan Sekarang via WhatsApp
+          <i class="fa-brands fa-whatsapp text-xl"></i> Beli via WhatsApp
         </a>
       </div>
     </div>

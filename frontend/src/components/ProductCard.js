@@ -19,22 +19,24 @@ export function ProductCard(product, onDetail) {
     ? `<div class="absolute top-3 left-3 bg-orange-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-orange-400">BEKAS</div>`
     : `<div class="absolute top-3 left-3 bg-sky-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-sky-400">BARU</div>`
 
-  return `
+const fallbackSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23f1f5f9' width='400' height='300'/%3E%3Ctext fill='%2394a3b8' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ETidak ada gambar%3C/text%3E%3C/svg%3E`
+
+return `
 <div class="js-product-card bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
-  <div class="relative overflow-hidden aspect-video bg-slate-100">
-    <img src="${product.image}" alt="${product.name}" loading="lazy"
+  <div class="relative overflow-hidden aspect-[4/3] bg-slate-100">
+    <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
     ${badgeKondisi}
-    <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-astra-700 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm">
+    <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-astra-700 text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2 md:py-1 rounded-md shadow-sm">
       ${product.category}
     </div>
   </div>
   <div class="p-3 md:p-4 flex flex-col flex-grow">
     <h3 class="font-bold text-slate-800 text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
-    <div class="mt-auto pt-2 md:pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
-      <div class="text-sm md:text-base font-extrabold text-astra-700 truncate">${formattedPrice}</div>
-      <div class="text-[10px] md:text-xs text-astra-600 font-bold bg-astra-50 px-2 md:px-3 py-1 rounded-lg whitespace-nowrap">
-        Detail <i class="fa-solid fa-chevron-right ml-0.5"></i>
+    <div class="mt-auto pt-2 md:pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+      <div class="text-sm md:text-base font-extrabold text-astra-700 truncate min-w-0">${formattedPrice}</div>
+      <div class="text-[10px] md:text-xs text-astra-600 font-bold bg-astra-50 hover:bg-astra-100 px-2 md:px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
+        Detail <i class="fa-solid fa-chevron-right ml-1"></i>
       </div>
     </div>
   </div>

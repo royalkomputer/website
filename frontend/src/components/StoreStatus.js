@@ -34,8 +34,9 @@ export function StoreStatus(status) {
     return `<header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white py-12 px-4 relative overflow-hidden">
       <div class="px-4 md:px-8 lg:px-12 text-center relative z-10">
         <div class="animate-pulse space-y-4">
-          <div class="h-6 bg-slate-700 rounded-full w-48 mx-auto"></div>
-          <div class="h-10 bg-slate-700 rounded-lg w-96 mx-auto"></div>
+          <div class="h-6 bg-slate-700/50 rounded-full w-48 mx-auto shimmer"></div>
+          <div class="h-10 bg-slate-700/50 rounded-lg w-96 mx-auto max-w-full shimmer"></div>
+          <div class="h-4 bg-slate-700/50 rounded w-64 mx-auto shimmer"></div>
         </div>
       </div>
     </header>`
