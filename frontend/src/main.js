@@ -1,7 +1,7 @@
 import './style.css'
 import { Navbar, bindNavbarEvents } from './components/Navbar.js'
 import { StoreStatus, loadHeadingText } from './components/StoreStatus.js'
-import { FilterSidebar, bindFilterEvents } from './components/FilterSidebar.js'
+import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './components/FilterSidebar.js'
 import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
@@ -158,14 +158,8 @@ function applyFiltersAndRender() {
     state.filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0))
   }
 
-  // Re-render FilterSidebar to ensure visual state matches current filters
-  const categories = getUniqueCategories()
-  const categoryCounts = getCategoryCounts()
-  const filterContainer = document.querySelector('.js-filter-container')
-  if (filterContainer) {
-    filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
-    bindFilterEvents(state.filters, applyFiltersAndRender)
-  }
+  // Update category button visual state
+  updateCategoryButtons(category)
 
   renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode)
 }

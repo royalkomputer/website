@@ -126,6 +126,9 @@ if ($action === 'delete') {
             }
         }
 
+        // Backup perubahan ke git (Render ephemeral storage)
+        backupPhotosToGit();
+
         if ($file_exists) {
             echo json_encode(["success" => true, "message" => "Foto berhasil dihapus."]);
         } else {
@@ -243,6 +246,9 @@ if ($action === 'delete') {
             }
         }
     }
+
+    // Backup perubahan ke git (Render ephemeral storage)
+    backupPhotosToGit();
 
     echo json_encode(["success" => true, "message" => "Urutan foto berhasil disimpan."]);
     exit;

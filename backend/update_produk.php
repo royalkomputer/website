@@ -363,6 +363,18 @@ if (!$db_available && $desc_provided) {
     }
 }
 
+// Backup foto ke git (Render ephemeral storage protection)
+if ($uploadFiles || !empty($imageOrder)) {
+    $backup_result = backupPhotosToGit();
+    if (!$backup_result['success'] && $backup_result['message'] !== 'Tidak ada perubahan foto untuk di-backup' && $backup_result['message'] !== 'Tidak ada perubahan baru untuk di-commit') {
+        // Log warning tapi jangan gagalkan response
+        error_log('[BACKUP] ' . $backup_result['message']);
+    }
+}
+
+// Catat history — HARUS sebelum pg_close() karena getDB() memakai static connection cache
+logAdminHistory('update_produk', 'product', $_POST['kodeitem'] ?? '', 'Deskripsi dan foto produk diperbarui');
+
 if ($db_available) {
     pg_close($conn);
 }
@@ -371,8 +383,6 @@ if (!$db_available && $desc_provided) {
     echo json_encode(["success" => true, "warning" => true, "message" => "Foto dan deskripsi berhasil disimpan (offline mode). Database tidak terhubung, data disimpan di cache."]);
 } else {
     
-// Catat history
-logAdminHistory('update_produk', 'product', $_POST['kodeitem'] ?? '', 'Deskripsi dan foto produk diperbarui');
 echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
 }
 

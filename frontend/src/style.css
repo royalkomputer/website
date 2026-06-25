@@ -16,6 +16,13 @@
   --color-astra-950: #0f172a;
 }
 
+/*
+  Safelist for JS-generated class names (FilterSidebar.js)
+  bg-astra-700 text-white font-semibold shadow-sm
+  text-slate-600 hover:bg-slate-100
+  bg-slate-100 text-slate-500 bg-white/20
+*/
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
