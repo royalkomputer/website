@@ -1,10 +1,19 @@
 import { formatIDR, isBekas } from '../lib/format.js'
 
+const WA_NUMBER = '6281380686168'
+
+function waUrl(product, formattedPrice) {
+  const text = encodeURIComponent(
+    `Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`
+  )
+  return `https://wa.me/${WA_NUMBER}?text=${text}`
+}
+
 /**
  * ProductCard Component
  *
  * Renders a single product card with image (hover zoom), condition badge,
- * category badge, name, price, and detail button.
+ * category badge, name, price, and WhatsApp button.
  *
  * @param {Object} product — product object from the API
  * @param {(id: string) => void} onDetail — callback when card is clicked
@@ -35,9 +44,9 @@ return `
     <h3 class="font-bold text-slate-800 text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
     <div class="mt-auto pt-2 md:pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
       <div class="text-sm md:text-base font-extrabold text-astra-700 truncate min-w-0">${formattedPrice}</div>
-      <div class="text-[10px] md:text-xs text-astra-600 font-bold bg-astra-50 hover:bg-astra-100 px-2 md:px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
-        Detail <i class="fa-solid fa-chevron-right ml-1"></i>
-      </div>
+      <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
+        <i class="fa-brands fa-whatsapp text-sm"></i>
+      </a>
     </div>
   </div>
 </div>`

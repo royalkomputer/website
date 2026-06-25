@@ -1,10 +1,19 @@
 import { formatIDR, isBekas } from '../lib/format.js'
 
+const WA_NUMBER = '6281380686168'
+
+function waUrl(product, formattedPrice) {
+  const text = encodeURIComponent(
+    `Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`
+  )
+  return `https://wa.me/${WA_NUMBER}?text=${text}`
+}
+
 /**
  * ProductDetailRow Component
  *
  * Renders a single product as a horizontal table-like row with image thumbnail,
- * product name, category, condition badge, price, and detail button.
+ * product name, category, condition badge, price, and WhatsApp button.
  *
  * @param {Object} product — product object from the API
  * @returns {string} HTML string
@@ -43,9 +52,9 @@ return `
 
     <div class="text-base sm:text-lg font-extrabold text-astra-700 whitespace-nowrap">${formattedPrice}</div>
 
-    <div class="text-xs text-astra-600 font-bold bg-astra-50 hover:bg-astra-100 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
-      Detail <i class="fa-solid fa-chevron-right ml-1"></i>
-    </div>
+    <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
+      <i class="fa-brands fa-whatsapp text-sm"></i>
+    </a>
   </div>
 </div>`
 }
