@@ -114,12 +114,6 @@ if (!$is_open) {
                     }
                 }
             },
-            safelist: [
-                'bg-astra-700', 'text-white', 'font-semibold', 'shadow-sm',
-                'bg-astra-900/40', 'bg-white/20',
-                'text-slate-600', 'hover:bg-slate-100',
-                'bg-slate-100', 'text-slate-500',
-            ],
         }
     </script>
     <style>
@@ -140,6 +134,14 @@ if (!$is_open) {
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Safelist untuk Tailwind CDN JIT (class dipakai oleh JavaScript) -->
+    <div class="hidden" aria-hidden="true">
+        <span class="bg-astra-700 text-white font-semibold shadow-sm"></span>
+        <span class="bg-astra-900/40 bg-white/20"></span>
+        <span class="text-slate-600 hover:bg-slate-100"></span>
+        <span class="bg-slate-100 text-slate-500"></span>
+    </div>
 
     <!-- Navbar -->
 <nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
