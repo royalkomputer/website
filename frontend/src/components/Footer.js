@@ -7,6 +7,8 @@
  * @param {Object} hours — operating hours object from jam_operasional.json
  * @returns {string} HTML string
  */
+import { LOGO_URL } from '../lib/env.js'
+
 export function Footer(hours) {
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const currentDay = dayNames[new Date().getDay()]
@@ -33,7 +35,7 @@ export function Footer(hours) {
 
     <!-- Logo & Address -->
     <div class="flex flex-col gap-3 items-center md:items-start">
-      <img src="/logo/logo.webp" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1">
+      <img src="${LOGO_URL}" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1">
       <p class="font-bold text-slate-200 text-sm tracking-wide">ROYAL KOMPUTER KEDIRI</p>
       <p class="text-slate-400 leading-relaxed text-center md:text-left text-xs">
         <i class="fa-solid fa-location-dot text-red-500 mr-1"></i>

@@ -8,6 +8,8 @@
  * @param {(query: string) => void} options.onSearch — callback when user types in search
  * @returns {string} HTML string
  */
+import { LOGO_URL } from '../lib/env.js'
+
 export function Navbar({ onSearch }) {
   return `
 <nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
@@ -15,7 +17,7 @@ export function Navbar({ onSearch }) {
 
     <!-- Logo -->
     <a href="#" class="flex items-center gap-2 flex-shrink-0">
-      <img src="/logo/logo.webp" alt="Logo" class="h-8 md:h-10 w-auto">
+      <img src="${LOGO_URL}" alt="Logo" class="h-8 md:h-10 w-auto">
       <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
     </a>
 
