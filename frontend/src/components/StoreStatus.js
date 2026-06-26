@@ -10,7 +10,7 @@ let _headingBrand = HEADING_DEFAULT_BRAND
  */
 export async function loadHeadingText() {
   try {
-    const res = await fetch('/heading.json')
+    const res = await fetch(`${import.meta.env.BASE_URL}heading.json`)
     const data = await res.json()
     if (data && data.prefix) _headingPrefix = data.prefix
     if (data && data.brand) _headingBrand = data.brand

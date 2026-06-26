@@ -12,7 +12,7 @@ let _productInfoText = PRODUCT_INFO_DEFAULT
  */
 export async function loadProductInfoText() {
   try {
-    const res = await fetch('/product_info.json')
+    const res = await fetch(`${import.meta.env.BASE_URL}product_info.json`)
     const data = await res.json()
     if (data && data.text) {
       _productInfoText = data.text

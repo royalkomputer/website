@@ -1,4 +1,4 @@
-const API_BASE = ''
+const API_BASE = import.meta.env.BASE_URL || '/'
 
 /**
  * Fetch all products from the API.

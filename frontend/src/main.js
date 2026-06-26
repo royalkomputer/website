@@ -110,7 +110,7 @@ async function loadData() {
 
   // Load operating hours (for footer)
   try {
-    const res = await fetch('/jam_operasional.json')
+    const res = await fetch(`${import.meta.env.BASE_URL}jam_operasional.json`)
     state.hours = await res.json()
     const footerContainer = document.querySelector('.js-footer-container')
     if (footerContainer) {
