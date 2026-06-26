@@ -177,6 +177,9 @@ $heading = loadHeading();
         <button onclick="switchTab('history')" id="tab-history" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-clock-rotate-left"></i> History
         </button>
+        <button onclick="switchTab('push')" id="tab-push" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-upload"></i> Push ke Git
+        </button>
 
     </div>
 
@@ -566,6 +569,38 @@ $heading = loadHeading();
         </div>
     </div>
 
+    <!-- PANEL PUSH KE GIT -->
+    <div id="panel-push" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-2xl">
+            <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-upload text-astra-700"></i> Push ke Git
+            </h3>
+            <p class="text-sm text-slate-500 mb-4">Push perubahan data toko (jam operasional, jadwal tutup, heading, dll) dan foto produk ke repository GitHub. Perubahan akan otomatis terdeploy setelah push.</p>
+
+            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-start gap-3">
+                <i class="fa-solid fa-circle-info text-lg mt-0.5"></i>
+                <div>
+                    <p class="font-semibold">Catatan:</p>
+                    <ul class="list-disc ml-5 mt-1 text-amber-700 space-y-0.5">
+                        <li>Hanya perubahan dari panel admin yang akan di-push (data/ + uploads/).</li>
+                        <li>Perubahan dari IPOS (sync) tetap dijalankan oleh Task Scheduler lokal setiap jam.</li>
+                        <li>Pastikan GIT_TOKEN sudah di-set di environment Render.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="pushToGit()" id="btn-push-git"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Push Sekarang
+                </button>
+                <span id="push-feedback" class="text-sm font-semibold hidden"></span>
+            </div>
+
+            <div id="push-result" class="hidden mt-4 p-4 rounded-lg border text-sm"></div>
+        </div>
+    </div>
+
         </main>
 
 <!-- MODAL KELOLA PRODUK -->
@@ -745,7 +780,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','ui','profil'];
+    const panels = ['katalog','jam','schedule','admin','ui','profil','push'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -1437,6 +1472,30 @@ function setManualStatus(){
     fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
         showNotification(data.message, data.success ? 'success' : 'error');
     }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error')).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='Simpan Status Manual';} });
+}
+
+function pushToGit(){
+    const btn = document.getElementById('btn-push-git');
+    const feedback = document.getElementById('push-feedback');
+    const result = document.getElementById('push-result');
+    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Mempush...'; }
+    feedback.className = 'text-sm font-semibold hidden';
+    result.className = 'hidden';
+
+    const fd = new FormData(); fd.append('action', 'push_to_git');
+    fetch('update_admin.php', {method:'POST', body:fd}).then(r=>r.json()).then(data=>{
+        result.className = 'mt-4 p-4 rounded-lg border text-sm ' + (data.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800');
+        result.innerHTML = '<i class="fa-solid ' + (data.success ? 'fa-circle-check' : 'fa-circle-exclamation') + ' mr-1.5"></i> ' + escHtml(data.message);
+        result.classList.remove('hidden');
+        showNotification(data.message, data.success ? 'success' : 'error');
+    }).catch(()=>{
+        result.className = 'mt-4 p-4 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800';
+        result.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5"></i> Gagal terhubung ke server.';
+        result.classList.remove('hidden');
+        showNotification('Gagal. Cek koneksi.', 'error');
+    }).finally(()=>{
+        if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Push Sekarang'; }
+    });
 }
 
 function escHtml(str){

@@ -567,6 +567,64 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
 // GIT BACKUP: Backend -> Git (untuk Render ephemeral storage)
 // ============================================================
 
+function backupToGit(): array {
+    $git_token = getenv('GIT_TOKEN');
+    $repo_url  = getenv('GIT_REPO_URL');
+    $branch    = getenv('GIT_BRANCH') ?: 'main';
+
+    if (!$git_token || !$repo_url) {
+        return ['success' => false, 'message' => 'GIT_TOKEN/GIT_REPO_URL not set — skip backup'];
+    }
+
+    exec('git --version 2>&1', $ver_out, $ver_code);
+    if ($ver_code !== 0) {
+        return ['success' => false, 'message' => 'Git tidak tersedia di container ini'];
+    }
+
+    $cwd = getcwd();
+    chdir(__DIR__);
+
+    exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
+    exec('git config user.name "Royal Auto Backup" 2>&1');
+
+    exec('git add -A uploads/ data/ 2>&1', $add_out, $add_code);
+    if ($add_code !== 0) {
+        chdir($cwd);
+        return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
+    }
+
+    exec('git diff --cached --quiet 2>&1', $diff_out, $diff_code);
+    if ($diff_code === 0) {
+        chdir($cwd);
+        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-backup'];
+    }
+
+    $msg = 'backup: admin changes ' . date('Y-m-d H:i:s');
+    $escaped_msg = str_replace('"', '\\"', $msg);
+    exec("git commit -m \"$escaped_msg\" 2>&1", $commit_out, $commit_code);
+    if ($commit_code !== 0) {
+        chdir($cwd);
+        return ['success' => true, 'message' => 'Tidak ada perubahan baru untuk di-commit'];
+    }
+
+    $auth_url = str_replace('https://', "https://x-access-token:$git_token@", $repo_url);
+    exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
+
+    $escaped_branch = escapeshellarg($branch);
+    exec("git push $escaped_branch 2>&1", $push_out, $push_code);
+    $push_output = implode(', ', $push_out);
+
+    exec("git remote set-url origin \"$repo_url\" 2>&1");
+
+    chdir($cwd);
+
+    if ($push_code === 0) {
+        return ['success' => true, 'message' => 'Perubahan berhasil di-push ke git'];
+    } else {
+        return ['success' => false, 'message' => 'git push gagal: ' . $push_output];
+    }
+}
+
 function backupPhotosToGit(): array {
     $git_token = getenv('GIT_TOKEN');
     $repo_url  = getenv('GIT_REPO_URL');

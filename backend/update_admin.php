@@ -346,4 +346,14 @@ if ($action === 'get_history') {
     exit;
 }
 
+// -------------------------------------------------------
+// ACTION: push_to_git
+// -------------------------------------------------------
+if ($action === 'push_to_git') {
+    requireLogin();
+    $result = backupToGit();
+    echo json_encode($result);
+    exit;
+}
+
 echo json_encode(['success'=>false,'message'=>'Action tidak dikenali.']);
