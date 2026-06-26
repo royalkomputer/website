@@ -585,6 +585,20 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
 // ============================================================
 
 function backupToGit(): array {
+    // Jika di lokal (Windows), jalankan push_admin.bat
+    $bat_path = __DIR__ . '/push_admin.bat';
+    if (PHP_OS_FAMILY === 'Windows' && file_exists($bat_path)) {
+        $output = [];
+        $ret = 0;
+        exec("\"$bat_path\" 2>&1", $output, $ret);
+        $msg = implode("\n", $output);
+        if ($ret === 0) {
+            return ['success' => true, 'message' => $msg ?: 'Push berhasil'];
+        } else {
+            return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . ')'];
+        }
+    }
+
     $git_token = ENV_GIT_TOKEN ?: getenv('GIT_TOKEN');
     $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
     $branch    = getenv('GIT_BRANCH') ?: 'main';
