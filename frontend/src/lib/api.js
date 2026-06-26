@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.BASE_URL || '/'
+import { API_BASE, DATA_BASE } from './env.js'
 
 /**
  * Fetch all products from the API.
@@ -15,7 +15,7 @@ export async function fetchProducts() {
     return data
   } catch (err) {
     console.warn('API failed, trying cache:', err.message)
-    const cacheRes = await fetch(`${API_BASE}/cache_produk.json`)
+    const cacheRes = await fetch(`${DATA_BASE}/cache_produk.json`)
     if (!cacheRes.ok) throw new Error('Cache unavailable')
     return cacheRes.json()
   }
@@ -44,7 +44,7 @@ export async function fetchStoreStatus() {
  * Fetch operating hours directly from the JSON file.
  */
 async function fetchJamOperasional() {
-  const res = await fetch(`${API_BASE}/jam_operasional.json`)
+  const res = await fetch(`${DATA_BASE}/jam_operasional.json`)
   return res.json()
 }
 
@@ -52,7 +52,7 @@ async function fetchJamOperasional() {
  * Fetch closure schedules from the JSON file.
  */
 async function fetchSchedules() {
-  const res = await fetch(`${API_BASE}/jadwal_tutup.json`)
+  const res = await fetch(`${DATA_BASE}/jadwal_tutup.json`)
   return res.json()
 }
 
@@ -61,7 +61,7 @@ async function fetchSchedules() {
  */
 async function fetchManualStatus() {
   try {
-    const res = await fetch(`${API_BASE}/status_toko.txt`)
+    const res = await fetch(`${DATA_BASE}/status_toko.txt`)
     const text = await res.text()
     return text.trim() === 'tutup'
   } catch {

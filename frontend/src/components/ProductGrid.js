@@ -1,5 +1,6 @@
 import { ProductCard } from './ProductCard.js'
 import { ProductDetailRow } from './ProductDetailRow.js'
+import { DATA_BASE } from '../lib/env.js'
 
 /** Default fallback product info text */
 const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.'
@@ -12,7 +13,7 @@ let _productInfoText = PRODUCT_INFO_DEFAULT
  */
 export async function loadProductInfoText() {
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}product_info.json`)
+    const res = await fetch(`${DATA_BASE}/product_info.json`)
     const data = await res.json()
     if (data && data.text) {
       _productInfoText = data.text

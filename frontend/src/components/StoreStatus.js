@@ -1,3 +1,5 @@
+import { DATA_BASE } from '../lib/env.js'
+
 /** Default heading text */
 const HEADING_DEFAULT_PREFIX = 'Solusi Hardware di'
 const HEADING_DEFAULT_BRAND = 'Royal Komputer'
@@ -10,7 +12,7 @@ let _headingBrand = HEADING_DEFAULT_BRAND
  */
 export async function loadHeadingText() {
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}heading.json`)
+    const res = await fetch(`${DATA_BASE}/heading.json`)
     const data = await res.json()
     if (data && data.prefix) _headingPrefix = data.prefix
     if (data && data.brand) _headingBrand = data.brand

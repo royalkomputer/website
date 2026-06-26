@@ -6,6 +6,7 @@ import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
 import { fetchProducts, fetchStoreStatus } from './lib/api.js'
+import { DATA_BASE } from './lib/env.js'
 import { isBekas } from './lib/format.js'
 
 // ──────────────────────────────────────────────
@@ -110,7 +111,7 @@ async function loadData() {
 
   // Load operating hours (for footer)
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}jam_operasional.json`)
+    const res = await fetch(`${DATA_BASE}/jam_operasional.json`)
     state.hours = await res.json()
     const footerContainer = document.querySelector('.js-footer-container')
     if (footerContainer) {

@@ -30,6 +30,7 @@ jobs:
         working-directory: ./frontend
         env:
           BASE_URL: /website/
+          VITE_API_BASE: https://royal-backend-s3ir.onrender.com
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
