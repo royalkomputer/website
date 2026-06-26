@@ -1,6 +1,16 @@
 <?php
 session_start();
 
+// Load .env file (local development)
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        putenv($line);
+    }
+}
+
 // --- KREDENSIAL DATABASE ---
 define('DB_HOST', getenv('PGHOST') ?: '192.168.18.189');
 define('DB_PORT', getenv('PGPORT') ?: '5444');
