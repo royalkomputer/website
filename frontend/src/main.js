@@ -199,7 +199,7 @@ function handleViewModeChange(mode) {
 function updateViewToggleUI() {
   document.querySelectorAll('.js-view-toggle').forEach(btn => {
     const isActive = btn.dataset.view === state.viewMode
-    btn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`
+    btn.className = `js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`
   })
 }
 
