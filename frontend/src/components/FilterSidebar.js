@@ -39,7 +39,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
         <span>Kategori</span>
         <i class="js-category-icon fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
       </button>
-      <div class="js-category-panel hidden lg:block space-y-1">
+      <div class="js-category-panel space-y-1">
         ${categories.map(cat => {
           const isSelected = filters.category === cat
           const count = categoryCounts[cat] || 0
@@ -106,7 +106,8 @@ export function bindFilterEvents(filters, onFilterChange) {
   const catIcon = document.querySelector('.js-category-icon')
   if (catToggle && catPanel && catIcon) {
     catToggle.addEventListener('click', () => {
-      catPanel.classList.toggle('hidden')
+      const isHidden = catPanel.style.display === 'none'
+      catPanel.style.display = isHidden ? '' : 'none'
       catIcon.classList.toggle('rotate-180')
     })
   }
