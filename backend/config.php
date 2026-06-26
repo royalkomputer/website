@@ -2,14 +2,21 @@
 session_start();
 
 // Load .env file (local development)
+$env_vars = [];
 if (file_exists(__DIR__ . '/.env')) {
     $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         $line = trim($line);
         if ($line === '' || str_starts_with($line, '#')) continue;
         putenv($line);
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2) {
+            $env_vars[$parts[0]] = $parts[1];
+        }
     }
 }
+define('ENV_GIT_TOKEN', $env_vars['GIT_TOKEN'] ?? getenv('GIT_TOKEN') ?: '');
+define('ENV_GIT_REPO_URL', $env_vars['GIT_REPO_URL'] ?? getenv('GIT_REPO_URL') ?: '');
 
 // --- KREDENSIAL DATABASE ---
 define('DB_HOST', getenv('PGHOST') ?: '192.168.18.189');
@@ -578,8 +585,8 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
 // ============================================================
 
 function backupToGit(): array {
-    $git_token = getenv('GIT_TOKEN');
-    $repo_url  = getenv('GIT_REPO_URL');
+    $git_token = ENV_GIT_TOKEN ?: getenv('GIT_TOKEN');
+    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
     $branch    = getenv('GIT_BRANCH') ?: 'main';
 
     if (!$git_token || !$repo_url) {
@@ -636,8 +643,8 @@ function backupToGit(): array {
 }
 
 function backupPhotosToGit(): array {
-    $git_token = getenv('GIT_TOKEN');
-    $repo_url  = getenv('GIT_REPO_URL');
+    $git_token = ENV_GIT_TOKEN ?: getenv('GIT_TOKEN');
+    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
     $branch    = getenv('GIT_BRANCH') ?: 'main';
 
     // Hanya jalan di production (Render) ketika env var sudah di-set
