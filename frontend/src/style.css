@@ -34,6 +34,14 @@
   animation: shimmer 1.8s ease-in-out infinite;
 }
 
+/* Hide filter toggle chevron on desktop */
+@media (min-width: 64rem) {
+  .js-filter-icon,
+  #filter-icon {
+    display: none !important;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }

@@ -57,21 +57,27 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <!-- Condition -->
     <div class="mb-6 border-t border-slate-100 pt-5">
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
-      <select class="js-condition-select w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer">
-        <option value="Semua">Semua Kondisi</option>
-        <option value="Baru">Baru</option>
-        <option value="Bekas">Bekas (2ND)</option>
-      </select>
+      <div class="relative">
+        <select class="js-condition-select w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl p-2.5 pr-8 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-colors">
+          <option value="Semua">Semua Kondisi</option>
+          <option value="Baru">Baru</option>
+          <option value="Bekas">Bekas (2ND)</option>
+        </select>
+        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      </div>
     </div>
 
     <!-- Sort -->
     <div class="border-t border-slate-100 pt-5">
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
-      <select class="js-sort-select w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
-        <option value="default">Rekomendasi Teratas</option>
-        <option value="low-high">Harga: Rendah ke Tinggi</option>
-        <option value="high-low">Harga: Tinggi ke Rendah</option>
-      </select>
+      <div class="relative">
+        <select class="js-sort-select w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl p-2.5 pr-8 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-colors">
+          <option value="default">Rekomendasi Teratas</option>
+          <option value="low-high">Harga: Rendah ke Tinggi</option>
+          <option value="high-low">Harga: Tinggi ke Rendah</option>
+        </select>
+        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      </div>
     </div>
 
   </div>
