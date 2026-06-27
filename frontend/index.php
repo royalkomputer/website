@@ -343,18 +343,7 @@ if (!$is_open) {
                 </div>
             </div>
 
-            <div id="banner-section" class="js-banner-container hidden rounded-2xl overflow-hidden mb-6 transition-all duration-500 ease-in-out">
-                <div class="js-banner-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
-                    <div class="js-banner-track flex transition-transform duration-500 ease-in-out"></div>
-                    <button class="js-banner-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
-                    </button>
-                    <button class="js-banner-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
-                        <i class="fa-solid fa-chevron-right text-sm"></i>
-                    </button>
-                    <div class="js-banner-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 hidden"></div>
-                </div>
-            </div>
+            <div id="banner-playlists" class="flex flex-col gap-4 mb-6"></div>
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
                 <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
                 <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
@@ -503,6 +492,7 @@ if (!$is_open) {
         let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
         let hasActivated = false;
         let bannerVisible = false;
+        let bannerPlaylistCount = 0;
         let currentView = localStorage.getItem('viewMode') || 'grid';
         
         let currentDetailImages = [];
@@ -650,62 +640,85 @@ if (!$is_open) {
 
         function loadBanners() {
             return new Promise(resolve => {
+            const container = document.getElementById('banner-playlists');
             fetch('api_banner.php')
                 .then(r => r.json())
-                .then(banners => {
-                    const section = document.getElementById('banner-section');
-                    if (!banners || banners.length === 0) { section.classList.add('hidden'); bannerVisible = false; return; }
-                    const active = banners.filter(b => b.active !== false).slice(0, 5);
-                    if (active.length === 0) { section.classList.add('hidden'); bannerVisible = false; return; }
-                    section.classList.remove('hidden');
+                .then(playlists => {
+                    container.innerHTML = '';
+                    if (!playlists || playlists.length === 0) { bannerVisible = false; bannerPlaylistCount = 0; resolve(); return; }
+                    const active = playlists.filter(p => p.active !== false);
+                    if (active.length === 0) { bannerVisible = false; bannerPlaylistCount = 0; resolve(); return; }
                     bannerVisible = true;
+                    bannerPlaylistCount = active.length;
 
-                    const track = document.querySelector('.js-banner-track');
-                    track.innerHTML = active.map(b =>
-                        '<div class="js-banner-slide min-w-full flex-shrink-0">' +
-                            (b.link ? '<a href="' + escAttr(b.link) + '" target="_blank" rel="noopener">' : '') +
-                                '<img src="uploads/banners/' + escAttr(b.image) + '" alt="' + escAttr(b.alt || 'Banner') + '" class="w-full h-auto rounded-2xl">' +
-                            (b.link ? '</a>' : '') +
-                        '</div>'
-                    ).join('');
+                    active.forEach((pl, plIdx) => {
+                        const photos = pl.photos || [];
+                        if (photos.length === 0) return;
+                        const plId = 'pl-' + plIdx;
+                        const interval = pl.interval || 5000;
+                        const hasMultiple = photos.length > 1;
 
-                    if (active.length > 1) {
-                        document.querySelector('.js-banner-prev').classList.remove('hidden');
-                        document.querySelector('.js-banner-next').classList.remove('hidden');
-                        const dots = document.querySelector('.js-banner-dots');
-                        dots.classList.remove('hidden');
-                        dots.innerHTML = active.map((_, i) =>
-                            '<button class="js-banner-dot w-2 h-2 rounded-full transition-all ' + (i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80') + '"></button>'
-                        ).join('');
-                        initBannerCarousel();
-                    }
+                        let html = '<div class="rounded-2xl overflow-hidden transition-all duration-500 ease-in-out">' +
+                            '<div class="pl-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm" data-pl="' + plId + '">' +
+                                '<div class="pl-track flex transition-transform duration-500 ease-in-out" data-pl="' + plId + '">' +
+                                    photos.map(p =>
+                                        '<div class="pl-slide min-w-full flex-shrink-0" data-pl="' + plId + '">' +
+                                            (p.link ? '<a href="' + escAttr(p.link) + '" target="_blank" rel="noopener">' : '') +
+                                                '<img src="uploads/banners/' + escAttr(p.image) + '" alt="' + escAttr(p.alt || pl.name || 'Banner') + '" class="w-full h-auto rounded-2xl">' +
+                                            (p.link ? '</a>' : '') +
+                                        '</div>'
+                                    ).join('') +
+                                '</div>' +
+                                (hasMultiple ? 
+                                    '<button class="pl-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="' + plId + '">' +
+                                        '<i class="fa-solid fa-chevron-left text-sm"></i>' +
+                                    '</button>' +
+                                    '<button class="pl-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="' + plId + '">' +
+                                        '<i class="fa-solid fa-chevron-right text-sm"></i>' +
+                                    '</button>' +
+                                    '<div class="pl-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10" data-pl="' + plId + '">' +
+                                        photos.map((_, i) => '<button class="pl-dot w-2 h-2 rounded-full transition-all ' + (i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80') + '" data-pl="' + plId + '" data-index="' + i + '"></button>').join('') +
+                                    '</div>' : '') +
+                            '</div>' +
+                        '</div>';
+
+                        container.innerHTML += html;
+                    });
+
+                    // Init carousels for playlists with multiple photos
+                    document.querySelectorAll('.pl-carousel').forEach(carousel => {
+                        const plId = carousel.dataset.pl;
+                        const track = carousel.querySelector('.pl-track');
+                        if (!track || track.children.length <= 1) return;
+                        const total = track.children.length;
+
+                        let current = 0;
+                        const interval = active[parseInt(plId.split('-')[1])]?.interval || 5000;
+
+                        function goTo(index) {
+                            if (index < 0) index = total - 1;
+                            if (index >= total) index = 0;
+                            current = index;
+                            track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                            carousel.querySelectorAll('.pl-dot').forEach((dot, i) => {
+                                dot.className = 'pl-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+                            });
+                        }
+
+                        const nextBtn = carousel.querySelector('.pl-next');
+                        const prevBtn = carousel.querySelector('.pl-prev');
+                        if (nextBtn) nextBtn.addEventListener('click', () => goTo(current + 1));
+                        if (prevBtn) prevBtn.addEventListener('click', () => goTo(current - 1));
+                        carousel.querySelectorAll('.pl-dot').forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index) || 0)));
+
+                        let autoInterval = setInterval(() => goTo(current + 1), interval);
+                        carousel.addEventListener('mouseenter', () => clearInterval(autoInterval));
+                        carousel.addEventListener('mouseleave', () => { autoInterval = setInterval(() => goTo(current + 1), interval); });
+                    });
                 })
-                .catch(() => {})
+                .catch(() => { bannerVisible = false; })
                 .finally(() => resolve());
             });
-        }
-
-        function initBannerCarousel() {
-            const track = document.querySelector('.js-banner-track');
-            if (!track || track.children.length <= 1) return;
-            let current = 0;
-            const total = track.children.length;
-            function goTo(index) {
-                if (index < 0) index = total - 1;
-                if (index >= total) index = 0;
-                current = index;
-                track.style.transform = 'translateX(-' + (current * 100) + '%)';
-                document.querySelectorAll('.js-banner-dot').forEach((dot, i) => {
-                    dot.className = 'js-banner-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
-                });
-            }
-            document.querySelector('.js-banner-next').addEventListener('click', () => goTo(current + 1));
-            document.querySelector('.js-banner-prev').addEventListener('click', () => goTo(current - 1));
-            document.querySelectorAll('.js-banner-dot').forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index) || 0)));
-            let interval = setInterval(() => goTo(current + 1), 5000);
-            const container = track.parentElement;
-            container.addEventListener('mouseenter', () => clearInterval(interval));
-            container.addEventListener('mouseleave', () => { interval = setInterval(() => goTo(current + 1), 5000); });
         }
 
         function escAttr(str) {
@@ -731,10 +744,10 @@ if (!$is_open) {
         }
 
         function hideBanner() {
-            var el = document.getElementById('banner-section');
-            if (!el || el.classList.contains('hidden') || el.classList.contains('banner-hiding')) return;
-            el.classList.add('banner-hiding');
-            setTimeout(function() { el.classList.add('hidden'); el.classList.remove('banner-hiding'); }, 400);
+            var container = document.getElementById('banner-playlists');
+            if (!container || container.classList.contains('hidden') || container.classList.contains('banner-hiding')) return;
+            container.classList.add('banner-hiding');
+            setTimeout(function() { container.classList.add('hidden'); container.classList.remove('banner-hiding'); }, 400);
         }
 
         function selectCategory(cat) {
@@ -776,7 +789,7 @@ if (!$is_open) {
     document.getElementById('sort-select').value = 'default';
     document.getElementById('condition-select').value = 'Semua';
     generateCategoryFilterOptions();
-    var banner = document.getElementById('banner-section');
+    var banner = document.getElementById('banner-playlists');
     if (banner && bannerVisible) banner.classList.remove('hidden');
     applyFiltersAndSort();
 }

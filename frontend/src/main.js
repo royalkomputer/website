@@ -5,7 +5,7 @@ import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './compon
 import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
-import { Banner, bindBannerCarousel } from './components/Banner.js'
+import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
 import { fetchProducts, fetchStoreStatus, fetchBanners } from './lib/api.js'
 
 import { isBekas } from './lib/format.js'
@@ -135,16 +135,23 @@ let bannerVisible = false
 
 async function loadBanners() {
   try {
-    const banners = await fetchBanners()
+    const playlists = await fetchBanners()
     const container = document.querySelector('.js-banner-container')
     if (!container) return
-    const active = banners.filter(b => b.active !== false).slice(0, 5)
+    const active = playlists.filter(p => p.active !== false)
     if (active.length === 0) { container.classList.add('hidden'); bannerVisible = false; return }
-    const html = Banner(active)
-    container.innerHTML = html
+    
+    container.innerHTML = '<div class="js-banner-playlists flex flex-col gap-4"></div>'
+    const list = container.querySelector('.js-banner-playlists')
+    
+    active.forEach((pl, idx) => {
+      const html = renderPlaylist(pl, idx)
+      if (html) list.innerHTML += html
+    })
+    
     container.classList.remove('hidden')
     bannerVisible = true
-    if (html) bindBannerCarousel()
+    if (active.length > 0) bindAllCarousels(active)
   } catch {
     bannerVisible = false
   }

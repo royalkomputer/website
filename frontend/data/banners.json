@@ -1,58 +1,35 @@
 [
     {
-        "id": "bnr_6a3fbf2125ffa",
-        "image": "bnr_6a3fbf2125ffa.webp",
-        "link": "",
-        "alt": "",
+        "id": "pl_test_1",
+        "name": "Promo Akhir Tahun",
         "order": 1,
-        "active": true
+        "active": true,
+        "interval": 4000,
+        "photos": [
+            {
+                "image": "test1.webp",
+                "alt": "Promo 1",
+                "link": ""
+            },
+            {
+                "image": "test2.webp",
+                "alt": "Promo 2",
+                "link": "https:\/\/example.com"
+            }
+        ]
     },
     {
-        "id": "bnr_6a3fbf295eff4",
-        "image": "bnr_6a3fbf295eff4.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
+        "id": "pl_test_2",
+        "name": "Produk Baru",
         "order": 2,
-        "active": true
-    },
-    {
-        "id": "bnr_6a3fbf32f4052",
-        "image": "bnr_6a3fbf32f4052.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
-        "order": 3,
-        "active": true
-    },
-    {
-        "id": "bnr_6a3fbf33e8a71",
-        "image": "bnr_6a3fbf33e8a71.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
-        "order": 4,
-        "active": true
-    },
-    {
-        "id": "bnr_6a3fbf347bbe7",
-        "image": "bnr_6a3fbf347bbe7.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
-        "order": 5,
-        "active": true
-    },
-    {
-        "id": "bnr_6a3fbf34f3607",
-        "image": "bnr_6a3fbf34f3607.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
-        "order": 6,
-        "active": true
-    },
-    {
-        "id": "bnr_6a3fbf37abd1c",
-        "image": "bnr_6a3fbf37abd1c.webp",
-        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
-        "alt": "PC BUILTUP HP PRODESK",
-        "order": 7,
-        "active": true
+        "active": true,
+        "interval": 5000,
+        "photos": [
+            {
+                "image": "test3.webp",
+                "alt": "New Arrivals",
+                "link": ""
+            }
+        ]
     }
 ]
