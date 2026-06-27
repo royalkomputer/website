@@ -269,6 +269,20 @@ if (!$is_open) {
         </div>
     </header>
 
+    <!-- BANNER -->
+    <section id="banner-section" class="container mx-auto px-4 py-6 hidden">
+        <div class="js-banner-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
+            <div class="js-banner-track flex transition-transform duration-500 ease-in-out"></div>
+            <button class="js-banner-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+            <button class="js-banner-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
+            <div class="js-banner-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 hidden"></div>
+        </div>
+    </section>
+
     <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         <aside class="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm self-start overflow-hidden">
@@ -323,7 +337,7 @@ if (!$is_open) {
         </aside>
 
         <section class="lg:col-span-3 flex flex-col gap-6">
-            <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div id="product-info-bar" class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm hidden">
                 <div class="text-sm text-slate-600"><?php echo $product_info_html; ?></div>
                 <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
                     <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all" title="Tampilan Grid">
@@ -340,13 +354,19 @@ if (!$is_open) {
                 <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
             </div>
 
+            <div id="search-prompt" class="bg-white rounded-xl border border-slate-200 p-12 text-center">
+                <i class="fa-solid fa-magnifying-glass text-5xl text-slate-300 mb-4"></i>
+                <h4 class="text-lg font-bold text-slate-800 mb-1">Cari Produk</h4>
+                <p class="text-slate-500 text-sm">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+            </div>
+
             <div id="empty-state" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
                 <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
                 <h4 class="text-lg font-bold text-slate-800 mb-1">Produk Tidak Ditemukan</h4>
                 <p class="text-slate-500 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
             </div>
 
-            <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
+            <div id="product-grid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
         </section>
     </main>
 
@@ -475,12 +495,15 @@ if (!$is_open) {
         let allProducts = [];
         let filteredProducts = [];
         let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
+        let hasActivated = false;
         let currentView = localStorage.getItem('viewMode') || 'grid';
         
         let currentDetailImages = [];
         let currentImageIndex = 0;
 
         function setView(mode) {
+            var grid = document.getElementById('product-grid');
+            if (grid && grid.classList.contains('hidden')) return;
             currentView = mode;
             localStorage.setItem('viewMode', mode);
             document.getElementById('view-grid-btn').className = mode === 'grid'
@@ -571,6 +594,8 @@ if (!$is_open) {
         
         function handleCondition(val) {
             activeFilters.condition = val;
+            var grid = document.getElementById('product-grid');
+            if (grid && grid.classList.contains('hidden')) return;
             applyFiltersAndSort();
         }
 
@@ -614,7 +639,67 @@ if (!$is_open) {
         function processAndRenderData() {
             generateCategoryFilterOptions();
             initViewToggle();
-            applyFiltersAndSort();
+            loadBanners();
+        }
+
+        function loadBanners() {
+            fetch('api_banner.php')
+                .then(r => r.json())
+                .then(banners => {
+                    const section = document.getElementById('banner-section');
+                    if (!banners || banners.length === 0) { section.classList.add('hidden'); return; }
+                    const active = banners.filter(b => b.active !== false).slice(0, 5);
+                    if (active.length === 0) { section.classList.add('hidden'); return; }
+                    section.classList.remove('hidden');
+
+                    const track = document.querySelector('.js-banner-track');
+                    track.innerHTML = active.map(b =>
+                        '<div class="js-banner-slide min-w-full flex-shrink-0">' +
+                            (b.link ? '<a href="' + escAttr(b.link) + '" target="_blank" rel="noopener">' : '') +
+                                '<img src="uploads/banners/' + escAttr(b.image) + '" alt="' + escAttr(b.alt || 'Banner') + '" class="w-full h-48 md:h-64 lg:h-80 object-cover rounded-2xl">' +
+                            (b.link ? '</a>' : '') +
+                        '</div>'
+                    ).join('');
+
+                    if (active.length > 1) {
+                        document.querySelector('.js-banner-prev').classList.remove('hidden');
+                        document.querySelector('.js-banner-next').classList.remove('hidden');
+                        const dots = document.querySelector('.js-banner-dots');
+                        dots.classList.remove('hidden');
+                        dots.innerHTML = active.map((_, i) =>
+                            '<button class="js-banner-dot w-2 h-2 rounded-full transition-all ' + (i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80') + '"></button>'
+                        ).join('');
+                        initBannerCarousel();
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function initBannerCarousel() {
+            const track = document.querySelector('.js-banner-track');
+            if (!track || track.children.length <= 1) return;
+            let current = 0;
+            const total = track.children.length;
+            function goTo(index) {
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                current = index;
+                track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                document.querySelectorAll('.js-banner-dot').forEach((dot, i) => {
+                    dot.className = 'js-banner-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+                });
+            }
+            document.querySelector('.js-banner-next').addEventListener('click', () => goTo(current + 1));
+            document.querySelector('.js-banner-prev').addEventListener('click', () => goTo(current - 1));
+            document.querySelectorAll('.js-banner-dot').forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index) || 0)));
+            let interval = setInterval(() => goTo(current + 1), 5000);
+            const container = track.parentElement;
+            container.addEventListener('mouseenter', () => clearInterval(interval));
+            container.addEventListener('mouseleave', () => { interval = setInterval(() => goTo(current + 1), 5000); });
+        }
+
+        function escAttr(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         function generateCategoryFilterOptions() {
@@ -637,6 +722,7 @@ if (!$is_open) {
 
         function selectCategory(cat) {
             activeFilters.category = cat;
+            hasActivated = true;
             generateCategoryFilterOptions();
             applyFiltersAndSort();
         }
@@ -652,18 +738,22 @@ if (!$is_open) {
 
         function handleSearch(val) {
     activeFilters.search = val.toLowerCase();
+    hasActivated = true;
     applyFiltersAndSort();
 }
 
         function handleSort(val) {
             activeFilters.sortBy = val;
+            var grid = document.getElementById('product-grid');
+            if (grid && grid.classList.contains('hidden')) return;
             applyFiltersAndSort();
         }
 
         function resetFilters() {
     activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
+    hasActivated = false;
     document.getElementById('search-input').value = '';
-    document.getElementById('search-input-mobile').value = ''; // tambahkan ini
+    document.getElementById('search-input-mobile').value = '';
     document.getElementById('sort-select').value = 'default';
     document.getElementById('condition-select').value = 'Semua';
     generateCategoryFilterOptions();
@@ -671,6 +761,23 @@ if (!$is_open) {
 }
 
         function applyFiltersAndSort() {
+            var prompt = document.getElementById('search-prompt');
+            var grid = document.getElementById('product-grid');
+            var emptyState = document.getElementById('empty-state');
+            var productCount = document.getElementById('product-count');
+
+            if (!hasActivated) {
+                if (prompt) prompt.classList.remove('hidden');
+                if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
+                if (emptyState) emptyState.classList.add('hidden');
+                if (productCount) productCount.innerText = '0';
+                document.getElementById('product-info-bar').classList.add('hidden');
+                return;
+            }
+
+            if (prompt) prompt.classList.add('hidden');
+            if (grid) grid.classList.remove('hidden');
+            document.getElementById('product-info-bar').classList.remove('hidden');
             filteredProducts = allProducts.filter(p => {
                 const matchCategory = activeFilters.category === 'Semua' || p.category === activeFilters.category;
                 
@@ -700,9 +807,11 @@ if (!$is_open) {
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
             const productCount = document.getElementById('product-count');
-            
+
+            if (!grid || grid.classList.contains('hidden')) return;
+
             grid.innerHTML = '';
-            productCount.innerText = filteredProducts.length;
+            if (productCount) productCount.innerText = filteredProducts.length;
 
             if (filteredProducts.length === 0) {
                 emptyState.classList.remove('hidden');

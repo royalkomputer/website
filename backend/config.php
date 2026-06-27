@@ -33,6 +33,7 @@ define('STATUS_FILE',  __DIR__ . '/data/status_toko.txt');
 define('TAGLINE_FILE',    __DIR__ . '/data/tagline.json');
 define('PRODUCT_INFO_FILE', __DIR__ . '/data/product_info.json');
 define('HEADING_FILE',      __DIR__ . '/data/heading.json');
+define('BANNER_FILE',       __DIR__ . '/data/banners.json');
 
 // --- FRONTEND SYNC PATH ---
 define('FE_DIR', __DIR__ . '/../frontend');
@@ -475,6 +476,28 @@ function saveHeading(string $prefix, string $brand): bool {
     $result = file_put_contents(HEADING_FILE, json_encode($data, JSON_PRETTY_PRINT));
     if ($result !== false) {
         @file_put_contents(FE_DIR . '/heading.json', json_encode($data, JSON_PRETTY_PRINT));
+    }
+    return $result !== false;
+}
+
+// ============================================================
+// BANNER (file only, no DB)
+// ============================================================
+
+function loadBanners(): array {
+    if (!file_exists(BANNER_FILE)) {
+        @file_put_contents(BANNER_FILE, '[]');
+        return [];
+    }
+    $data = json_decode(file_get_contents(BANNER_FILE), true);
+    return is_array($data) ? $data : [];
+}
+
+function saveBanners(array $banners): bool {
+    $result = file_put_contents(BANNER_FILE, json_encode($banners, JSON_PRETTY_PRINT));
+    if ($result !== false) {
+        @mkdir(FE_DIR . '/data', 0777, true);
+        @file_put_contents(FE_DIR . '/data/banners.json', json_encode($banners, JSON_PRETTY_PRINT));
     }
     return $result !== false;
 }

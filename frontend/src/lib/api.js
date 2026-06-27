@@ -70,6 +70,21 @@ async function fetchManualStatus() {
 }
 
 /**
+ * Fetch banners from the API.
+ * @returns {Promise<Array>} Array of banner objects
+ */
+export async function fetchBanners() {
+  try {
+    const res = await fetch(`${API_BASE}/api_banner.php`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+/**
  * Client-side store status calculation (fallback when API is unavailable).
  */
 async function calculateStatusFromFiles() {

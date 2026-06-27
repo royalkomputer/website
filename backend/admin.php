@@ -171,6 +171,9 @@ $heading = loadHeading();
         <button onclick="switchTab('ui')" id="tab-ui" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-paintbrush"></i> UI Toko
         </button>
+        <button onclick="switchTab('banner')" id="tab-banner" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-image"></i> Kelola Banner
+        </button>
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya
         </button>
@@ -472,6 +475,74 @@ $heading = loadHeading();
                 </button>
             </div>
             <span id="product-info-feedback" class="text-sm font-semibold hidden mt-2"></span>
+        </div>
+    </div>
+
+    <!-- PANEL BANNER -->
+    <div id="panel-banner" class="hidden">
+        <div class="mb-5">
+            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                <i class="fa-solid fa-image text-astra-700"></i> Kelola Banner
+            </h3>
+            <p class="text-sm text-slate-500 mt-0.5">Atur banner yang tampil di halaman utama toko. Maksimal 5 banner.</p>
+        </div>
+
+        <!-- Banner List -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i class="fa-solid fa-list text-astra-700"></i> Daftar Banner</h4>
+            <div id="banner-list" class="space-y-4">
+                <p class="text-slate-400 text-sm text-center py-8">Memuat data banner...</p>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
+            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i class="fa-solid fa-plus-circle text-astra-700"></i> <span id="banner-form-title">Tambah Banner Baru</span></h4>
+            <form id="banner-form" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="action" value="upload">
+                <input type="hidden" name="id" id="banner-id-input" value="">
+                <input type="hidden" name="order" id="banner-order-input" value="">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Gambar Banner</label>
+                    <input type="file" name="file" id="banner-file-input" accept="image/jpeg,image/png,image/webp"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-astra-700 file:text-white file:text-xs file:font-bold hover:file:bg-astra-800 file:cursor-pointer focus:outline-none focus:border-astra-500">
+                    <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG, WEBP. Ukuran maks: 5MB. Rasio 16:9 disarankan.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Teks Alternatif (alt)</label>
+                        <input type="text" name="alt" id="banner-alt-input"
+                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                            placeholder="Contoh: Promo Akhir Tahun">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Link (opsional)</label>
+                        <input type="text" name="link" id="banner-link-input"
+                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
+                            placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="active" id="banner-active-input" value="1" checked
+                        class="w-4 h-4 rounded border-slate-300 text-astra-700 focus:ring-astra-500">
+                    <label for="banner-active-input" class="text-sm text-slate-700 font-medium">Aktif</label>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="submit" id="btn-simpan-banner"
+                        class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> <span id="banner-submit-text">Simpan Banner</span>
+                    </button>
+                    <button type="button" onclick="resetBannerForm()" id="btn-batal-banner"
+                        class="hidden bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Batal
+                    </button>
+                    <span id="banner-feedback" class="text-sm font-semibold hidden"></span>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -790,7 +861,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','ui','profil','serial','push'];
+    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -805,6 +876,7 @@ function showPanel(name){
     });
     if (name === 'admin' && IS_SUPER) loadAdminList();
     if (name === 'schedule') loadSchedules();
+    if (name === 'banner') loadBanners();
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
 }
 
@@ -1542,6 +1614,175 @@ function searchSerial() {
             noResults.innerHTML = '<i class="fa-solid fa-circle-exclamation text-4xl text-red-300 mb-3"></i><p class="text-red-500 text-sm">Gagal memuat data.</p>';
         });
 }
+
+// BANNER MANAGEMENT
+let bannerEditId = null;
+
+function loadBanners() {
+    const container = document.getElementById('banner-list');
+    if (!container) return;
+    container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Memuat data banner...</p>';
+    fetch('api_banner.php')
+        .then(r => r.json())
+        .then(banners => {
+            if (!banners || banners.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Belum ada banner. Tambah banner baru di form di bawah.</p>';
+                return;
+            }
+            container.innerHTML = '<div class="flex items-center gap-2 text-xs text-slate-400 mb-2 px-2"><i class="fa-solid fa-arrows-up-down"></i> Urutkan dengan drag & drop</div>';
+            banners.forEach((b, i) => {
+                const isActive = b.active !== false;
+                const imgUrl = 'uploads/banners/' + b.image;
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 banner-item';
+                div.draggable = true;
+                div.dataset.bannerId = b.id;
+                div.innerHTML =
+                    '<button type="button" class="cursor-grab text-slate-400 hover:text-slate-600 px-1" title="Seret untuk urutkan"><i class="fa-solid fa-grip-lines"></i></button>' +
+                    '<img src="' + imgUrl + '" alt="' + escHtml(b.alt || '') + '" class="w-24 h-14 object-cover rounded-lg border border-slate-200 bg-slate-100 flex-shrink-0">' +
+                    '<div class="flex-grow min-w-0">' +
+                        '<p class="text-sm font-semibold text-slate-800 truncate">' + escHtml(b.alt || '(tanpa teks)') + '</p>' +
+                        '<p class="text-xs text-slate-400">' + (b.link ? escHtml(b.link) : 'Tidak ada link') + ' &middot; ' + (isActive ? '<span class="text-green-600 font-medium">Aktif</span>' : '<span class="text-slate-400">Nonaktif</span>') + '</p>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-1 flex-shrink-0">' +
+                        '<button type="button" onclick="editBanner(\'' + b.id + '\')" class="text-xs text-astra-600 hover:text-astra-800 bg-astra-50 hover:bg-astra-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-pen"></i></button>' +
+                        '<button type="button" onclick="deleteBanner(\'' + b.id + '\')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-trash-can"></i></button>' +
+                    '</div>';
+
+                // Drag events for reorder
+                div.addEventListener('dragstart', () => div.classList.add('opacity-50'));
+                div.addEventListener('dragend', () => div.classList.remove('opacity-50'));
+                div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('border-astra-500'); });
+                div.addEventListener('dragleave', () => div.classList.remove('border-astra-500'));
+                div.addEventListener('drop', e => {
+                    e.preventDefault();
+                    div.classList.remove('border-astra-500');
+                    const items = [...container.querySelectorAll('.banner-item')];
+                    const from = items.indexOf(container.querySelector('.opacity-50'));
+                    const to = items.indexOf(div);
+                    if (from !== -1 && to !== -1 && from !== to) {
+                        const ref = to > from ? div.nextSibling : div;
+                        container.insertBefore(items[from], ref);
+                        saveBannerOrder();
+                    }
+                });
+                container.appendChild(div);
+            });
+        })
+        .catch(() => {
+            container.innerHTML = '<p class="text-red-500 text-sm text-center py-8">Gagal memuat banner.</p>';
+        });
+}
+
+function saveBannerOrder() {
+    const items = [...document.querySelectorAll('.banner-item')];
+    const ids = items.map(el => el.dataset.bannerId);
+    const formData = new FormData();
+    formData.append('action', 'reorder');
+    formData.append('ids', JSON.stringify(ids));
+    fetch('update_banner.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) console.error('Reorder failed:', data.message);
+        })
+        .catch(err => console.error('Reorder error:', err));
+}
+
+function editBanner(id) {
+    const items = document.querySelectorAll('.banner-item');
+    for (const item of items) {
+        if (item.dataset.bannerId === id) {
+            const img = item.querySelector('img');
+            const text = item.querySelector('.text-sm.font-semibold');
+            const info = item.querySelector('.text-xs.text-slate-400');
+            bannerEditId = id;
+            document.getElementById('banner-form-title').textContent = 'Edit Banner';
+            document.getElementById('banner-submit-text').textContent = 'Update Banner';
+            document.getElementById('banner-id-input').value = id;
+            document.getElementById('banner-alt-input').value = text ? text.textContent : '';
+            document.getElementById('banner-link-input').value = info && !info.textContent.includes('Tidak ada link') ? info.textContent.split(' · ')[0] : '';
+            document.getElementById('banner-active-input').checked = !info || !info.textContent.includes('Nonaktif');
+            document.getElementById('btn-batal-banner').classList.remove('hidden');
+            document.getElementById('banner-file-input').required = false;
+            document.getElementById('btn-batal-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            break;
+        }
+    }
+}
+
+function resetBannerForm() {
+    bannerEditId = null;
+    document.getElementById('banner-form-title').textContent = 'Tambah Banner Baru';
+    document.getElementById('banner-submit-text').textContent = 'Simpan Banner';
+    document.getElementById('banner-id-input').value = '';
+    document.getElementById('banner-order-input').value = '';
+    document.getElementById('banner-alt-input').value = '';
+    document.getElementById('banner-link-input').value = '';
+    document.getElementById('banner-active-input').checked = true;
+    document.getElementById('banner-file-input').required = true;
+    document.getElementById('banner-file-input').value = '';
+    document.getElementById('btn-batal-banner').classList.add('hidden');
+    document.getElementById('banner-feedback').classList.add('hidden');
+}
+
+function deleteBanner(id) {
+    if (!confirm('Hapus banner ini?')) return;
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('id', id);
+    fetch('update_banner.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showFeedback('banner-feedback', 'Banner berhasil dihapus.', 'green');
+                if (bannerEditId === id) resetBannerForm();
+                loadBanners();
+            } else {
+                showFeedback('banner-feedback', data.message, 'red');
+            }
+        })
+        .catch(() => showFeedback('banner-feedback', 'Gagal menghapus banner.', 'red'));
+}
+
+function showFeedback(id, msg, color) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'text-sm font-semibold ' + (color === 'red' ? 'text-red-600' : 'text-green-600');
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const bannerForm = document.getElementById('banner-form');
+    if (bannerForm) {
+        bannerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-simpan-banner');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+            const formData = new FormData(this);
+            fetch('update_banner.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + document.getElementById('banner-submit-text').textContent;
+                    if (data.success) {
+                        showFeedback('banner-feedback', 'Banner berhasil disimpan.', 'green');
+                        resetBannerForm();
+                        loadBanners();
+                    } else {
+                        showFeedback('banner-feedback', data.message, 'red');
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + document.getElementById('banner-submit-text').textContent;
+                    showFeedback('banner-feedback', 'Gagal menyimpan banner.', 'red');
+                });
+        });
+    }
+});
 
 function formatDate(dateStr) {
     if (!dateStr) return '-';

@@ -43,7 +43,7 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
 <section class="lg:col-span-4 flex flex-col gap-6">
 
   <!-- Product count info + View toggle -->
-  <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+  <div class="js-product-info-bar hidden flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
     <div class="text-sm text-slate-600">
       ${infoHtml}
     </div>
@@ -65,6 +65,13 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
     <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
   </div>
 
+  <!-- Search prompt (shown by default) -->
+  <div class="js-search-prompt bg-white rounded-xl border border-slate-200 p-12 text-center">
+    <i class="fa-solid fa-magnifying-glass text-5xl text-slate-300 mb-4"></i>
+    <h4 class="text-lg font-bold text-slate-800 mb-1">Cari Produk</h4>
+    <p class="text-slate-500 text-sm">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+  </div>
+
   <!-- Empty state -->
   <div class="js-empty-state hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
     <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
@@ -73,7 +80,7 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   </div>
 
   <!-- Product cards grid/list -->
-  <div class="js-product-grid ${isGrid ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4' : 'flex flex-col gap-3 sm:gap-4'}"></div>
+  <div class="js-product-grid hidden ${isGrid ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4' : 'flex flex-col gap-3 sm:gap-4'}"></div>
 
 </section>`
 }

@@ -5,7 +5,8 @@ import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './compon
 import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
-import { fetchProducts, fetchStoreStatus } from './lib/api.js'
+import { Banner, bindBannerCarousel } from './components/Banner.js'
+import { fetchProducts, fetchStoreStatus, fetchBanners } from './lib/api.js'
 
 import { isBekas } from './lib/format.js'
 
@@ -25,6 +26,7 @@ const state = {
   viewMode: 'grid',
   status: null,
   hours: null,
+  hasActivated: false,
 }
 
 // ──────────────────────────────────────────────
@@ -36,6 +38,7 @@ function renderApp() {
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
     <div class="js-status-container"></div>
+    <div class="js-banner-container"></div>
     <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div class="js-filter-container"></div>
       ${ProductGrid({ viewMode: state.viewMode })}
@@ -86,10 +89,16 @@ async function loadData() {
     const filterContainer = document.querySelector('.js-filter-container')
     if (filterContainer) {
       filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
-      bindFilterEvents(state.filters, applyFiltersAndRender)
+      bindFilterEvents(state.filters, function() {
+        const isDefault = state.filters.category === 'Semua' && state.filters.search === '' && state.filters.sortBy === 'default' && state.filters.condition === 'Semua'
+        if (isDefault) {
+          state.hasActivated = false
+        } else if (state.filters.category !== 'Semua') {
+          state.hasActivated = true
+        }
+        applyFiltersAndRender()
+      })
     }
-
-    applyFiltersAndRender()
   } catch (err) {
     console.error('Failed to load products:', err)
     const emptyState = document.querySelector('.js-empty-state')
@@ -112,6 +121,22 @@ async function loadData() {
   } catch (err) {
     console.error('Failed to load store status:', err)
   }
+
+  // Load banners
+  loadBanners()
+}
+
+async function loadBanners() {
+  try {
+    const banners = await fetchBanners()
+    const container = document.querySelector('.js-banner-container')
+    if (!container) return
+    const html = Banner(banners)
+    container.innerHTML = html
+    if (html) bindBannerCarousel()
+  } catch {
+    // Banners are optional
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -133,6 +158,24 @@ function getCategoryCounts() {
 
 function applyFiltersAndRender() {
   const { category, search, sortBy, condition } = state.filters
+
+  const searchPrompt = document.querySelector('.js-search-prompt')
+  const productGrid = document.querySelector('.js-product-grid')
+
+  if (!state.hasActivated) {
+    if (searchPrompt) searchPrompt.classList.remove('hidden')
+    if (productGrid) { productGrid.classList.add('hidden'); productGrid.innerHTML = '' }
+    const emptyState = document.querySelector('.js-empty-state')
+    if (emptyState) emptyState.classList.add('hidden')
+    const countEl = document.querySelector('.js-product-count')
+    if (countEl) countEl.textContent = '0'
+    return
+  }
+
+  if (searchPrompt) searchPrompt.classList.add('hidden')
+  if (productGrid) productGrid.classList.remove('hidden')
+  const infoBar = document.querySelector('.js-product-info-bar')
+  if (infoBar) infoBar.classList.remove('hidden')
 
   state.filteredProducts = state.allProducts.filter(p => {
     const matchCategory = category === 'Semua' || p.category === category
@@ -163,6 +206,7 @@ function applyFiltersAndRender() {
 
 function handleSearch(query) {
   state.filters.search = query
+  state.hasActivated = true
   applyFiltersAndRender()
 }
 
