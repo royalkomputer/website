@@ -1,10 +1,58 @@
 [
     {
-        "id": "bnr_6a3fafc6a418e",
-        "image": "bnr_6a3fafc6a418e.webp",
+        "id": "bnr_6a3fbf2125ffa",
+        "image": "bnr_6a3fbf2125ffa.webp",
+        "link": "",
+        "alt": "",
+        "order": 1,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf295eff4",
+        "image": "bnr_6a3fbf295eff4.webp",
         "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
         "alt": "PC BUILTUP HP PRODESK",
-        "order": 1,
+        "order": 2,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf32f4052",
+        "image": "bnr_6a3fbf32f4052.webp",
+        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
+        "alt": "PC BUILTUP HP PRODESK",
+        "order": 3,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf33e8a71",
+        "image": "bnr_6a3fbf33e8a71.webp",
+        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
+        "alt": "PC BUILTUP HP PRODESK",
+        "order": 4,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf347bbe7",
+        "image": "bnr_6a3fbf347bbe7.webp",
+        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
+        "alt": "PC BUILTUP HP PRODESK",
+        "order": 5,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf34f3607",
+        "image": "bnr_6a3fbf34f3607.webp",
+        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
+        "alt": "PC BUILTUP HP PRODESK",
+        "order": 6,
+        "active": true
+    },
+    {
+        "id": "bnr_6a3fbf37abd1c",
+        "image": "bnr_6a3fbf37abd1c.webp",
+        "link": "https:\/\/www.hp.com\/id-id\/shop\/desktops\/business-desktops\/pro-desktops.html",
+        "alt": "PC BUILTUP HP PRODESK",
+        "order": 7,
         "active": true
     }
 ]

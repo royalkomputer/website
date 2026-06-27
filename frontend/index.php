@@ -596,7 +596,7 @@ if (!$is_open) {
         }
         
         window.addEventListener('DOMContentLoaded', () => {
-            initDatabaseConnection();
+            initPage();
         });
         
         function handleCondition(val) {
@@ -618,20 +618,25 @@ if (!$is_open) {
             icon.classList.toggle('rotate-180');
         }
 
-        function initDatabaseConnection() {
+        function initPage() {
             showLoading(true);
-            fetch('api_produk.php')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) throw new Error(data.error);
-                    allProducts = data;
-                    processAndRenderData();
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.getElementById('empty-state').classList.remove('hidden');
-                })
-                .finally(() => showLoading(false));
+            // Step 1: Muat banner dulu (ringan, cepat)
+            loadBanners().then(() => {
+                // Step 2: Baru muat produk (lebih berat)
+                fetch('api_produk.php')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) throw new Error(data.error);
+                        allProducts = data;
+                        generateCategoryFilterOptions();
+                        initViewToggle();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        document.getElementById('empty-state').classList.remove('hidden');
+                    })
+                    .finally(() => showLoading(false));
+            });
         }
 
         function initViewToggle() {
@@ -643,13 +648,8 @@ if (!$is_open) {
                 : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
         }
 
-        function processAndRenderData() {
-            generateCategoryFilterOptions();
-            initViewToggle();
-            loadBanners();
-        }
-
         function loadBanners() {
+            return new Promise(resolve => {
             fetch('api_banner.php')
                 .then(r => r.json())
                 .then(banners => {
@@ -680,7 +680,9 @@ if (!$is_open) {
                         initBannerCarousel();
                     }
                 })
-                .catch(() => {});
+                .catch(() => {})
+                .finally(() => resolve());
+            });
         }
 
         function initBannerCarousel() {

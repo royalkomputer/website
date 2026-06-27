@@ -481,8 +481,38 @@ function saveHeading(string $prefix, string $brand): bool {
 }
 
 // ============================================================
-// BANNER (file only, no DB)
+// BANNER PLAYLIST (file only, no DB)
+// Format: array of playlist, each playlist has:
+//   id, name, order, active, interval (ms), photos[]
+// Each photo: { image, link, alt }
 // ============================================================
+
+function migrateBannersToPlaylist(array $data): array {
+    // Jika data lama (flat array banner tanpa 'photos'), migrasi ke format playlist
+    if (!empty($data) && !isset($data[0]['photos'])) {
+        $playlist = [
+            'id' => 'pl_' . uniqid(),
+            'name' => 'Playlist Utama',
+            'order' => 1,
+            'active' => true,
+            'interval' => 5000,
+            'photos' => []
+        ];
+        foreach ($data as $b) {
+            if (!empty($b['image'])) {
+                $playlist['photos'][] = [
+                    'image' => $b['image'],
+                    'link' => $b['link'] ?? '',
+                    'alt' => $b['alt'] ?? ''
+                ];
+            }
+        }
+        if (!empty($playlist['photos'])) {
+            return [$playlist];
+        }
+    }
+    return $data;
+}
 
 function loadBanners(): array {
     if (!file_exists(BANNER_FILE)) {
@@ -490,14 +520,20 @@ function loadBanners(): array {
         return [];
     }
     $data = json_decode(file_get_contents(BANNER_FILE), true);
-    return is_array($data) ? $data : [];
+    if (!is_array($data)) return [];
+    // Auto-migrate if old format
+    if (!empty($data) && !isset($data[0]['photos'])) {
+        $data = migrateBannersToPlaylist($data);
+        saveBanners($data);
+    }
+    return $data;
 }
 
-function saveBanners(array $banners): bool {
-    $result = file_put_contents(BANNER_FILE, json_encode($banners, JSON_PRETTY_PRINT));
+function saveBanners(array $playlists): bool {
+    $result = file_put_contents(BANNER_FILE, json_encode($playlists, JSON_PRETTY_PRINT));
     if ($result !== false) {
         @mkdir(FE_DIR . '/data', 0777, true);
-        @file_put_contents(FE_DIR . '/data/banners.json', json_encode($banners, JSON_PRETTY_PRINT));
+        @file_put_contents(FE_DIR . '/data/banners.json', json_encode($playlists, JSON_PRETTY_PRINT));
     }
     return $result !== false;
 }

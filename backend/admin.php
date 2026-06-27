@@ -172,7 +172,7 @@ $heading = loadHeading();
             <i class="fa-solid fa-paintbrush"></i> UI Toko
         </button>
         <button onclick="switchTab('banner')" id="tab-banner" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-image"></i> Kelola Banner
+            <i class="fa-solid fa-images"></i> Playlist Banner
         </button>
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya

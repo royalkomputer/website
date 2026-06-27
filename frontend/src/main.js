@@ -76,8 +76,12 @@ async function loadData() {
   await loadProductInfoText()
   await loadHeadingText()
 
-  // Load products
   showLoading(true)
+
+  // Step 1: Load banners first (lightweight)
+  await loadBanners()
+
+  // Step 2: Load products (heavier)
   try {
     state.allProducts = await fetchProducts()
     state.filteredProducts = [...state.allProducts]
@@ -125,9 +129,6 @@ async function loadData() {
   } catch (err) {
     console.error('Failed to load store status:', err)
   }
-
-  // Load banners
-  loadBanners()
 }
 
 let bannerVisible = false
