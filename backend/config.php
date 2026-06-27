@@ -647,7 +647,24 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
 // ============================================================
 
 function backupToGit(): array {
-    // Jika di lokal (Windows), jalankan push_admin.bat
+    // Deteksi apakah ada .env dengan kata sandi
+    $env_token = '';
+    $env_file = __DIR__ . '/.env';
+    if (file_exists($env_file)) {
+        $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $parts = explode('=', $line, 2);
+            if (count($parts) === 2 && trim($parts[0]) === 'GIT_TOKEN') {
+                $env_token = trim($parts[1]);
+            }
+        }
+    }
+
+    $git_token = $env_token ?: (ENV_GIT_TOKEN ?: getenv('GIT_TOKEN'));
+    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
+    $branch    = getenv('GIT_BRANCH') ?: 'main';
+
+    // Di lokal (Windows), prioritaskan push_admin.bat
     $bat_path = __DIR__ . '/push_admin.bat';
     if (PHP_OS_FAMILY === 'Windows' && file_exists($bat_path)) {
         $output = [];
@@ -656,31 +673,54 @@ function backupToGit(): array {
         $msg = implode("\n", $output);
         if ($ret === 0) {
             return ['success' => true, 'message' => $msg ?: 'Push berhasil'];
-        } else {
-            return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . ')'];
         }
+        // Bat gagal — fallback ke exec git langsung dengan token
+        if ($git_token) {
+            $exec_ret = execGitPush(__DIR__, $git_token, $repo_url, $branch);
+            if ($exec_ret['success']) return $exec_ret;
+        }
+        return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . '). Buat GitHub token dan tambahkan ke backend/.env'];
     }
 
-    $git_token = ENV_GIT_TOKEN ?: getenv('GIT_TOKEN');
-    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
-    $branch    = getenv('GIT_BRANCH') ?: 'main';
-
+    // Linux / Render — cari .git di repo root atau parent
     if (!$git_token || !$repo_url) {
-        return ['success' => false, 'message' => 'GIT_TOKEN/GIT_REPO_URL not set — skip backup'];
+        return ['success' => false, 'message' => 'GIT_TOKEN/GIT_REPO_URL belum diatur. Push ke git tidak bisa dilakukan.'];
     }
 
-    exec('git --version 2>&1', $ver_out, $ver_code);
-    if ($ver_code !== 0) {
-        return ['success' => false, 'message' => 'Git tidak tersedia di container ini'];
+    $git_dir = findGitDir(__DIR__);
+    if (!$git_dir) {
+        return ['success' => false, 'message' => 'Folder .git tidak ditemukan. Push tidak bisa dilakukan di environment ini.'];
     }
 
+    return execGitPush($git_dir, $git_token, $repo_url, $branch);
+}
+
+/**
+ * Cari folder .git dari sebuah direktori ke atas.
+ */
+function findGitDir(string $start): ?string {
+    $dir = $start;
+    while (true) {
+        if (is_dir($dir . '/.git')) {
+            return $dir;
+        }
+        $parent = dirname($dir);
+        if ($parent === $dir) return null; // sampai root
+        $dir = $parent;
+    }
+}
+
+/**
+ * Eksekusi git add / commit / push dengan token auth.
+ */
+function execGitPush(string $workdir, string $token, string $repo_url, string $branch): array {
     $cwd = getcwd();
-    chdir(__DIR__);
+    chdir($workdir);
 
     exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
     exec('git config user.name "Royal Auto Backup" 2>&1');
 
-    exec('git add -A uploads/ data/ 2>&1', $add_out, $add_code);
+    exec('git add -A backend/data/ backend/uploads/ frontend/data/ 2>&1', $add_out, $add_code);
     if ($add_code !== 0) {
         chdir($cwd);
         return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
@@ -689,10 +729,10 @@ function backupToGit(): array {
     exec('git diff --cached --quiet 2>&1', $diff_out, $diff_code);
     if ($diff_code === 0) {
         chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-backup'];
+        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-push'];
     }
 
-    $msg = 'backup: admin changes ' . date('Y-m-d H:i:s');
+    $msg = 'admin: update ' . date('Y-m-d H:i:s');
     $escaped_msg = str_replace('"', '\\"', $msg);
     exec("git commit -m \"$escaped_msg\" 2>&1", $commit_out, $commit_code);
     if ($commit_code !== 0) {
@@ -700,7 +740,16 @@ function backupToGit(): array {
         return ['success' => true, 'message' => 'Tidak ada perubahan baru untuk di-commit'];
     }
 
-    $auth_url = str_replace('https://', "https://x-access-token:$git_token@", $repo_url);
+    if (!$repo_url) {
+        exec('git remote get-url origin 2>&1', $url_out, $url_code);
+        $repo_url = $url_code === 0 ? trim(implode('', $url_out)) : '';
+        if (!$repo_url) {
+            chdir($cwd);
+            return ['success' => false, 'message' => 'Tidak bisa menentukan remote URL. Push dibatalkan.'];
+        }
+    }
+
+    $auth_url = str_replace('https://', "https://x-access-token:$token@", $repo_url);
     exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
 
     $escaped_branch = escapeshellarg($branch);
@@ -708,14 +757,12 @@ function backupToGit(): array {
     $push_output = implode(', ', $push_out);
 
     exec("git remote set-url origin \"$repo_url\" 2>&1");
-
     chdir($cwd);
 
     if ($push_code === 0) {
         return ['success' => true, 'message' => 'Perubahan berhasil di-push ke git'];
-    } else {
-        return ['success' => false, 'message' => 'git push gagal: ' . $push_output];
     }
+    return ['success' => false, 'message' => 'git push gagal: ' . $push_output];
 }
 
 function backupPhotosToGit(): array {
