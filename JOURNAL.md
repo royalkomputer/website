@@ -196,3 +196,35 @@
 - get_history endpoint uses integer-cast limit/offset for SQL injection safety
 - All string parameters use pg_escape_string() in logAdminHistory()
 - UI labels are in Bahasa Indonesia
+
+## 2026-06-27 — Admin Push Fix & GitHub Auth Overhaul
+
+### Root Cause
+PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `git push origin main` from `exec()` silently fails.
+
+### Changes
+
+#### `backend/push_admin.bat` — Rewritten
+- Uses full git path (`C:\Program Files\Git\cmd\git.exe`) to avoid PATH issues for SYSTEM
+- Reads `GIT_TOKEN` from `backend/.env` for token-based authentication
+- Restores original remote URL after push (security: token is never stored in git config)
+- Proper exit codes and error messages
+
+#### `backend/config.php` — `backupToGit()` rewrite
+- Added `.env` parsing for `GIT_TOKEN` (also reads `ENV_GIT_TOKEN` constant + `getenv()`)
+- **3 fallback strategy on Windows:**
+  1. Run `push_admin.bat` directly (succeeds if token is in `.env`)
+  2. Trigger `RoyalKomputer Admin Push` scheduled task (runs as logged-in user via `schtasks /run`)
+  3. `execGitPush()` with token auth (for Render/Linux cloud deployment)
+- Added `triggerAdminPushTask()` helper — checks if task exists and runs it
+- Added `findGitDir()` — walks up directories to find `.git` root
+- Added `execGitPush()` — unified git add/commit/push logic with token auth
+- `execGitPush()` now stages `backend/data/`, `backend/uploads/`, AND `frontend/data/`
+
+#### `backend/setup_push_task.bat` — New file
+- Creates scheduled task `RoyalKomputer Admin Push` using XML import
+- Task runs `push_admin.bat` as the currently logged-in user (S4U logon, no password needed)
+- Run once as Administrator to enable push without any token
+
+#### `backend/admin.php` — Push panel updated
+- Added instructions for two setup options: token `.env` or `setup_push_task.bat`
