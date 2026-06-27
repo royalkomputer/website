@@ -376,6 +376,14 @@ function saveStatus(string $status): bool {
 // ============================================================
 
 function loadTagline(): string {
+    // File is primary source of truth (synced via git to production)
+    if (file_exists(TAGLINE_FILE)) {
+        $data = json_decode(file_get_contents(TAGLINE_FILE), true);
+        if (!empty($data['tagline'])) {
+            return $data['tagline'];
+        }
+    }
+    // Fallback: database (for saves done directly on Render admin)
     $db = getDB();
     if ($db) {
         $r = @pg_query($db, "SELECT text FROM tagline WHERE id = 1");
@@ -383,12 +391,7 @@ function loadTagline(): string {
             return $row['text'];
         }
     }
-    if (!file_exists(TAGLINE_FILE)) {
-        @file_put_contents(TAGLINE_FILE, json_encode(['tagline' => TAGLINE_DEFAULT], JSON_PRETTY_PRINT));
-        return TAGLINE_DEFAULT;
-    }
-    $data = json_decode(file_get_contents(TAGLINE_FILE), true);
-    return $data['tagline'] ?? TAGLINE_DEFAULT;
+    return TAGLINE_DEFAULT;
 }
 
 function saveTagline(string $tagline): bool {
