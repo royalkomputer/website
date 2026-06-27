@@ -100,15 +100,14 @@ if ($action === 'save_playlist') {
     $active = ($_POST['active'] ?? '1') === '1';
     $order = (int)($_POST['order'] ?? 0);
 
-    if (!$name) {
-        echo json_encode(['success' => false, 'message' => 'Nama playlist tidak boleh kosong.']);
-        exit;
-    }
-
     $playlists = loadBanners();
     $isNew = empty($id);
 
     if ($isNew) {
+        if (!$name) {
+            echo json_encode(['success' => false, 'message' => 'Nama playlist tidak boleh kosong.']);
+            exit;
+        }
         $id = newPlaylistId();
         $playlist = [
             'id' => $id,
@@ -129,7 +128,10 @@ if ($action === 'save_playlist') {
             exit;
         }
         $playlist = &$playlists[$idx];
-        $playlist['name'] = $name;
+        // Only update fields that are provided
+        if ($name !== '') {
+            $playlist['name'] = $name;
+        }
         $playlist['active'] = $active;
         $playlist['interval'] = max(2000, $interval);
         if ($order > 0 && $order !== ($playlist['order'] ?? 0)) {

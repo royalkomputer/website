@@ -1919,7 +1919,7 @@ function uploadPlaylistPhotos() {
 }
 
 function savePlaylistPhotoInfo(playlistId, idx, btn) {
-    const card = btn.closest('.flex.flex-col') || btn.closest('[class*="bg-white"]');
+    const card = btn.closest('[class*="rounded-xl"]');
     const linkInput = card ? card.querySelector('.pl-photo-link') : null;
     const altInput = card ? card.querySelector('.pl-photo-alt') : null;
     if (!linkInput && !altInput) return;
