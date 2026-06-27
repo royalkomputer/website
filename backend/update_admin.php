@@ -316,6 +316,77 @@ if ($action === 'get_tagline') {
 
 
 // ============================================================
+// SEARCH SERIAL NUMBER — Cari nota pembelian & penjualan via serial number
+// ============================================================
+if ($action === 'search_serial') {
+    $db = getDB();
+    if (!$db) {
+        echo json_encode(['success' => false, 'message' => 'Database tidak tersedia.']);
+        exit;
+    }
+
+    $query = trim($_POST['query'] ?? '');
+    if (empty($query)) {
+        echo json_encode(['success' => true, 'data' => [], 'total' => 0]);
+        exit;
+    }
+
+    $search = pg_escape_string($db, $query);
+
+    $sql = "SELECT
+                s.noserial,
+                s.kodeitem,
+                i.namaitem,
+                i.serial AS item_pakai_serial,
+                s.stsada,
+                s.notrsm AS notrans_beli,
+                s.notrsrk AS notrans_jual,
+                im.tanggal AS tgl_beli,
+                ik.tanggal AS tgl_jual,
+                sp_beli.nama AS nama_supplier,
+                sp_beli.kode AS kode_supplier,
+                sp_jual.nama AS nama_pelanggan,
+                sp_jual.kode AS kode_pelanggan,
+                im.totalakhir AS total_beli,
+                ik.totalakhir AS total_jual,
+                s.dateupd
+            FROM tbl_itemserial s
+            LEFT JOIN tbl_item i ON s.kodeitem = i.kodeitem
+            LEFT JOIN tbl_imhd im ON s.notrsm = im.notransaksi
+            LEFT JOIN tbl_ikhd ik ON s.notrsrk = ik.notransaksi
+            LEFT JOIN tbl_supel sp_beli ON im.kodesupel = sp_beli.kode
+            LEFT JOIN tbl_supel sp_jual ON ik.kodesupel = sp_jual.kode
+            WHERE s.noserial ILIKE '%$search%'
+               OR s.kodeitem ILIKE '%$search%'
+               OR i.namaitem ILIKE '%$search%'
+            ORDER BY s.dateupd DESC
+            LIMIT 100";
+
+    $result = @pg_query($db, $sql);
+    if (!$result) {
+        echo json_encode(['success' => false, 'message' => 'Query gagal: ' . pg_last_error($db)]);
+        exit;
+    }
+
+    $data = [];
+    while ($row = pg_fetch_assoc($result)) {
+        $data[] = $row;
+    }
+
+    // Count total
+    $count_sql = "SELECT COUNT(*) AS total FROM tbl_itemserial s
+                  LEFT JOIN tbl_item i ON s.kodeitem = i.kodeitem
+                  WHERE s.noserial ILIKE '%$search%'
+                     OR s.kodeitem ILIKE '%$search%'
+                     OR i.namaitem ILIKE '%$search%'";
+    $count_result = @pg_query($db, $count_sql);
+    $total = $count_result ? (int)pg_fetch_result($count_result, 0, 'total') : 0;
+
+    echo json_encode(['success' => true, 'data' => $data, 'total' => $total]);
+    exit;
+}
+
+// ============================================================
 // GET ADMIN HISTORY
 // ============================================================
 if ($action === 'get_history') {
