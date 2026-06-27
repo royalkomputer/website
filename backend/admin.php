@@ -1726,22 +1726,23 @@ function resetBannerForm() {
 }
 
 function deleteBanner(id) {
-    if (!confirm('Hapus banner ini?')) return;
-    const formData = new FormData();
-    formData.append('action', 'delete');
-    formData.append('id', id);
-    fetch('update_banner.php', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showFeedback('banner-feedback', 'Banner berhasil dihapus.', 'green');
-                if (bannerEditId === id) resetBannerForm();
-                loadBanners();
-            } else {
-                showFeedback('banner-feedback', data.message, 'red');
-            }
-        })
-        .catch(() => showFeedback('banner-feedback', 'Gagal menghapus banner.', 'red'));
+    showConfirmModal('Hapus banner ini?', function() {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('id', id);
+        fetch('update_banner.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showFeedback('banner-feedback', 'Banner berhasil dihapus.', 'green');
+                    if (bannerEditId === id) resetBannerForm();
+                    loadBanners();
+                } else {
+                    showFeedback('banner-feedback', data.message, 'red');
+                }
+            })
+            .catch(() => showFeedback('banner-feedback', 'Gagal menghapus banner.', 'red'));
+    });
 }
 
 function showFeedback(id, msg, color) {
