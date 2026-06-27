@@ -36,7 +36,8 @@ if (file_exists($cache_file)) {
                 }
                 if (!empty($matched_files)) {
                     $images = [];
-                    $img_base = "https://royal-backend-s3ir.onrender.com";
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                    $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
                     foreach ($matched_files as $file) {
                         $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
                     }
@@ -125,7 +126,8 @@ while($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
-        $img_base = "https://royal-backend-s3ir.onrender.com";
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
         foreach ($matched_files as $file) {
             $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
