@@ -149,23 +149,28 @@ export function bindNavbarEvents(onSearch) {
   const searchBtn = document.querySelector('.js-search-btn')
   const searchBtnMobile = document.querySelector('.js-search-btn-mobile')
 
-  function triggerSearch() {
-    const val = (mobileInput && mobileInput.value) || (desktopInput ? desktopInput.value : '')
-    if (desktopInput) desktopInput.value = val
+  function triggerDesktopSearch() {
+    const val = desktopInput ? desktopInput.value : ''
     if (mobileInput) mobileInput.value = val
+    onSearch(val)
+  }
+
+  function triggerMobileSearch() {
+    const val = mobileInput ? mobileInput.value : ''
+    if (desktopInput) desktopInput.value = val
     onSearch(val)
   }
 
   if (desktopInput) {
     desktopInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') triggerSearch()
+      if (e.key === 'Enter') triggerDesktopSearch()
     })
   }
   if (mobileInput) {
     mobileInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') triggerSearch()
+      if (e.key === 'Enter') triggerMobileSearch()
     })
   }
-  if (searchBtn) searchBtn.addEventListener('click', triggerSearch)
-  if (searchBtnMobile) searchBtnMobile.addEventListener('click', triggerSearch)
+  if (searchBtn) searchBtn.addEventListener('click', triggerDesktopSearch)
+  if (searchBtnMobile) searchBtnMobile.addEventListener('click', triggerMobileSearch)
 }

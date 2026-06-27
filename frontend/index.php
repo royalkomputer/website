@@ -162,10 +162,10 @@ if (!$is_open) {
         <!-- Search Bar (tengah, hanya desktop) -->
         <div class="hidden md:flex flex-grow max-w-md">
             <div class="relative flex-grow">
-                <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch()" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch('desktop')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
             </div>
-            <button onclick="triggerSearch()" class="ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+            <button onclick="triggerSearch('desktop')" class="ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
                 <i class="fa-solid fa-magnifying-glass"></i> Cari
             </button>
         </div>
@@ -203,10 +203,10 @@ if (!$is_open) {
     <div class="md:hidden px-4 pb-3">
         <div class="flex gap-2">
             <div class="relative flex-grow">
-                <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch()" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch('mobile')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
             </div>
-            <button onclick="triggerSearch()" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+            <button onclick="triggerSearch('mobile')" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </div>
@@ -727,10 +727,10 @@ if (!$is_open) {
             applyFiltersAndSort();
         }
 
-        function triggerSearch() {
+        function triggerSearch(source) {
             var desktop = document.getElementById('search-input');
             var mobile = document.getElementById('search-input-mobile');
-            var val = mobile.value || desktop.value;
+            var val = source === 'mobile' ? mobile.value : desktop.value;
             desktop.value = val;
             mobile.value = val;
             handleSearch(val);
