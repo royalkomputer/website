@@ -31,18 +31,46 @@ function uploadPhotoFile(array $file, string $playlistId, int $photoIndex): stri
     $safe_name = photoFilename($playlistId, $photoIndex, $ext);
     $target_file = $target_dir . $safe_name;
 
-    if (!move_uploaded_file($file['tmp_name'], $target_file)) {
+    // Move to a temp location, then process
+    $tmp = $target_dir . 'tmp_' . uniqid();
+    if (!move_uploaded_file($file['tmp_name'], $tmp)) {
         return false;
     }
 
-    // Optimize WEBP if GD available
+    // Convert to WebP + resize if GD available
     if (function_exists('gdWebpAvailable') && gdWebpAvailable()) {
-        $img = createImageFromFile($target_file);
+        $img = createImageFromFile($tmp);
         if ($img) {
+            // Resize large images (max 1920px wide, 1080px tall)
+            $origW = imagesx($img);
+            $origH = imagesy($img);
+            $maxW = 1920;
+            $maxH = 1080;
+            if ($origW > $maxW || $origH > $maxH) {
+                $ratio = min($maxW / $origW, $maxH / $origH);
+                $newW = (int)round($origW * $ratio);
+                $newH = (int)round($origH * $ratio);
+                $resized = imagecreatetruecolor($newW, $newH);
+                if ($resized) {
+                    imagecopyresampled($resized, $img, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+                    imagedestroy($img);
+                    $img = $resized;
+                }
+            }
+            if (function_exists('imagepalettetotruecolor')) @imagepalettetotruecolor($img);
+            if (function_exists('imagealphablending')) @imagealphablending($img, true);
+            if (function_exists('imagesavealpha')) @imagesavealpha($img, true);
             @imagewebp($img, $target_file, 85);
             @imagedestroy($img);
         }
     }
+
+    // Fallback: copy as-is if WebP output missing (no GD or conversion failed)
+    if (!file_exists($target_file)) {
+        copy($tmp, $target_file);
+    }
+
+    @unlink($tmp);
 
     // Copy to frontend
     @mkdir(FE_DIR . '/uploads/banners/', 0777, true);
