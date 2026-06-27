@@ -642,8 +642,11 @@ if (!$is_open) {
         }
 
         function triggerSearch() {
-            var val = document.getElementById('search-input').value;
-            document.getElementById('search-input-mobile').value = val;
+            var desktop = document.getElementById('search-input');
+            var mobile = document.getElementById('search-input-mobile');
+            var val = mobile.value || desktop.value;
+            desktop.value = val;
+            mobile.value = val;
             handleSearch(val);
         }
 

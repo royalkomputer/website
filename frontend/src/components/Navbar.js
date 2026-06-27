@@ -150,11 +150,9 @@ export function bindNavbarEvents(onSearch) {
   const searchBtnMobile = document.querySelector('.js-search-btn-mobile')
 
   function triggerSearch() {
-    const val = desktopInput ? desktopInput.value : ''
-    if (desktopInput && mobileInput) {
-      desktopInput.value = val
-      mobileInput.value = val
-    }
+    const val = (mobileInput && mobileInput.value) || (desktopInput ? desktopInput.value : '')
+    if (desktopInput) desktopInput.value = val
+    if (mobileInput) mobileInput.value = val
     onSearch(val)
   }
 
