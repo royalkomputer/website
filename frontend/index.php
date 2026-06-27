@@ -160,9 +160,14 @@ if (!$is_open) {
         </a>
         
         <!-- Search Bar (tengah, hanya desktop) -->
-        <div class="hidden md:flex flex-grow max-w-md relative">
-            <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        <div class="hidden md:flex flex-grow max-w-md">
+            <div class="relative flex-grow">
+                <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch()" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+            </div>
+            <button onclick="triggerSearch()" class="ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+                <i class="fa-solid fa-magnifying-glass"></i> Cari
+            </button>
         </div>
         
         <!-- Sosmed Links (desktop) -->
@@ -196,9 +201,14 @@ if (!$is_open) {
 
     <!-- Search Bar (mobile, di bawah row utama) -->
     <div class="md:hidden px-4 pb-3">
-        <div class="relative">
-            <input type="text" id="search-input-mobile" oninput="handleSearch(this.value)" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        <div class="flex gap-2">
+            <div class="relative flex-grow">
+                <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch()" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+            </div>
+            <button onclick="triggerSearch()" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
         </div>
     </div>
 
@@ -631,11 +641,14 @@ if (!$is_open) {
             applyFiltersAndSort();
         }
 
+        function triggerSearch() {
+            var val = document.getElementById('search-input').value;
+            document.getElementById('search-input-mobile').value = val;
+            handleSearch(val);
+        }
+
         function handleSearch(val) {
     activeFilters.search = val.toLowerCase();
-    // Sinkronkan kedua input
-    document.getElementById('search-input').value = val;
-    document.getElementById('search-input-mobile').value = val;
     applyFiltersAndSort();
 }
 

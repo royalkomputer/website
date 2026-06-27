@@ -22,12 +22,17 @@ export function Navbar({ onSearch }) {
     </a>
 
     <!-- Search Bar (desktop) -->
-    <div class="hidden md:flex flex-grow max-w-md relative">
-      <input type="text"
-             class="search-input js-search-input w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
-             placeholder="Cari hardware..."
-             data-sync="search-input">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+    <div class="hidden md:flex flex-grow max-w-md">
+      <div class="relative flex-grow">
+        <input type="text"
+               class="search-input js-search-input w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
+               placeholder="Cari hardware..."
+               data-sync="search-input">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+      </div>
+      <button class="js-search-btn ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass"></i> Cari
+      </button>
     </div>
 
     <!-- Social Links (desktop) -->
@@ -66,11 +71,16 @@ export function Navbar({ onSearch }) {
 
   <!-- Search Bar (mobile, toggled) -->
   <div class="js-mobile-search hidden md:hidden px-4 pb-3">
-    <div class="relative">
-      <input type="text"
-             class="js-search-input-mobile w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
-             placeholder="Cari hardware...">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+    <div class="flex gap-2">
+      <div class="relative flex-grow">
+        <input type="text"
+               class="js-search-input-mobile w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
+               placeholder="Cari hardware...">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+      </div>
+      <button class="js-search-btn-mobile bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
     </div>
   </div>
 
@@ -133,17 +143,31 @@ export function bindNavbarEvents(onSearch) {
     })
   }
 
-  // Search — sync desktop + mobile inputs
+  // Search — trigger on Enter or button click
   const desktopInput = document.querySelector('.js-search-input')
   const mobileInput = document.querySelector('.js-search-input-mobile')
+  const searchBtn = document.querySelector('.js-search-btn')
+  const searchBtnMobile = document.querySelector('.js-search-btn-mobile')
 
-  function handleSearchInput(e) {
-    const val = e.target.value
-    if (desktopInput && desktopInput !== e.target) desktopInput.value = val
-    if (mobileInput && mobileInput !== e.target) mobileInput.value = val
+  function triggerSearch() {
+    const val = desktopInput ? desktopInput.value : ''
+    if (desktopInput && mobileInput) {
+      desktopInput.value = val
+      mobileInput.value = val
+    }
     onSearch(val)
   }
 
-  if (desktopInput) desktopInput.addEventListener('input', handleSearchInput)
-  if (mobileInput) mobileInput.addEventListener('input', handleSearchInput)
+  if (desktopInput) {
+    desktopInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') triggerSearch()
+    })
+  }
+  if (mobileInput) {
+    mobileInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') triggerSearch()
+    })
+  }
+  if (searchBtn) searchBtn.addEventListener('click', triggerSearch)
+  if (searchBtnMobile) searchBtnMobile.addEventListener('click', triggerSearch)
 }
