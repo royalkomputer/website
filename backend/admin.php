@@ -478,75 +478,99 @@ $heading = loadHeading();
         </div>
     </div>
 
-    <!-- PANEL BANNER -->
+        <!-- PANEL BANNER: PLAYLIST -->
     <div id="panel-banner" class="hidden">
-        <div class="mb-5">
-            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                <i class="fa-solid fa-image text-astra-700"></i> Kelola Banner
-            </h3>
-            <p class="text-sm text-slate-500 mt-0.5">Atur banner yang tampil di halaman utama toko. Maksimal 5 banner.</p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+            <div>
+                <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-images text-astra-700"></i> Kelola Playlist Banner
+                </h3>
+                <p class="text-sm text-slate-500 mt-0.5">Buat playlist banner. Masing-masing playlist berisi beberapa foto yang akan auto-slide berurutan. Playlist ditampilkan ke bawah di halaman utama.</p>
+            </div>
+            <button onclick="openPlaylistModal()" 
+                class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                <i class="fa-solid fa-plus-circle"></i> Tambah Playlist
+            </button>
         </div>
 
-        <!-- Banner List -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i class="fa-solid fa-list text-astra-700"></i> Daftar Banner</h4>
-            <div id="banner-list" class="space-y-4">
-                <p class="text-slate-400 text-sm text-center py-8">Memuat data banner...</p>
+        <!-- Daftar Playlist -->
+        <div id="playlist-list" class="space-y-4 max-w-3xl">
+            <p class="text-slate-400 text-sm text-center py-8">Memuat data playlist...</p>
+        </div>
+
+        <!-- MODAL PLAYLIST -->
+        <div id="playlist-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
+                <div class="bg-astra-950 text-white p-4 flex items-center justify-between">
+                    <h3 id="playlist-modal-title" class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-images text-astra-400"></i> <span id="playlist-modal-title-text">Tambah Playlist Baru</span>
+                    </h3>
+                    <button onclick="closePlaylistModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="playlist-edit-id" value="">
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Playlist</label>
+                        <input type="text" id="playlist-name-input" placeholder="Contoh: Promo Akhir Tahun"
+                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Interval Slide (detik)</label>
+                        <input type="number" id="playlist-interval-input" value="5" min="2" max="30"
+                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="playlist-active-input" value="1" checked
+                            class="w-4 h-4 rounded border-slate-300 text-astra-700 focus:ring-astra-500">
+                        <label for="playlist-active-input" class="text-sm text-slate-700 font-medium">Aktif</label>
+                    </div>
+
+                    <div id="playlist-modal-feedback" class="hidden text-sm font-semibold p-3 rounded-lg"></div>
+
+                    <div class="pt-2 flex justify-end gap-3 border-t border-slate-100">
+                        <button type="button" onclick="closePlaylistModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
+                        <button type="button" onclick="submitPlaylist()" id="btn-playlist-submit"
+                            class="px-5 py-2 bg-astra-700 hover:bg-astra-800 text-white rounded-lg text-xs font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Playlist
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Upload Form -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i class="fa-solid fa-plus-circle text-astra-700"></i> <span id="banner-form-title">Tambah Banner Baru</span></h4>
-            <form id="banner-form" enctype="multipart/form-data" class="space-y-4">
-                <input type="hidden" name="action" value="upload">
-                <input type="hidden" name="id" id="banner-id-input" value="">
-                <input type="hidden" name="order" id="banner-order-input" value="">
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Gambar Banner</label>
-                    <input type="file" name="file" id="banner-file-input" accept="image/jpeg,image/png,image/webp"
-                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2 text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-astra-700 file:text-white file:text-xs file:font-bold hover:file:bg-astra-800 file:cursor-pointer focus:outline-none focus:border-astra-500">
-                    <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG, WEBP. Ukuran maks: 5MB. Rasio 16:9 disarankan.</p>
+        <!-- MODAL FOTO PLAYLIST -->
+        <div id="playlist-photo-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl border border-slate-200 w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+                <div class="bg-astra-950 text-white p-4 flex items-center justify-between flex-shrink-0">
+                    <h3 class="font-bold text-base flex items-center gap-2">
+                        <i class="fa-solid fa-images text-astra-400"></i> <span id="playlist-photo-title">Foto Playlist</span>
+                    </h3>
+                    <button onclick="closePlaylistPhotoModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
                 </div>
+                <div class="p-6 space-y-4 overflow-y-auto flex-grow">
+                    <input type="hidden" id="playlist-photo-id" value="">
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Teks Alternatif (alt)</label>
-                        <input type="text" name="alt" id="banner-alt-input"
-                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                            placeholder="Contoh: Promo Akhir Tahun">
+                    <!-- Upload baru -->
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-astra-500 transition-colors cursor-pointer" onclick="document.getElementById('pl-photo-file-input').click()">
+                        <form id="pl-photo-form" enctype="multipart/form-data" class="space-y-3">
+                            <input type="file" id="pl-photo-file-input" name="photos[]" multiple accept="image/jpeg,image/png,image/webp" class="hidden" onchange="uploadPlaylistPhotos()">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
+                            <p class="text-sm text-slate-500 font-medium">Klik untuk upload foto ke playlist ini</p>
+                            <p class="text-xs text-slate-400">Format: JPG, PNG, WEBP. Maks 5MB per gambar.</p>
+                        </form>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Link (opsional)</label>
-                        <input type="text" name="link" id="banner-link-input"
-                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                            placeholder="https://...">
+
+                    <!-- Daftar foto -->
+                    <div id="pl-photo-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        <p class="text-slate-400 text-sm text-center py-4 col-span-full">Belum ada foto.</p>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" name="active" id="banner-active-input" value="1" checked
-                        class="w-4 h-4 rounded border-slate-300 text-astra-700 focus:ring-astra-500">
-                    <label for="banner-active-input" class="text-sm text-slate-700 font-medium">Aktif</label>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button type="submit" id="btn-simpan-banner"
-                        class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
-                        <i id="banner-btn-icon" class="fa-solid fa-floppy-disk"></i> <span id="banner-submit-text">Simpan Banner</span>
-                    </button>
-                    <button type="button" onclick="resetBannerForm()" id="btn-batal-banner"
-                        class="hidden bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-xmark"></i> Batal
-                    </button>
-                    <span id="banner-feedback" class="text-sm font-semibold hidden"></span>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-
-    <!-- PANEL PROFIL SAYA -->
+    </div><!-- PANEL PROFIL SAYA -->
     <div id="panel-profil" class="hidden">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-md">
             <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
@@ -876,7 +900,7 @@ function showPanel(name){
     });
     if (name === 'admin' && IS_SUPER) loadAdminList();
     if (name === 'schedule') loadSchedules();
-    if (name === 'banner') loadBanners();
+    if (name === 'banner') loadPlaylists();
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
 }
 
@@ -1460,6 +1484,9 @@ function pushToGit(){
 function escHtml(str){
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function escAttr(str){
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 // SERIAL NUMBER SEARCH — juga tersedia di global scope
 
@@ -1615,41 +1642,51 @@ function searchSerial() {
         });
 }
 
-// BANNER MANAGEMENT
-let bannerEditId = null;
+// ============================================================
+// PLAYLIST BANNER MANAGEMENT
+// ============================================================
+let playlistEditId = null;
 
-function loadBanners() {
-    const container = document.getElementById('banner-list');
+function loadPlaylists() {
+    const container = document.getElementById('playlist-list');
     if (!container) return;
-    container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Memuat data banner...</p>';
+    container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Memuat data playlist...</p>';
     fetch('api_banner.php')
         .then(r => r.json())
-        .then(banners => {
-            if (!banners || banners.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Belum ada banner. Tambah banner baru di form di bawah.</p>';
+        .then(playlists => {
+            if (!playlists || playlists.length === 0) {
+                container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-images text-4xl text-slate-300 mb-3"></i><p class="text-slate-400 text-sm">Belum ada playlist. Klik "Tambah Playlist" untuk membuat baru.</p></div>';
                 return;
             }
             container.innerHTML = '<div class="flex items-center gap-2 text-xs text-slate-400 mb-2 px-2"><i class="fa-solid fa-arrows-up-down"></i> Urutkan dengan drag & drop</div>';
-            banners.forEach((b, i) => {
-                const isActive = b.active !== false;
-                const imgUrl = 'uploads/banners/' + b.image;
+            playlists.forEach((pl, idx) => {
+                const isActive = pl.active !== false;
+                const photoCount = (pl.photos || []).length;
+                const firstPhoto = photoCount > 0 && pl.photos[0].image ? 'uploads/banners/' + pl.photos[0].image : null;
+
                 const div = document.createElement('div');
-                div.className = 'flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 banner-item';
+                div.className = 'flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm playlist-item';
                 div.draggable = true;
-                div.dataset.bannerId = b.id;
+                div.dataset.playlistId = pl.id;
+
+                let previewHtml = '<div class="w-24 h-14 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-image text-slate-300 text-lg"></i></div>';
+                if (firstPhoto) {
+                    previewHtml = '<div class="w-24 h-14 rounded-lg border border-slate-200 bg-slate-100 flex-shrink-0 overflow-hidden relative"><img src="' + firstPhoto + '" alt="" class="w-full h-full object-cover"><span class="absolute bottom-0 right-0 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-tl-md font-bold">' + photoCount + '</span></div>';
+                }
+
                 div.innerHTML =
                     '<button type="button" class="cursor-grab text-slate-400 hover:text-slate-600 px-1" title="Seret untuk urutkan"><i class="fa-solid fa-grip-lines"></i></button>' +
-                    '<img src="' + imgUrl + '" alt="' + escHtml(b.alt || '') + '" class="w-24 h-14 object-cover rounded-lg border border-slate-200 bg-slate-100 flex-shrink-0">' +
+                    previewHtml +
                     '<div class="flex-grow min-w-0">' +
-                        '<p class="text-sm font-semibold text-slate-800 truncate">' + escHtml(b.alt || '(tanpa teks)') + '</p>' +
-                        '<p class="text-xs text-slate-400">' + (b.link ? escHtml(b.link) : 'Tidak ada link') + ' &middot; ' + (isActive ? '<span class="text-green-600 font-medium">Aktif</span>' : '<span class="text-slate-400">Nonaktif</span>') + '</p>' +
+                        '<p class="text-sm font-bold text-slate-800 truncate">' + escHtml(pl.name || '(tanpa nama)') + '</p>' +
+                        '<p class="text-xs text-slate-400">' + photoCount + ' foto &middot; interval ' + (pl.interval || 5) + ' detik &middot; ' + (isActive ? '<span class="text-green-600 font-medium">Aktif</span>' : '<span class="text-slate-400">Nonaktif</span>') + '</p>' +
                     '</div>' +
                     '<div class="flex items-center gap-1 flex-shrink-0">' +
-                        '<button type="button" onclick="editBanner(\'' + b.id + '\')" class="text-xs text-astra-600 hover:text-astra-800 bg-astra-50 hover:bg-astra-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-pen"></i></button>' +
-                        '<button type="button" onclick="deleteBanner(\'' + b.id + '\')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors"><i class="fa-solid fa-trash-can"></i></button>' +
+                        '<button type="button" onclick="openPlaylistPhotos(\'' + pl.id + '\', \'' + escHtml(pl.name || '') + '\')" class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Kelola Foto"><i class="fa-solid fa-images"></i></button>' +
+                        '<button type="button" onclick="editPlaylist(\'' + pl.id + '\')" class="text-xs text-astra-600 hover:text-astra-800 bg-astra-50 hover:bg-astra-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Edit"><i class="fa-solid fa-pen"></i></button>' +
+                        '<button type="button" onclick="deletePlaylist(\'' + pl.id + '\')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>' +
                     '</div>';
 
-                // Drag events for reorder
                 div.addEventListener('dragstart', () => div.classList.add('opacity-50'));
                 div.addEventListener('dragend', () => div.classList.remove('opacity-50'));
                 div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('border-astra-500'); });
@@ -1657,159 +1694,278 @@ function loadBanners() {
                 div.addEventListener('drop', e => {
                     e.preventDefault();
                     div.classList.remove('border-astra-500');
-                    const items = [...container.querySelectorAll('.banner-item')];
-                    const from = items.indexOf(container.querySelector('.opacity-50'));
-                    const to = items.indexOf(div);
-                    if (from !== -1 && to !== -1 && from !== to) {
-                        const ref = to > from ? div.nextSibling : div;
-                        container.insertBefore(items[from], ref);
-                        saveBannerOrder();
-                    }
+                    const fromId = div.dataset.playlistId;
+                    const toId = e.currentTarget.dataset.playlistId;
+                    if (fromId === toId) return;
+                    const fd = new FormData();
+                    fd.append('action', 'reorder_playlists');
+                    fd.append('from_id', fromId);
+                    fd.append('to_id', toId);
+                    fetch('update_banner.php', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) loadPlaylists();
+                            else showNotification(data.message || 'Gagal mengurutkan.', 'error');
+                        })
+                        .catch(() => showNotification('Gagal terhubung.', 'error'));
                 });
                 container.appendChild(div);
             });
         })
-        .catch(() => {
-            container.innerHTML = '<p class="text-red-500 text-sm text-center py-8">Gagal memuat banner.</p>';
+        .catch(err => {
+            console.error('Failed to load playlists:', err);
+            container.innerHTML = '<p class="text-red-500 text-sm text-center py-8">Gagal memuat playlist.</p>';
         });
 }
 
-function saveBannerOrder() {
-    const items = [...document.querySelectorAll('.banner-item')];
-    const ids = items.map(el => el.dataset.bannerId);
-    const formData = new FormData();
-    formData.append('action', 'reorder');
-    formData.append('ids', JSON.stringify(ids));
-    fetch('update_banner.php', { method: 'POST', body: formData })
+// --- CRUD Playlist ---
+function openPlaylistModal(editId) {
+    playlistEditId = editId || null;
+    const modal = document.getElementById('playlist-modal');
+    const titleText = document.getElementById('playlist-modal-title-text');
+    const nameInput = document.getElementById('playlist-name-input');
+    const intervalInput = document.getElementById('playlist-interval-input');
+    const activeInput = document.getElementById('playlist-active-input');
+    const idInput = document.getElementById('playlist-edit-id');
+    const feedback = document.getElementById('playlist-modal-feedback');
+    feedback.classList.add('hidden');
+
+    if (editId) {
+        titleText.textContent = 'Edit Playlist';
+        fetch('api_banner.php')
+            .then(r => r.json())
+            .then(playlists => {
+                const pl = playlists.find(x => x.id === editId);
+                if (!pl) return;
+                nameInput.value = pl.name || '';
+                intervalInput.value = pl.interval || 5;
+                activeInput.checked = pl.active !== false;
+                idInput.value = editId;
+            });
+    } else {
+        titleText.textContent = 'Tambah Playlist Baru';
+        nameInput.value = '';
+        intervalInput.value = 5;
+        activeInput.checked = true;
+        idInput.value = '';
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closePlaylistModal() {
+    document.getElementById('playlist-modal').classList.add('hidden');
+    document.getElementById('playlist-modal').classList.remove('flex');
+}
+
+function submitPlaylist() {
+    const btn = document.getElementById('btn-playlist-submit');
+    const fb = document.getElementById('playlist-modal-feedback');
+    fb.classList.add('hidden');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+
+    const fd = new FormData();
+    fd.append('action', 'save_playlist');
+    fd.append('id', document.getElementById('playlist-edit-id').value);
+    fd.append('name', document.getElementById('playlist-name-input').value.trim());
+    fd.append('interval', document.getElementById('playlist-interval-input').value);
+    fd.append('active', document.getElementById('playlist-active-input').checked ? '1' : '0');
+
+    fetch('update_banner.php', { method: 'POST', body: fd })
         .then(r => r.json())
         .then(data => {
-            if (!data.success) console.error('Reorder failed:', data.message);
+            if (data.success) {
+                showNotification(data.message || 'Playlist berhasil disimpan.', 'success');
+                closePlaylistModal();
+                loadPlaylists();
+            } else {
+                fb.classList.remove('hidden');
+                fb.className = 'text-sm font-semibold p-3 rounded-lg bg-red-50 text-red-700 border border-red-200';
+                fb.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' + (data.message || 'Gagal menyimpan.');
+            }
         })
-        .catch(err => console.error('Reorder error:', err));
+        .catch(() => {
+            fb.classList.remove('hidden');
+            fb.className = 'text-sm font-semibold p-3 rounded-lg bg-red-50 text-red-700 border border-red-200';
+            fb.textContent = 'Gagal. Cek koneksi.';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Playlist';
+        });
 }
 
-function editBanner(id) {
-    const items = document.querySelectorAll('.banner-item');
-    for (const item of items) {
-        if (item.dataset.bannerId === id) {
-            const img = item.querySelector('img');
-            const text = item.querySelector('.text-sm.font-semibold');
-            const info = item.querySelector('.text-xs.text-slate-400');
-            bannerEditId = id;
-            document.getElementById('banner-form-title').textContent = 'Edit Banner';
-            document.getElementById('banner-submit-text').textContent = 'Update Banner';
-            document.getElementById('banner-id-input').value = id;
-            document.getElementById('banner-alt-input').value = text ? text.textContent : '';
-            document.getElementById('banner-link-input').value = info && !info.textContent.includes('Tidak ada link') ? info.textContent.split(' · ')[0] : '';
-            document.getElementById('banner-active-input').checked = !info || !info.textContent.includes('Nonaktif');
-            document.getElementById('btn-batal-banner').classList.remove('hidden');
-            document.getElementById('banner-file-input').required = false;
-            document.getElementById('btn-batal-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            break;
-        }
-    }
+function editPlaylist(id) {
+    openPlaylistModal(id);
 }
 
-function resetBannerForm() {
-    bannerEditId = null;
-    document.getElementById('banner-form-title').textContent = 'Tambah Banner Baru';
-    document.getElementById('banner-submit-text').textContent = 'Simpan Banner';
-    document.getElementById('banner-id-input').value = '';
-    document.getElementById('banner-order-input').value = '';
-    document.getElementById('banner-alt-input').value = '';
-    document.getElementById('banner-link-input').value = '';
-    document.getElementById('banner-active-input').checked = true;
-    document.getElementById('banner-file-input').required = true;
-    document.getElementById('banner-file-input').value = '';
-    document.getElementById('btn-batal-banner').classList.add('hidden');
-    document.getElementById('banner-feedback').classList.add('hidden');
-}
-
-function deleteBanner(id) {
-    showConfirmModal('Hapus banner ini?', function() {
-        const formData = new FormData();
-        formData.append('action', 'delete');
-        formData.append('id', id);
-        fetch('update_banner.php', { method: 'POST', body: formData })
+function deletePlaylist(id) {
+    showConfirmModal('Hapus playlist ini beserta semua fotonya? Tindakan tidak dapat dibatalkan.', function() {
+        const fd = new FormData();
+        fd.append('action', 'delete_playlist');
+        fd.append('id', id);
+        fetch('update_banner.php', { method: 'POST', body: fd })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showFeedback('banner-feedback', 'Banner berhasil dihapus.', 'green');
-                    if (bannerEditId === id) resetBannerForm();
-                    loadBanners();
+                    showNotification(data.message || 'Playlist berhasil dihapus.', 'success');
+                    loadPlaylists();
                 } else {
-                    showFeedback('banner-feedback', data.message, 'red');
+                    showNotification(data.message || 'Gagal menghapus playlist.', 'error');
                 }
             })
-            .catch(() => showFeedback('banner-feedback', 'Gagal menghapus banner.', 'red'));
+            .catch(() => showNotification('Gagal terhubung.', 'error'));
     });
 }
 
-function showFeedback(id, msg, color) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = msg;
-    el.className = 'text-sm font-semibold ' + (color === 'red' ? 'text-red-600' : 'text-green-600');
-    el.classList.remove('hidden');
-    setTimeout(() => el.classList.add('hidden'), 4000);
+// --- Foto dalam Playlist ---
+function openPlaylistPhotos(id, name) {
+    document.getElementById('playlist-photo-id').value = id;
+    document.getElementById('playlist-photo-title').textContent = 'Foto: ' + (name || 'Playlist');
+    document.getElementById('pl-photo-file-input').value = '';
+    loadPlaylistPhotos(id);
+    document.getElementById('playlist-photo-modal').classList.remove('hidden');
+    document.getElementById('playlist-photo-modal').classList.add('flex');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const bannerForm = document.getElementById('banner-form');
-    if (bannerForm) {
-        bannerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            setBannerLoading(true);
-            const safetyTimer = setTimeout(function() { setBannerLoading(false); }, 20000);
+function closePlaylistPhotoModal() {
+    document.getElementById('playlist-photo-modal').classList.add('hidden');
+    document.getElementById('playlist-photo-modal').classList.remove('flex');
+}
 
-            const formData = new FormData(this);
-            fetch('update_banner.php', { method: 'POST', body: formData })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    clearTimeout(safetyTimer);
-                    setBannerLoading(false);
-                    if (data.success) {
-                        showFeedback('banner-feedback', 'Banner berhasil disimpan.', 'green');
-                        resetBannerForm();
-                        loadBanners();
-                    } else {
-                        showFeedback('banner-feedback', data.message, 'red');
-                    }
-                })
-                .catch(function() {
-                    clearTimeout(safetyTimer);
-                    setBannerLoading(false);
-                    showFeedback('banner-feedback', 'Gagal menyimpan banner.', 'red');
-                });
+function loadPlaylistPhotos(id) {
+    const grid = document.getElementById('pl-photo-grid');
+    grid.innerHTML = '<p class="text-slate-400 text-sm text-center py-4 col-span-full"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Memuat foto...</p>';
+    fetch('api_banner.php')
+        .then(r => r.json())
+        .then(playlists => {
+            const pl = playlists.find(x => x.id === id);
+            if (!pl || !pl.photos || pl.photos.length === 0) {
+                grid.innerHTML = '<p class="text-slate-400 text-sm text-center py-4 col-span-full">Belum ada foto. Upload foto di atas.</p>';
+                return;
+            }
+            grid.innerHTML = '';
+            grid.className = 'space-y-4';
+            pl.photos.forEach((photo, idx) => {
+                const imgUrl = 'uploads/banners/' + photo.image;
+                const div = document.createElement('div');
+                div.className = 'flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden';
+                div.innerHTML =
+                    '<div class="flex gap-4 p-3">' +
+                        '<img src="' + imgUrl + '" alt="' + escHtml(photo.alt || '') + '" class="w-32 h-20 object-cover rounded-lg border border-slate-200 bg-slate-100 flex-shrink-0">' +
+                        '<div class="flex-grow min-w-0 space-y-2">' +
+                            '<div>' +
+                                '<label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Link</label>' +
+                                '<input type="text" class="pl-photo-link w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-1.5 text-xs focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500" value="' + escAttr(photo.link || '') + '" placeholder="https://...">' +
+                            '</div>' +
+                            '<div>' +
+                                '<label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Alt Text</label>' +
+                                '<input type="text" class="pl-photo-alt w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-1.5 text-xs focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500" value="' + escAttr(photo.alt || '') + '" placeholder="Deskripsi foto">' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="flex flex-col gap-1.5 flex-shrink-0 justify-start">' +
+                            '<button type="button" onclick="savePlaylistPhotoInfo(\'' + id + '\', ' + idx + ', this)" class="text-xs text-white bg-astra-700 hover:bg-astra-800 px-2.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>' +
+                            '<button type="button" onclick="deletePlaylistPhoto(\'' + id + '\', \'' + photo.image + '\', ' + idx + ')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-trash-can"></i></button>' +
+                        '</div>' +
+                    '</div>' +
+                    (idx === 0 ? '<div class="bg-astra-700 text-white text-[10px] font-bold px-3 py-1">Foto Utama</div>' : '');
+                grid.appendChild(div);
+            });
+        })
+        .catch(() => {
+            grid.innerHTML = '<p class="text-red-500 text-sm text-center py-4 col-span-full">Gagal memuat foto.</p>';
         });
+}
+
+function uploadPlaylistPhotos() {
+    const input = document.getElementById('pl-photo-file-input');
+    const files = input.files;
+    if (!files || files.length === 0) return;
+
+    const id = document.getElementById('playlist-photo-id').value;
+    if (!id) {
+        showNotification('ID playlist tidak ditemukan.', 'error');
+        return;
     }
 
-    function setBannerLoading(loading) {
-        var btn = document.getElementById('btn-simpan-banner');
-        var icon = document.getElementById('banner-btn-icon');
-        var text = document.getElementById('banner-submit-text');
-        if (!btn || !icon || !text) return;
-        if (loading) {
-            btn.disabled = true;
-            icon.className = 'fa-solid fa-spinner fa-spin';
-            text.textContent = 'Menyimpan...';
-        } else {
+    const fd = new FormData();
+    fd.append('action', 'save_playlist');
+    fd.append('id', id);
+    for (let i = 0; i < files.length; i++) {
+        fd.append('photos[]', files[i]);
+    }
+
+    const container = document.querySelector('#pl-photo-form');
+    const origHtml = container.innerHTML;
+    container.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xl text-astra-700"></i><p class="text-sm text-astra-700 font-medium">Mengupload...</p>';
+
+    fetch('update_banner.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification((data.message || 'Foto berhasil diupload.') + ' (' + files.length + ' foto)', 'success');
+                input.value = '';
+                loadPlaylistPhotos(id);
+                loadPlaylists();
+            } else {
+                showNotification(data.message || 'Gagal upload.', 'error');
+            }
+        })
+        .catch(() => showNotification('Gagal terhubung.', 'error'))
+        .finally(() => {
+            container.innerHTML = origHtml;
+        });
+}
+
+function savePlaylistPhotoInfo(playlistId, idx, btn) {
+    const card = btn.closest('.flex.flex-col') || btn.closest('[class*="bg-white"]');
+    const linkInput = card ? card.querySelector('.pl-photo-link') : null;
+    const altInput = card ? card.querySelector('.pl-photo-alt') : null;
+    if (!linkInput && !altInput) return;
+    const fd = new FormData();
+    fd.append('action', 'update_photo_info');
+    fd.append('playlist_id', playlistId);
+    fd.append('photo_index', idx);
+    fd.append('link', linkInput ? linkInput.value : '');
+    fd.append('alt', altInput ? altInput.value : '');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    fetch('update_banner.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Info foto berhasil disimpan.', 'success');
+            } else {
+                showNotification(data.message || 'Gagal menyimpan.', 'error');
+            }
+        })
+        .catch(() => showNotification('Gagal terhubung.', 'error'))
+        .finally(() => {
             btn.disabled = false;
-            icon.className = 'fa-solid fa-floppy-disk';
-            text.textContent = bannerEditId ? 'Update Banner' : 'Simpan Banner';
-        }
-    }
-});
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+        });
+}
 
-function formatDate(dateStr) {
-    if (!dateStr) return '-';
-    try {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    } catch(e) {
-        return dateStr;
-    }
+function deletePlaylistPhoto(playlistId, image, idx) {
+    showConfirmModal('Hapus foto ini dari playlist?' , function() {
+        const fd = new FormData();
+        fd.append('action', 'delete_playlist_photo');
+        fd.append('playlist_id', playlistId);
+        fd.append('photo_index', idx);
+        fetch('update_banner.php', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Foto berhasil dihapus.', 'success');
+                    loadPlaylistPhotos(playlistId);
+                    loadPlaylists();
+                } else {
+                    showNotification(data.message || 'Gagal menghapus foto.', 'error');
+                }
+            })
+            .catch(() => showNotification('Gagal terhubung.', 'error'));
+    });
 }
 </script>
 </body>
