@@ -39,10 +39,11 @@ if (file_exists($cache_file)) {
                 }
                 if (!empty($matched_files)) {
                     $images = [];
-                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                    $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
+                    $host = $_SERVER['HTTP_HOST'] ?? '';
+                    $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
+                    $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
                     foreach ($matched_files as $file) {
-                        $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
+                        $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
                     }
                     $p['image'] = $images[0];
                     $p['images'] = $images;
@@ -135,10 +136,11 @@ while($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
+        $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
         foreach ($matched_files as $file) {
-            $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;
