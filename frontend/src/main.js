@@ -38,7 +38,6 @@ function renderApp() {
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
     <div class="js-status-container"></div>
-    <div class="js-banner-container"></div>
     <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div class="js-filter-container"></div>
       ${ProductGrid({ viewMode: state.viewMode })}
@@ -93,7 +92,12 @@ async function loadData() {
         const isDefault = state.filters.category === 'Semua' && state.filters.search === '' && state.filters.sortBy === 'default' && state.filters.condition === 'Semua'
         if (isDefault) {
           state.hasActivated = false
+          if (bannerVisible) {
+            const c = document.querySelector('.js-banner-container')
+            if (c) c.classList.remove('hidden')
+          }
         } else if (state.filters.category !== 'Semua') {
+          hideBanner()
           state.hasActivated = true
         }
         applyFiltersAndRender()
@@ -126,17 +130,34 @@ async function loadData() {
   loadBanners()
 }
 
+let bannerVisible = false
+
 async function loadBanners() {
   try {
     const banners = await fetchBanners()
     const container = document.querySelector('.js-banner-container')
     if (!container) return
-    const html = Banner(banners)
+    const active = banners.filter(b => b.active !== false).slice(0, 5)
+    if (active.length === 0) { container.classList.add('hidden'); bannerVisible = false; return }
+    const html = Banner(active)
     container.innerHTML = html
+    container.classList.remove('hidden')
+    bannerVisible = true
     if (html) bindBannerCarousel()
   } catch {
-    // Banners are optional
+    bannerVisible = false
   }
+}
+
+function hideBanner() {
+  const container = document.querySelector('.js-banner-container')
+  if (!container || container.classList.contains('hidden') || container.classList.contains('banner-hiding')) return
+  container.classList.add('banner-hiding')
+  setTimeout(() => {
+    container.classList.add('hidden')
+    container.classList.remove('banner-hiding')
+    bannerVisible = false
+  }, 400)
 }
 
 // ──────────────────────────────────────────────
@@ -206,6 +227,7 @@ function applyFiltersAndRender() {
 
 function handleSearch(query) {
   state.filters.search = query
+  hideBanner()
   state.hasActivated = true
   applyFiltersAndRender()
 }

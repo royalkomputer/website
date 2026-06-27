@@ -42,6 +42,15 @@
   }
 }
 
+@keyframes slideRightFade {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(80px); }
+}
+
+.banner-hiding {
+  animation: slideRightFade 0.4s ease forwards;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }

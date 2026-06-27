@@ -42,6 +42,9 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   return `
 <section class="lg:col-span-4 flex flex-col gap-6">
 
+  <!-- Banner -->
+  <div class="js-banner-container hidden rounded-2xl overflow-hidden mb-6 transition-all duration-500 ease-in-out"></div>
+
   <!-- Product count info + View toggle -->
   <div class="js-product-info-bar hidden flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
     <div class="text-sm text-slate-600">

@@ -122,6 +122,14 @@ if (!$is_open) {
         ::-webkit-scrollbar-thumb { background: #0254A3; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #0b3c70; }
 
+        @keyframes slideRightFade {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(80px); }
+        }
+        .banner-hiding {
+            animation: slideRightFade 0.4s ease forwards;
+        }
+
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
@@ -269,20 +277,6 @@ if (!$is_open) {
         </div>
     </header>
 
-    <!-- BANNER -->
-    <section id="banner-section" class="container mx-auto px-4 py-6 hidden">
-        <div class="js-banner-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
-            <div class="js-banner-track flex transition-transform duration-500 ease-in-out"></div>
-            <button class="js-banner-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
-                <i class="fa-solid fa-chevron-left text-sm"></i>
-            </button>
-            <button class="js-banner-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
-                <i class="fa-solid fa-chevron-right text-sm"></i>
-            </button>
-            <div class="js-banner-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 hidden"></div>
-        </div>
-    </section>
-
     <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         <aside class="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm self-start overflow-hidden">
@@ -349,6 +343,18 @@ if (!$is_open) {
                 </div>
             </div>
 
+            <div id="banner-section" class="js-banner-container hidden rounded-2xl overflow-hidden mb-6 transition-all duration-500 ease-in-out">
+                <div class="js-banner-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
+                    <div class="js-banner-track flex transition-transform duration-500 ease-in-out"></div>
+                    <button class="js-banner-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <button class="js-banner-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm hidden">
+                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                    <div class="js-banner-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 hidden"></div>
+                </div>
+            </div>
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
                 <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
                 <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
@@ -496,6 +502,7 @@ if (!$is_open) {
         let filteredProducts = [];
         let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
         let hasActivated = false;
+        let bannerVisible = false;
         let currentView = localStorage.getItem('viewMode') || 'grid';
         
         let currentDetailImages = [];
@@ -647,10 +654,11 @@ if (!$is_open) {
                 .then(r => r.json())
                 .then(banners => {
                     const section = document.getElementById('banner-section');
-                    if (!banners || banners.length === 0) { section.classList.add('hidden'); return; }
+                    if (!banners || banners.length === 0) { section.classList.add('hidden'); bannerVisible = false; return; }
                     const active = banners.filter(b => b.active !== false).slice(0, 5);
-                    if (active.length === 0) { section.classList.add('hidden'); return; }
+                    if (active.length === 0) { section.classList.add('hidden'); bannerVisible = false; return; }
                     section.classList.remove('hidden');
+                    bannerVisible = true;
 
                     const track = document.querySelector('.js-banner-track');
                     track.innerHTML = active.map(b =>
@@ -720,8 +728,16 @@ if (!$is_open) {
             });
         }
 
+        function hideBanner() {
+            var el = document.getElementById('banner-section');
+            if (!el || el.classList.contains('hidden') || el.classList.contains('banner-hiding')) return;
+            el.classList.add('banner-hiding');
+            setTimeout(function() { el.classList.add('hidden'); el.classList.remove('banner-hiding'); }, 400);
+        }
+
         function selectCategory(cat) {
             activeFilters.category = cat;
+            hideBanner();
             hasActivated = true;
             generateCategoryFilterOptions();
             applyFiltersAndSort();
@@ -738,6 +754,7 @@ if (!$is_open) {
 
         function handleSearch(val) {
     activeFilters.search = val.toLowerCase();
+    hideBanner();
     hasActivated = true;
     applyFiltersAndSort();
 }
@@ -757,6 +774,8 @@ if (!$is_open) {
     document.getElementById('sort-select').value = 'default';
     document.getElementById('condition-select').value = 'Semua';
     generateCategoryFilterOptions();
+    var banner = document.getElementById('banner-section');
+    if (banner && bannerVisible) banner.classList.remove('hidden');
     applyFiltersAndSort();
 }
 

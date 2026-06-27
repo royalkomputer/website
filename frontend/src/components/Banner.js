@@ -6,7 +6,6 @@ export function Banner(banners) {
   if (active.length === 0) return ''
 
   return `
-<section class="container mx-auto px-4 py-6">
   <div class="js-banner-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
     <div class="js-banner-track flex transition-transform duration-500 ease-in-out">
       ${active.map(b => `
@@ -29,8 +28,7 @@ export function Banner(banners) {
       ${active.map((_, i) => `<button class="js-banner-dot w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}"></button>`).join('')}
     </div>
     ` : ''}
-  </div>
-</section>`
+  </div>`
 }
 
 export function bindBannerCarousel() {
