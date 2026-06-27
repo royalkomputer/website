@@ -410,7 +410,7 @@ if (!$is_open) {
             
             <!-- Kiri: Galeri Foto -->
             <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
-                <img id="detail-image" src="" alt="Detail" class="w-full h-full object-contain max-h-[500px]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <img id="detail-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" class="w-full h-full object-contain max-h-[500px]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                 <div id="detail-image-fallback" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
                     <i class="fa-solid fa-image text-5xl mb-2"></i>
                     <span class="text-sm">Gambar tidak tersedia</span>
@@ -540,7 +540,11 @@ if (!$is_open) {
         }
 
         function updateCarousel() {
-            document.getElementById('detail-image').src = currentDetailImages[currentImageIndex];
+            var img = document.getElementById('detail-image');
+            var fallback = img.nextElementSibling;
+            img.style.display = '';
+            fallback.style.display = 'none';
+            img.src = currentDetailImages[currentImageIndex];
             
             const indicators = document.getElementById('img-indicators');
             indicators.innerHTML = '';

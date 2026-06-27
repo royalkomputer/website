@@ -21,7 +21,7 @@ export function ProductModal() {
 
     <!-- Left: Image gallery -->
     <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
-      <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="" alt="Detail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="js-modal-image-fallback hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
         <i class="fa-solid fa-image text-5xl mb-2"></i>
         <span class="text-sm">Gambar tidak tersedia</span>
@@ -145,7 +145,11 @@ function setImage(index) {
 }
 
 function updateCarousel() {
-  document.querySelector('.js-modal-image').src = modalState.images[modalState.currentIndex]
+  const img = document.querySelector('.js-modal-image')
+  const fallback = document.querySelector('.js-modal-image-fallback')
+  img.style.display = ''
+  fallback.style.display = 'none'
+  img.src = modalState.images[modalState.currentIndex]
 
   const indicators = document.querySelector('.js-img-indicators')
   indicators.innerHTML = ''
