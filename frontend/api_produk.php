@@ -17,6 +17,10 @@ if (file_exists($cache_file)) {
             if (isset($p['id'])) {
                 $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $p['id']);
                 $upload_dir = __DIR__ . "/uploads/";
+                if (!is_dir($upload_dir)) {
+                    $backend_dir = __DIR__ . "/../backend/uploads/";
+                    if (is_dir($backend_dir)) $upload_dir = $backend_dir;
+                }
                 $images = [];
                 $matched_files = glob($upload_dir . $safe_kode . "_*.webp");
                 if (empty($matched_files)) {
@@ -35,8 +39,10 @@ if (file_exists($cache_file)) {
                 }
                 if (!empty($matched_files)) {
                     $images = [];
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                    $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
                     foreach ($matched_files as $file) {
-                        $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
+                        $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
                     }
                     $p['image'] = $images[0];
                     $p['images'] = $images;
@@ -106,6 +112,10 @@ while($row = pg_fetch_assoc($result)) {
     $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
 
     $upload_dir = __DIR__ . "/uploads/";
+    if (!is_dir($upload_dir)) {
+        $backend_dir = __DIR__ . "/../backend/uploads/";
+        if (is_dir($backend_dir)) $upload_dir = $backend_dir;
+    }
     $images = [];
     $matched_files = glob($upload_dir . $safe_kode . "_*.webp");
     if (empty($matched_files)) {
@@ -125,8 +135,10 @@ while($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $img_base = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'royal-backend-s3ir.onrender.com');
         foreach ($matched_files as $file) {
-            $images[] = "uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = $img_base . "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;
