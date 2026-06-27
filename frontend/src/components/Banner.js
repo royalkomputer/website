@@ -12,7 +12,7 @@ export function Banner(banners) {
         <div class="js-banner-slide min-w-full">
           ${b.link ? `<a href="${escAttr(b.link)}" target="_blank" rel="noopener">` : ''}
             <img src="uploads/banners/${escAttr(b.image)}" alt="${escAttr(b.alt || 'Banner')}"
-                 class="w-full h-48 md:h-64 lg:h-80 object-cover rounded-2xl">
+                 class="w-full h-auto rounded-2xl">
           ${b.link ? '</a>' : ''}
         </div>
       `).join('')}

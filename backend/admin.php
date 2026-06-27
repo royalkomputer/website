@@ -1761,12 +1761,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const btn = document.getElementById('btn-simpan-banner');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+            // Safety net: always restore button after 20s max
+            const safetyTimer = setTimeout(function() { restoreBannerBtn(btn); }, 20000);
+
             const formData = new FormData(this);
             fetch('update_banner.php', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + document.getElementById('banner-submit-text').textContent;
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    clearTimeout(safetyTimer);
+                    restoreBannerBtn(btn);
                     if (data.success) {
                         showFeedback('banner-feedback', 'Banner berhasil disimpan.', 'green');
                         resetBannerForm();
@@ -1775,12 +1779,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         showFeedback('banner-feedback', data.message, 'red');
                     }
                 })
-                .catch(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + document.getElementById('banner-submit-text').textContent;
+                .catch(function() {
+                    clearTimeout(safetyTimer);
+                    restoreBannerBtn(btn);
                     showFeedback('banner-feedback', 'Gagal menyimpan banner.', 'red');
                 });
         });
+    }
+
+    function restoreBannerBtn(btn) {
+        const submitText = document.getElementById('banner-submit-text');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + (submitText ? submitText.textContent : 'Simpan Banner');
     }
 });
 
