@@ -333,7 +333,7 @@ if (!$is_open) {
             <div id="empty-state" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
                 <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
                 <h4 class="text-lg font-bold text-slate-800 mb-1">Produk Tidak Ditemukan</h4>
-                <p class="text-slate-500 text-sm">Semua stok habis atau di luar kriteria pencarian Anda.</p>
+                <p class="text-slate-500 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
             </div>
 
             <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
@@ -436,7 +436,6 @@ if (!$is_open) {
                 
                 <div class="mt-auto pt-4 border-t border-slate-100">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm text-slate-500">Sisa Stok: <strong id="detail-stock" class="text-slate-800"></strong></span>
                         <a id="detail-wa-btn" href="#" target="_blank" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-lg text-sm" title="Pesan via WhatsApp">
                             <i class="fa-brands fa-whatsapp text-lg"></i> <span>Pesan</span>
                         </a>
@@ -492,8 +491,6 @@ if (!$is_open) {
             const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
             document.getElementById('detail-price').innerText = formattedPrice;
             document.getElementById('detail-desc').innerText = product.description || 'Tidak ada deskripsi rinci untuk produk ini.';
-            document.getElementById('detail-stock').innerText = product.stock;
-
             const isBekas = (product.name || '').toUpperCase().includes('2ND');
             document.getElementById('detail-badge').innerHTML = isBekas 
                 ? `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-md border border-orange-200">KONDISI: BEKAS</span>`
@@ -776,7 +773,6 @@ if (!$is_open) {
                     <div class="mt-auto flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-100">
                         <div class="text-sm sm:text-lg md:text-xl font-extrabold text-astra-700">${formattedPrice}</div>
                         <div class="flex items-center gap-1.5 sm:gap-2">
-                            <span class="text-[10px] sm:text-xs text-slate-500">Stok: <strong class="text-slate-700">${product.stock}</strong></span>
                             <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3.5 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
                                 <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i> <span class="hidden sm:inline">Pesan</span>
                             </a>

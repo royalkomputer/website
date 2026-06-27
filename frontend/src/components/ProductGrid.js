@@ -69,7 +69,7 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   <div class="js-empty-state hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
     <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
     <h4 class="text-lg font-bold text-slate-800 mb-1">Produk Tidak Ditemukan</h4>
-    <p class="text-slate-500 text-sm">Semua stok habis atau di luar kriteria pencarian Anda.</p>
+    <p class="text-slate-500 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
   </div>
 
   <!-- Product cards grid/list -->

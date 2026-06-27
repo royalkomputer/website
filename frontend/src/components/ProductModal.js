@@ -51,9 +51,6 @@ export function ProductModal() {
       </div>
 
       <div class="mt-auto pt-4 border-t border-slate-100">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm text-slate-500">Sisa Stok: <strong class="js-detail-stock text-slate-800"></strong></span>
-        </div>
         <a class="js-detail-wa-btn w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm" href="#" target="_blank">
           <i class="fa-brands fa-whatsapp text-xl"></i> Beli via WhatsApp
         </a>
@@ -85,8 +82,6 @@ export function openModal(product) {
   const formattedPrice = formatIDR(product.price)
   document.querySelector('.js-detail-price').textContent = formattedPrice
   document.querySelector('.js-detail-desc').textContent = product.description || 'Tidak ada deskripsi rinci untuk produk ini.'
-  document.querySelector('.js-detail-stock').textContent = product.stock
-
   const bekas = isBekas(product)
   document.querySelector('.js-detail-badge').innerHTML = bekas
     ? `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-md border border-orange-200">KONDISI: BEKAS</span>`
