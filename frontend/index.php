@@ -288,7 +288,7 @@ if (!$is_open) {
                 <div class="mb-6 border-t border-slate-100 pt-5">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
                     <div class="relative">
-                        <select id="condition-select" onchange="handleCondition(this.value)" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl p-2.5 pr-8 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-colors">
+                        <select id="condition-select" onchange="handleCondition(this.value)" class="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
                             <option value="Semua">Semua Kondisi</option>
                             <option value="Baru">Baru</option>
                             <option value="Bekas">Bekas (2ND)</option>
@@ -300,7 +300,7 @@ if (!$is_open) {
                 <div class="border-t border-slate-100 pt-5">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
                     <div class="relative">
-                        <select id="sort-select" onchange="handleSort(this.value)" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl p-2.5 pr-8 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-colors">
+                        <select id="sort-select" onchange="handleSort(this.value)" class="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
                             <option value="default">Rekomendasi Teratas</option>
                             <option value="low-high">Harga: Rendah ke Tinggi</option>
                             <option value="high-low">Harga: Tinggi ke Rendah</option>
