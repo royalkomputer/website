@@ -647,7 +647,7 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
 // ============================================================
 
 function backupToGit(): array {
-    // Deteksi apakah ada .env dengan kata sandi
+    // Deteksi apakah ada .env dengan GIT_TOKEN
     $env_token = '';
     $env_file = __DIR__ . '/.env';
     if (file_exists($env_file)) {
@@ -674,12 +674,19 @@ function backupToGit(): array {
         if ($ret === 0) {
             return ['success' => true, 'message' => $msg ?: 'Push berhasil'];
         }
-        // Bat gagal — fallback ke exec git langsung dengan token
+
+        // Bat gagal — coba trigger scheduled task (jalan sebagai user login)
+        if (triggerAdminPushTask()) {
+            return ['success' => true, 'message' => 'Push dijalankan melalui task scheduler sebagai user login. Periksa hasilnya beberapa saat lagi.'];
+        }
+
+        // Fallback: coba exec git langsung dengan token (jika ada)
         if ($git_token) {
             $exec_ret = execGitPush(__DIR__, $git_token, $repo_url, $branch);
             if ($exec_ret['success']) return $exec_ret;
         }
-        return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . '). Buat GitHub token dan tambahkan ke backend/.env'];
+
+        return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . '). Buat GitHub token dan tambahkan ke backend/.env, atau jalankan backend/setup_push_task.bat sebagai Administrator.'];
     }
 
     // Linux / Render — cari .git di repo root atau parent
@@ -693,6 +700,19 @@ function backupToGit(): array {
     }
 
     return execGitPush($git_dir, $git_token, $repo_url, $branch);
+}
+
+/**
+ * Coba trigger scheduled task RoyalKomputer Admin Push.
+ * Task ini harus dibuat dulu via setup_push_task.bat (sekali saja).
+ */
+function triggerAdminPushTask(): bool {
+    $task = 'RoyalKomputer Admin Push';
+    exec("schtasks /Query /FO CSV /TN \"$task\" 2>&1", $out, $code);
+    if ($code !== 0) return false;
+
+    exec("schtasks /Run /TN \"$task\" 2>&1", $out2, $code2);
+    return $code2 === 0;
 }
 
 /**

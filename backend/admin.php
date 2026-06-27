@@ -689,7 +689,8 @@ $heading = loadHeading();
                     <ul class="list-disc ml-5 mt-1 text-amber-700 space-y-0.5">
                         <li>Hanya perubahan dari panel admin yang akan di-push (data/ + uploads/).</li>
                         <li>Perubahan dari IPOS (sync) tetap dijalankan oleh Task Scheduler lokal setiap jam.</li>
-                        <li>Pastikan GIT_TOKEN sudah di-set di environment Render.</li>
+                        <li>Untuk push dari panel admin, buat GitHub token → simpan di <code class="bg-amber-100 px-1 rounded">backend/.env</code> sebagai <code class="bg-amber-100 px-1 rounded">GIT_TOKEN=token_anda</code></li>
+                        <li>Atau jalankan <code class="bg-amber-100 px-1 rounded">backend/setup_push_task.bat</code> sbg Administrator sekali saja (task scheduler jalan sebagai user login).</li>
                     </ul>
                 </div>
             </div>
