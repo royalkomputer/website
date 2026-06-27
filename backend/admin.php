@@ -534,7 +534,7 @@ $heading = loadHeading();
                 <div class="flex items-center gap-3">
                     <button type="submit" id="btn-simpan-banner"
                         class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> <span id="banner-submit-text">Simpan Banner</span>
+                        <i id="banner-btn-icon" class="fa-solid fa-floppy-disk"></i> <span id="banner-submit-text">Simpan Banner</span>
                     </button>
                     <button type="button" onclick="resetBannerForm()" id="btn-batal-banner"
                         class="hidden bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2">
@@ -1759,19 +1759,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bannerForm) {
         bannerForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('btn-simpan-banner');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-
-            // Safety net: always restore button after 20s max
-            const safetyTimer = setTimeout(function() { restoreBannerBtn(btn); }, 20000);
+            setBannerLoading(true);
+            const safetyTimer = setTimeout(function() { setBannerLoading(false); }, 20000);
 
             const formData = new FormData(this);
             fetch('update_banner.php', { method: 'POST', body: formData })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     clearTimeout(safetyTimer);
-                    restoreBannerBtn(btn);
+                    setBannerLoading(false);
                     if (data.success) {
                         showFeedback('banner-feedback', 'Banner berhasil disimpan.', 'green');
                         resetBannerForm();
@@ -1782,16 +1778,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(function() {
                     clearTimeout(safetyTimer);
-                    restoreBannerBtn(btn);
+                    setBannerLoading(false);
                     showFeedback('banner-feedback', 'Gagal menyimpan banner.', 'red');
                 });
         });
     }
 
-    function restoreBannerBtn(btn) {
-        const submitText = document.getElementById('banner-submit-text');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ' + (submitText ? submitText.textContent : 'Simpan Banner');
+    function setBannerLoading(loading) {
+        var btn = document.getElementById('btn-simpan-banner');
+        var icon = document.getElementById('banner-btn-icon');
+        var text = document.getElementById('banner-submit-text');
+        if (!btn || !icon || !text) return;
+        if (loading) {
+            btn.disabled = true;
+            icon.className = 'fa-solid fa-spinner fa-spin';
+            text.textContent = 'Menyimpan...';
+        } else {
+            btn.disabled = false;
+            icon.className = 'fa-solid fa-floppy-disk';
+            text.textContent = bannerEditId ? 'Update Banner' : 'Simpan Banner';
+        }
     }
 });
 
