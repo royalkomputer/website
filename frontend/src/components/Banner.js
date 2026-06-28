@@ -5,7 +5,9 @@
  * @returns {string} HTML string
  */
 
-const BANNER_BASE_URL = 'https://royal-backend-s3ir.onrender.com/uploads/banners/'
+const BANNER_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '/uploads/banners/'
+  : 'https://royal-backend-s3ir.onrender.com/uploads/banners/'
 
 export function renderPlaylist(playlist, index) {
   const photos = playlist.photos || []

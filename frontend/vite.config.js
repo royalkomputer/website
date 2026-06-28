@@ -9,6 +9,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Proxy API calls to the PHP backend during development
+      '/api_banner.php': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+      },
       '/api_produk.php': {
         target: 'http://localhost:8081',
         changeOrigin: true,
