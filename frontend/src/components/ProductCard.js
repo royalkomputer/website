@@ -31,19 +31,19 @@ export function ProductCard(product, onDetail) {
 const fallbackSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23f1f5f9' width='400' height='300'/%3E%3Ctext fill='%2394a3b8' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ETidak ada gambar%3C/text%3E%3C/svg%3E`
 
 return `
-<div class="js-product-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
-  <div class="relative overflow-hidden aspect-[4/3] bg-slate-100 dark:bg-slate-700">
+<div class="js-product-card bg-black rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
+  <div class="relative overflow-hidden aspect-[4/3] bg-slate-800">
     <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
     ${badgeKondisi}
-    <div class="absolute top-2 right-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-astra-700 dark:text-astra-300 text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2 md:py-1 rounded-md shadow-sm">
+    <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-astra-700 text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2 md:py-1 rounded-md shadow-sm">
       ${product.category}
     </div>
   </div>
   <div class="p-3 md:p-4 flex flex-col flex-grow">
-    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
-    <div class="mt-auto pt-2 md:pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
-      <div class="text-sm md:text-base font-extrabold text-astra-700 dark:text-astra-400 truncate min-w-0">${formattedPrice}</div>
+    <h3 class="font-bold text-white text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
+    <div class="mt-auto pt-2 md:pt-3 border-t border-slate-700 flex items-center justify-between gap-2">
+      <div class="text-sm md:text-base font-extrabold text-astra-400 truncate min-w-0">${formattedPrice}</div>
       <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
         <i class="fa-brands fa-whatsapp text-sm"></i>
       </a>

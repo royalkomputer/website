@@ -63,10 +63,6 @@ function renderApp() {
   bindNavbarEvents(handleSearch)
   bindModalEvents()
   bindViewToggleEvents()
-  updateThemeIcon()
-  document.querySelectorAll('.js-theme-btn, .js-theme-btn-mobile, .js-theme-btn-mobile2').forEach(function(btn) {
-    btn.addEventListener('click', window.toggleTheme)
-  })
 
   // Load data
   loadData()
@@ -306,23 +302,6 @@ function updateViewToggleUI() {
   document.querySelectorAll('.js-view-toggle').forEach(btn => {
     const isActive = btn.dataset.view === state.viewMode
     btn.className = `js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 dark:hover:text-white'}`
-  })
-}
-
-// ──────────────────────────────────────────────
-//  Theme Toggle
-// ──────────────────────────────────────────────
-
-window.toggleTheme = function() {
-  var isDark = document.documentElement.classList.toggle('dark')
-  localStorage.setItem('theme', isDark ? 'dark' : 'light')
-  updateThemeIcon()
-}
-
-function updateThemeIcon() {
-  var isDark = document.documentElement.classList.contains('dark')
-  document.querySelectorAll('.js-theme-icon').forEach(function(el) {
-    el.className = 'fa-solid ' + (isDark ? 'fa-sun' : 'fa-moon') + ' text-lg text-slate-600 dark:text-yellow-400'
   })
 }
 

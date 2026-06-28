@@ -1,8 +1,23 @@
 [
     {
+        "id": "pl_6a411f2246a3f",
+        "name": "Motherboard",
+        "order": 1,
+        "active": true,
+        "interval": 5000,
+        "aspect": "16\/9",
+        "photos": [
+            {
+                "image": "pl_6a411f2246a3f_0.webp",
+                "link": "",
+                "alt": "MSI PRO B760M-P DDR5"
+            }
+        ]
+    },
+    {
         "id": "pl_6a40f97a0afce",
         "name": "CASE",
-        "order": 1,
+        "order": 2,
         "active": true,
         "interval": 5000,
         "aspect": "16\/9",
@@ -16,26 +31,6 @@
                 "image": "pl_6a40f97a0afce_1.webp",
                 "link": "https:\/\/www.fpmax.net\/product_20\/Wind-Shell-G2.html",
                 "alt": "FPMAX WIND SHELL G2"
-            }
-        ]
-    },
-    {
-        "id": "pl_6a40ce6dd1146",
-        "name": "MOTHERBOARD",
-        "order": 2,
-        "active": true,
-        "interval": 5000,
-        "aspect": "21\/9",
-        "photos": [
-            {
-                "image": "pl_6a40ce6dd1146_0.webp",
-                "link": "https:\/\/www.msi.com\/Motherboard\/PRO-B760M-P",
-                "alt": "MSI PRO B760M-P DDR5"
-            },
-            {
-                "image": "pl_6a40ce6dd1146_1.webp",
-                "link": "https:\/\/id.msi.com\/Motherboard\/PRO-B650M-A-WIFI",
-                "alt": "MSI B650M-A WIFI"
             }
         ]
     },
@@ -61,21 +56,6 @@
                 "image": "pl_6a40fa00728c0_2.webp",
                 "link": "https:\/\/enlight-indonesia.com\/product\/en-z10\/",
                 "alt": "ENLIGHT Z10 BLACK"
-            }
-        ]
-    },
-    {
-        "id": "pl_6a40cd9ba6d16",
-        "name": "CPU FAN",
-        "order": 4,
-        "active": true,
-        "interval": 5000,
-        "aspect": "16\/9",
-        "photos": [
-            {
-                "image": "pl_6a40cd9ba6d16_0.webp",
-                "link": "https:\/\/www.upheregaming.com\/?list_53\/139.html",
-                "alt": "UPHERE H85K6"
             }
         ]
     }

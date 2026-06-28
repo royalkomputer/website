@@ -35,13 +35,9 @@ export function Navbar({ onSearch }) {
       </button>
     </div>
 
-    <!-- Social Links (desktop) + Theme Toggle -->
+    <!-- Social Links (desktop) -->
     <div class="hidden md:flex items-center gap-3 flex-shrink-0">
-      <!-- Theme Toggle -->
-      <button class="js-theme-btn flex items-center justify-center h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle tema">
-        <i class="js-theme-icon fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
-      </button>
-      <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold hidden lg:inline">Ikuti Kami:</span>
+      <span class="text-xs text-slate-500 font-semibold hidden lg:inline">Ikuti Kami:</span>
       <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
         <i class="fa-brands fa-facebook text-lg"></i>
       </a>
@@ -62,12 +58,9 @@ export function Navbar({ onSearch }) {
       </a>
     </div>
 
-    <!-- Mobile: Theme toggle + Search toggle + Hamburger -->
+    <!-- Mobile: Search toggle + Hamburger -->
     <div class="flex md:hidden items-center gap-2">
-      <button class="js-theme-btn-mobile flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0" title="Toggle tema">
-        <i class="js-theme-icon-mobile fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
-      </button>
-      <button class="js-search-toggle flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0">
+      <button class="js-search-toggle flex items-center justify-center text-slate-500 hover:text-slate-700 focus:outline-none h-9 w-9 bg-slate-100 border border-slate-300 rounded-lg flex-shrink-0">
         <i class="fa-solid fa-magnifying-glass text-lg"></i>
       </button>
       <button class="js-nav-toggle flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0">
@@ -95,10 +88,7 @@ export function Navbar({ onSearch }) {
   <div class="js-nav-sosmed-menu hidden md:hidden border-t border-slate-300 dark:border-slate-800">
     <div class="container mx-auto px-4 py-3 flex flex-col gap-1">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Ikuti Kami:</span>
-        <button class="js-theme-btn-mobile2 flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0" title="Toggle tema">
-          <i class="js-theme-icon-mobile2 fa-solid fa-sun text-sm text-slate-600 dark:text-yellow-400"></i>
-        </button>
+        <span class="text-xs text-slate-500 font-semibold">Ikuti Kami:</span>
       </div>
       ${socialLink('https://www.facebook.com/royall.komp', 'fa-brands fa-facebook', 'text-blue-500', 'Facebook')}
       ${socialLink('https://www.facebook.com/royalkomputerkediri?locale=id_ID', 'fa-solid fa-flag', 'text-sky-500', 'Facebook Pages')}

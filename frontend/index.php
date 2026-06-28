@@ -103,7 +103,6 @@ if (!$is_open) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], },
@@ -116,9 +115,6 @@ if (!$is_open) {
                 }
             },
         }
-    </script>
-    <script>
-        (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.classList.toggle('dark',t==='dark')}else{document.documentElement.classList.toggle('dark',window.matchMedia('(prefers-color-scheme:dark)').matches)}})()
     </script>
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -206,13 +202,9 @@ if (!$is_open) {
             </button>
         </div>
         
-        <!-- Sosmed Links (desktop) + Theme Toggle -->
+        <!-- Sosmed Links (desktop) -->
         <div class="hidden md:flex items-center gap-3 flex-shrink-0">
-            <!-- Theme Toggle -->
-            <button onclick="toggleTheme()" class="js-theme-btn flex items-center justify-center h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle tema">
-                <i class="js-theme-icon fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
-            </button>
-            <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold hidden lg:inline">Ikuti Kami:</span>
+            <span class="text-xs text-slate-500 font-semibold hidden lg:inline">Ikuti Kami:</span>
             <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
                 <i class="fa-brands fa-facebook text-lg"></i>
             </a>
@@ -233,12 +225,9 @@ if (!$is_open) {
             </a>
         </div>
 
-        <!-- Hamburger + Theme Toggle (mobile) -->
+        <!-- Hamburger (mobile) -->
         <div class="flex md:hidden items-center gap-2">
-            <button onclick="toggleTheme()" class="js-theme-btn-mobile flex items-center justify-center h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle tema">
-                <i class="js-theme-icon-mobile fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
-            </button>
-            <button onclick="toggleNavMenu()" class="flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0">
+            <button onclick="toggleNavMenu()" class="flex items-center justify-center text-slate-500 hover:text-slate-700 focus:outline-none h-9 w-9 bg-slate-100 border border-slate-300 rounded-lg flex-shrink-0">
                 <i class="fa-solid fa-bars text-lg"></i>
             </button>
         </div>
@@ -261,10 +250,7 @@ if (!$is_open) {
     <div id="nav-sosmed-menu" class="hidden md:hidden border-t border-slate-300 dark:border-slate-800">
         <div class="container mx-auto px-4 py-3 flex flex-col gap-1">
             <div class="flex items-center justify-between mb-1">
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Ikuti Kami:</span>
-                <button onclick="toggleTheme()" class="js-theme-btn-mobile2 flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0" title="Toggle tema">
-                    <i class="js-theme-icon-mobile2 fa-solid fa-sun text-sm text-slate-600 dark:text-yellow-400"></i>
-                </button>
+            <span class="text-xs text-slate-500 font-semibold">Ikuti Kami:</span>
             </div>
             <a href="https://www.facebook.com/royall.komp" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-facebook text-lg w-5 text-blue-500"></i>
@@ -537,18 +523,6 @@ if (!$is_open) {
                 icon.classList.toggle('rotate-180');
             }
         }
-
-        function toggleTheme() {
-            var isDark = document.documentElement.classList.toggle('dark')
-            localStorage.setItem('theme', isDark ? 'dark' : 'light')
-            updateThemeIcon()
-        }
-        function updateThemeIcon() {
-            var isDark = document.documentElement.classList.contains('dark')
-            document.querySelectorAll('.js-theme-icon').forEach(function(el) {
-                el.className = 'fa-solid ' + (isDark ? 'fa-sun' : 'fa-moon') + ' text-lg text-slate-600 dark:text-yellow-400'
-            })
-        }
         
         let allProducts = [];
         let filteredProducts = [];
@@ -648,7 +622,6 @@ if (!$is_open) {
         }
         
         window.addEventListener('DOMContentLoaded', () => {
-            updateThemeIcon();
             initPage();
         });
         
@@ -1000,7 +973,7 @@ if (!$is_open) {
 
         function createGridCard(product) {
             const card = document.createElement('div');
-            card.className = "bg-white rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
+            card.className = "bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
             const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
 
             const waNumber = "6281380686168";
@@ -1021,9 +994,9 @@ if (!$is_open) {
                     </div>
                 </div>
                 <div class="p-2.5 sm:p-5 flex flex-col flex-grow">
-                    <h3 class="font-bold text-slate-800 text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
-                    <div class="mt-auto pt-2 sm:pt-4 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                        <div class="text-sm sm:text-xl font-extrabold text-astra-700 truncate min-w-0">${formattedPrice}</div>
+                    <h3 class="font-bold text-white text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
+                    <div class="mt-auto pt-2 sm:pt-4 border-t border-slate-700 flex items-center justify-between gap-1.5">
+                        <div class="text-sm sm:text-xl font-extrabold text-astra-400 truncate min-w-0">${formattedPrice}</div>
                         <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
                             <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i>
                         </a>
@@ -1035,7 +1008,7 @@ if (!$is_open) {
 
         function createDetailCard(product) {
             const card = document.createElement('div');
-            card.className = "bg-white rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group";
+            card.className = "bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group";
             const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
 
             const waNumber = "6281380686168";
