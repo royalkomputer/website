@@ -57,26 +57,32 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <!-- Condition -->
     <div class="mb-6 border-t border-slate-100 pt-5">
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
-      <div class="relative">
-        <select class="js-condition-select w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-2xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
-          <option value="Semua">Semua Kondisi</option>
-          <option value="Baru">Baru</option>
-          <option value="Bekas">Bekas (2ND)</option>
-        </select>
-        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      <div class="flex gap-2">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center" data-condition="Semua">
+          <i class="fa-solid fa-check hidden"></i> Semua
+        </button>
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center" data-condition="Baru">
+          <i class="fa-solid fa-check hidden"></i> Baru
+        </button>
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center" data-condition="Bekas">
+          <i class="fa-solid fa-check hidden"></i> Bekas
+        </button>
       </div>
     </div>
 
     <!-- Sort -->
     <div class="border-t border-slate-100 pt-5">
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
-      <div class="relative">
-        <select class="js-sort-select w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-2xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
-          <option value="default">Rekomendasi Teratas</option>
-          <option value="low-high">Harga: Rendah ke Tinggi</option>
-          <option value="high-low">Harga: Tinggi ke Rendah</option>
-        </select>
-        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+      <div class="space-y-1">
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2" data-sort="default">
+          <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
+        </button>
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2" data-sort="low-high">
+          <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
+        </button>
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2" data-sort="high-low">
+          <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
+        </button>
       </div>
     </div>
 
@@ -91,7 +97,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
  * @param {Object} filters — mutable filter state reference
  * @param {Function} onFilterChange — called when any filter changes
  */
-export function bindFilterEvents(filters, onFilterChange) {
+export function bindFilterEvents(filters, onFilterChange, canReset) {
   const filterContent = document.querySelector('.js-filter-content')
   const filterToggle = document.querySelector('.js-filter-toggle')
   const filterIcon = document.querySelector('.js-filter-icon')
@@ -126,28 +132,27 @@ export function bindFilterEvents(filters, onFilterChange) {
     })
   })
 
-  // Condition select
-  const condSelect = document.querySelector('.js-condition-select')
-  if (condSelect) {
-    condSelect.addEventListener('change', () => {
-      filters.condition = condSelect.value
+  // Condition buttons
+  document.querySelectorAll('.js-cond-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filters.condition = btn.dataset.condition
       onFilterChange()
     })
-  }
+  })
 
-  // Sort select
-  const sortSelect = document.querySelector('.js-sort-select')
-  if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
-      filters.sortBy = sortSelect.value
+  // Sort buttons
+  document.querySelectorAll('.js-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filters.sortBy = btn.dataset.sort
       onFilterChange()
     })
-  }
+  })
 
   // Reset button
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
+      if (canReset && !canReset()) return
       filters.category = 'Semua'
       filters.search = ''
       filters.sortBy = 'default'
@@ -166,6 +171,24 @@ export function bindFilterEvents(filters, onFilterChange) {
 /**
  * Update visual selection state for category buttons.
  */
+export function updateConditionButtons(selected) {
+  document.querySelectorAll('.js-cond-btn').forEach(btn => {
+    const isSelected = btn.dataset.condition === selected
+    btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
+    const icon = btn.querySelector('.fa-check')
+    if (icon) icon.classList.toggle('hidden', !isSelected)
+  })
+}
+
+export function updateSortButtons(selected) {
+  document.querySelectorAll('.js-sort-btn').forEach(btn => {
+    const isSelected = btn.dataset.sort === selected
+    btn.className = `js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`
+    const icon = btn.querySelector('i')
+    if (icon) icon.className = isSelected ? 'fa-solid fa-check text-white w-4' : btn.dataset.sort === 'default' ? 'fa-regular fa-star text-slate-400 w-4' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short text-slate-400 w-4' : 'fa-solid fa-arrow-down-wide-short text-slate-400 w-4'
+  })
+}
+
 export function updateCategoryButtons(selectedCategory) {
   document.querySelectorAll('.js-cat-btn').forEach(btn => {
     const isSelected = btn.dataset.category === selectedCategory

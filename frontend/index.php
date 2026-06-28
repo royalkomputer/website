@@ -295,7 +295,7 @@ if (!$is_open) {
 
             <div id="filter-content" class="hidden lg:block p-4 pt-4 lg:p-6 lg:pt-0">
                 <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100">
-                    <button onclick="resetFilters()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
+                    <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
                         <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
                     </button>
                 </div>
@@ -312,25 +312,31 @@ if (!$is_open) {
                 
                 <div class="mb-6 border-t border-slate-100 pt-5">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
-                    <div class="relative">
-                        <select id="condition-select" onchange="handleCondition(this.value)" class="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-2xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
-                            <option value="Semua">Semua Kondisi</option>
-                            <option value="Baru">Baru</option>
-                            <option value="Bekas">Bekas (2ND)</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    <div class="flex gap-2">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Semua" onclick="handleCondition('Semua')">
+                            <i class="fa-solid fa-check hidden"></i> Semua
+                        </button>
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Baru" onclick="handleCondition('Baru')">
+                            <i class="fa-solid fa-check hidden"></i> Baru
+                        </button>
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Bekas" onclick="handleCondition('Bekas')">
+                            <i class="fa-solid fa-check hidden"></i> Bekas
+                        </button>
                     </div>
                 </div>
 
                 <div class="border-t border-slate-100 pt-5">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
-                    <div class="relative">
-                        <select id="sort-select" onchange="handleSort(this.value)" class="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-sm rounded-2xl p-3 pr-10 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer transition-all shadow-sm hover:shadow-md">
-                            <option value="default">Rekomendasi Teratas</option>
-                            <option value="low-high">Harga: Rendah ke Tinggi</option>
-                            <option value="high-low">Harga: Tinggi ke Rendah</option>
-                        </select>
-                        <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                    <div class="space-y-1">
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="default" onclick="handleSort('default')">
+                            <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
+                        </button>
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="low-high" onclick="handleSort('low-high')">
+                            <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
+                        </button>
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="high-low" onclick="handleSort('high-low')">
+                            <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
+                        </button>
                     </div>
                 </div>
             </div>
@@ -597,10 +603,28 @@ if (!$is_open) {
             initPage();
         });
         
+        function updateCondUI(val) {
+            document.querySelectorAll('.js-cond-btn').forEach(function(btn) {
+                var sel = btn.dataset.condition === val;
+                btn.className = (sel ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100') + ' js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center';
+                btn.querySelector('.fa-check').classList.toggle('hidden', !sel);
+            });
+        }
+
+        function updateSortUI(val) {
+            document.querySelectorAll('.js-sort-btn').forEach(function(btn) {
+                var sel = btn.dataset.sort === val;
+                btn.className = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ' + (sel ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100');
+                var ico = btn.querySelector('i');
+                if (ico) ico.className = sel ? 'fa-solid fa-check text-white w-4' : btn.dataset.sort === 'default' ? 'fa-regular fa-star text-slate-400 w-4' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short text-slate-400 w-4' : 'fa-solid fa-arrow-down-wide-short text-slate-400 w-4';
+            });
+        }
+
         function handleCondition(val) {
             activeFilters.condition = val;
-            var grid = document.getElementById('product-grid');
-            if (grid && grid.classList.contains('hidden')) return;
+            updateCondUI(val);
+            hideBanner();
+            hasActivated = true;
             applyFiltersAndSort();
         }
 
@@ -794,21 +818,21 @@ if (!$is_open) {
 
         function handleSort(val) {
             activeFilters.sortBy = val;
-            var grid = document.getElementById('product-grid');
-            if (grid && grid.classList.contains('hidden')) return;
+            updateSortUI(val);
+            hideBanner();
+            hasActivated = true;
             applyFiltersAndSort();
         }
 
         function resetFilters() {
+    if (!hasActivated) return;
     activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
-    hasActivated = false;
+    hasActivated = true;
     document.getElementById('search-input').value = '';
     document.getElementById('search-input-mobile').value = '';
     document.getElementById('sort-select').value = 'default';
     document.getElementById('condition-select').value = 'Semua';
     generateCategoryFilterOptions();
-    var banner = document.getElementById('banner-playlists');
-    if (banner && bannerVisible) banner.classList.remove('hidden');
     applyFiltersAndSort();
 }
 
@@ -826,15 +850,21 @@ if (!$is_open) {
             var productCount = document.getElementById('product-count');
 
             if (!hasActivated) {
+                updateCondUI('Semua');
+                updateSortUI('default');
                 if (prompt) { prompt.classList.remove('hidden'); prompt.classList.remove('banner-hiding'); }
                 if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
                 if (emptyState) emptyState.classList.add('hidden');
                 if (productCount) productCount.innerText = '0';
                 var infoBar = document.getElementById('product-info-bar');
                 if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden'); }
+                var resetBtn = document.getElementById('reset-filter-btn');
+                if (resetBtn) { resetBtn.classList.add('opacity-50', 'cursor-not-allowed'); }
                 return;
             }
 
+            updateCondUI(activeFilters.condition);
+            updateSortUI(activeFilters.sortBy);
             if (prompt) hideSearchPrompt();
             if (grid) grid.classList.remove('hidden');
             var infoBar = document.getElementById('product-info-bar');
@@ -846,6 +876,8 @@ if (!$is_open) {
                     showInfoBar(infoBar);
                 }
             }
+            var resetBtn = document.getElementById('reset-filter-btn');
+            if (resetBtn) { resetBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
             filteredProducts = allProducts.filter(p => {
                 const matchCategory = activeFilters.category === 'Semua' || p.category === activeFilters.category;
                 

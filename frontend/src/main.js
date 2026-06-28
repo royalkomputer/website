@@ -1,7 +1,7 @@
 import './style.css'
 import { Navbar, bindNavbarEvents } from './components/Navbar.js'
 import { StoreStatus, loadHeadingText } from './components/StoreStatus.js'
-import { FilterSidebar, bindFilterEvents, updateCategoryButtons } from './components/FilterSidebar.js'
+import { FilterSidebar, bindFilterEvents, updateCategoryButtons, updateConditionButtons, updateSortButtons } from './components/FilterSidebar.js'
 import { ProductGrid, renderProductGrid, showLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
@@ -96,7 +96,6 @@ async function loadData() {
       bindFilterEvents(state.filters, function() {
         const isDefault = state.filters.category === 'Semua' && state.filters.search === '' && state.filters.sortBy === 'default' && state.filters.condition === 'Semua'
         if (isDefault) {
-          // Reset filter → tampilkan semua produk, bukan kembali ke banner
           state.hasActivated = true
           hideBanner()
         } else {
@@ -104,7 +103,7 @@ async function loadData() {
           state.hasActivated = true
         }
         applyFiltersAndRender()
-      })
+      }, () => state.hasActivated)
     }
   } catch (err) {
     console.error('Failed to load products:', err)
@@ -216,6 +215,8 @@ function applyFiltersAndRender() {
     if (countEl) countEl.textContent = '0'
     const infoBar = document.querySelector('.js-product-info-bar')
     if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden') }
+    const resetBtn = document.querySelector('.js-reset-filters')
+    if (resetBtn) { resetBtn.classList.add('opacity-50', 'cursor-not-allowed') }
     return
   }
 
@@ -248,10 +249,20 @@ function applyFiltersAndRender() {
     state.filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0))
   }
 
-  // Update category button visual state
+  // Update filter button visual states
   updateCategoryButtons(category)
+  updateConditionButtons(condition)
+  updateSortButtons(sortBy)
 
   renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode)
+
+  // Update reset button visual state (disabled while in banner view)
+  const resetBtn = document.querySelector('.js-reset-filters')
+  if (resetBtn) {
+    const disabled = !state.hasActivated
+    resetBtn.classList.toggle('opacity-50', disabled)
+    resetBtn.classList.toggle('cursor-not-allowed', disabled)
+  }
 }
 
 // ──────────────────────────────────────────────
