@@ -520,7 +520,7 @@ if (!$is_open) {
     </div>
 
     <script>
-        const BANNER_BASE_URL = '<?php echo BACKEND_URL; ?>/uploads/banners/';
+        const BANNER_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'uploads/banners/' : '<?php echo BACKEND_URL; ?>/uploads/banners/';
 
         // Fungsi untuk buka-tutup menu sosmed (Navbar) di Mobile
         function toggleNavMenu() {
