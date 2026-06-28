@@ -10,16 +10,19 @@ export function renderPlaylist(playlist, index) {
 
   const hasMultiple = photos.length > 1
   const plId = 'pl-' + index
+  const aspect = playlist.aspect || '16/9'
+  const [aw, ah] = aspect.split('/').map(Number)
+  const padPct = (ah / aw * 100) + '%'
 
   return `
-  <div class="rounded-2xl overflow-hidden transition-all duration-500 ease-in-out">
-    <div class="pl-carousel relative overflow-hidden rounded-2xl bg-slate-100 shadow-sm" data-pl="${plId}">
-      <div class="pl-track flex transition-transform duration-500 ease-in-out" data-pl="${plId}">
+  <div class="relative w-full rounded-2xl overflow-hidden bg-slate-100 shadow-sm" style="padding-bottom: ${padPct}">
+    <div class="pl-carousel absolute inset-0 overflow-hidden rounded-2xl" data-pl="${plId}">
+      <div class="pl-track flex transition-transform duration-500 ease-in-out w-full h-full" data-pl="${plId}">
         ${photos.map(p => `
-          <div class="pl-slide min-w-full flex-shrink-0" data-pl="${plId}">
-            ${p.link ? `<a href="${escAttr(p.link)}" target="_blank" rel="noopener">` : ''}
+          <div class="pl-slide min-w-full w-full flex-shrink-0 h-full" data-pl="${plId}">
+            ${p.link ? `<a href="${escAttr(p.link)}" target="_blank" rel="noopener" class="block h-full">` : ''}
               <img src="uploads/banners/${escAttr(p.image)}" alt="${escAttr(p.alt || playlist.name || 'Banner')}"
-                   class="w-full h-auto rounded-2xl">
+                   class="w-full h-full object-cover">
             ${p.link ? '</a>' : ''}
           </div>
         `).join('')}

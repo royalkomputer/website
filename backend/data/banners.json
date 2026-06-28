@@ -1,1 +1,37 @@
-[]
+[
+    {
+        "id": "pl_6a40cd9ba6d16",
+        "name": "Monitor",
+        "order": 1,
+        "active": true,
+        "interval": 5000,
+        "aspect": "16\/9",
+        "photos": [
+            {
+                "image": "pl_6a40cd9ba6d16_0.webp",
+                "link": "https:\/\/www.mi.co.id\/id\/product\/xiaomi-monitor-a27i-2026\/",
+                "alt": "XIAOMI A27I 2026"
+            }
+        ]
+    },
+    {
+        "id": "pl_6a40ce6dd1146",
+        "name": "MOTHERBOARD",
+        "order": 2,
+        "active": true,
+        "interval": 5000,
+        "aspect": "16\/9",
+        "photos": [
+            {
+                "image": "pl_6a40ce6dd1146_0.webp",
+                "link": "",
+                "alt": ""
+            },
+            {
+                "image": "pl_6a40ce6dd1146_1.webp",
+                "link": "",
+                "alt": ""
+            }
+        ]
+    }
+]

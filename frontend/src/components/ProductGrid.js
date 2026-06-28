@@ -42,8 +42,20 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   return `
 <section class="lg:col-span-4 flex flex-col gap-6">
 
+  <!-- Search prompt (shown by default) - slim sticky notification above banner -->
+  <div class="js-search-prompt sticky top-4 z-10 bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm" role="status">
+    <div class="flex-shrink-0 w-8 h-8 bg-astra-100 rounded-full flex items-center justify-center">
+      <i class="fa-solid fa-magnifying-glass text-sm text-astra-600"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-semibold text-astra-800">Cari Produk</p>
+      <p class="text-xs text-slate-500">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+    </div>
+    <i class="fa-solid fa-circle-info text-astra-300 text-sm flex-shrink-0"></i>
+  </div>
+
   <!-- Banner -->
-  <div class="js-banner-container hidden rounded-2xl overflow-hidden mb-6 transition-all duration-500 ease-in-out"></div>
+  <div class="js-banner-container hidden rounded-2xl mb-6 transition-all duration-500 ease-in-out"></div>
 
   <!-- Product count info + View toggle -->
   <div class="js-product-info-bar hidden flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -66,13 +78,6 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   <div class="js-loading-spinner py-20 flex flex-col items-center justify-center gap-3">
     <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
     <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
-  </div>
-
-  <!-- Search prompt (shown by default) -->
-  <div class="js-search-prompt bg-white rounded-xl border border-slate-200 p-12 text-center">
-    <i class="fa-solid fa-magnifying-glass text-5xl text-slate-300 mb-4"></i>
-    <h4 class="text-lg font-bold text-slate-800 mb-1">Cari Produk</h4>
-    <p class="text-slate-500 text-sm">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
   </div>
 
   <!-- Empty state -->

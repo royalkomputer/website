@@ -97,6 +97,7 @@ if ($action === 'save_playlist') {
     $id = trim($_POST['id'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $interval = (int)($_POST['interval'] ?? 5000);
+    $aspect = trim($_POST['aspect'] ?? '16/9');
     $active = ($_POST['active'] ?? '1') === '1';
     $order = (int)($_POST['order'] ?? 0);
 
@@ -115,6 +116,7 @@ if ($action === 'save_playlist') {
             'order' => count($playlists) + 1,
             'active' => $active,
             'interval' => max(2000, $interval),
+            'aspect' => $aspect,
             'photos' => []
         ];
         $playlists[] = &$playlist;
@@ -134,6 +136,7 @@ if ($action === 'save_playlist') {
         }
         $playlist['active'] = $active;
         $playlist['interval'] = max(2000, $interval);
+        $playlist['aspect'] = $aspect;
         if ($order > 0 && $order !== ($playlist['order'] ?? 0)) {
             $playlist['order'] = $order;
         }

@@ -522,6 +522,20 @@ $heading = loadHeading();
                             class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Ukuran Banner (rasio)</label>
+                        <select id="playlist-aspect-input"
+                            class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                            <option value="2/1">2 : 1 (Panorama) — Lebar</option>
+                            <option value="3/1">3 : 1 (Banner) — Sangat Lebar</option>
+                            <option value="16/9" selected>16 : 9 (Video) — Standar</option>
+                            <option value="21/9">21 : 9 (Ultrawide)</option>
+                            <option value="4/3">4 : 3 (Standar)</option>
+                            <option value="1/1">1 : 1 (Persegi)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">Pilih rasio yang paling sesuai dengan foto banner agar semua playlist tampil seragam.</p>
+                    </div>
+
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="playlist-active-input" value="1" checked
                             class="w-4 h-4 rounded border-slate-300 text-astra-700 focus:ring-astra-500">
@@ -1647,6 +1661,7 @@ function searchSerial() {
 // PLAYLIST BANNER MANAGEMENT
 // ============================================================
 let playlistEditId = null;
+let draggedPlaylistId = null;
 
 function loadPlaylists() {
     const container = document.getElementById('playlist-list');
@@ -1688,20 +1703,25 @@ function loadPlaylists() {
                         '<button type="button" onclick="deletePlaylist(\'' + pl.id + '\')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>' +
                     '</div>';
 
-                div.addEventListener('dragstart', () => div.classList.add('opacity-50'));
-                div.addEventListener('dragend', () => div.classList.remove('opacity-50'));
+                div.addEventListener('dragstart', () => {
+                    draggedPlaylistId = div.dataset.playlistId;
+                    div.classList.add('opacity-50');
+                });
+                div.addEventListener('dragend', () => {
+                    div.classList.remove('opacity-50');
+                    draggedPlaylistId = null;
+                });
                 div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('border-astra-500'); });
                 div.addEventListener('dragleave', () => div.classList.remove('border-astra-500'));
                 div.addEventListener('drop', e => {
                     e.preventDefault();
                     div.classList.remove('border-astra-500');
-                    const fromId = div.dataset.playlistId;
-                    const toId = e.currentTarget.dataset.playlistId;
-                    if (fromId === toId) return;
+                    if (!draggedPlaylistId || draggedPlaylistId === div.dataset.playlistId) return;
+                    const ids = Array.from(document.querySelectorAll('.playlist-item'))
+                        .map(el => el.dataset.playlistId);
                     const fd = new FormData();
                     fd.append('action', 'reorder_playlists');
-                    fd.append('from_id', fromId);
-                    fd.append('to_id', toId);
+                    fd.append('ids', JSON.stringify(ids));
                     fetch('update_banner.php', { method: 'POST', body: fd })
                         .then(r => r.json())
                         .then(data => {
@@ -1731,6 +1751,8 @@ function openPlaylistModal(editId) {
     const feedback = document.getElementById('playlist-modal-feedback');
     feedback.classList.add('hidden');
 
+    const aspectInput = document.getElementById('playlist-aspect-input');
+
     if (editId) {
         titleText.textContent = 'Edit Playlist';
         fetch('api_banner.php')
@@ -1742,6 +1764,7 @@ function openPlaylistModal(editId) {
                 intervalInput.value = pl.interval || 5;
                 activeInput.checked = pl.active !== false;
                 idInput.value = editId;
+                aspectInput.value = pl.aspect || '16/9';
             });
     } else {
         titleText.textContent = 'Tambah Playlist Baru';
@@ -1749,6 +1772,7 @@ function openPlaylistModal(editId) {
         intervalInput.value = 5;
         activeInput.checked = true;
         idInput.value = '';
+        aspectInput.value = '16/9';
     }
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -1771,6 +1795,7 @@ function submitPlaylist() {
     fd.append('id', document.getElementById('playlist-edit-id').value);
     fd.append('name', document.getElementById('playlist-name-input').value.trim());
     fd.append('interval', document.getElementById('playlist-interval-input').value);
+    fd.append('aspect', document.getElementById('playlist-aspect-input').value);
     fd.append('active', document.getElementById('playlist-active-input').checked ? '1' : '0');
 
     fetch('update_banner.php', { method: 'POST', body: fd })
