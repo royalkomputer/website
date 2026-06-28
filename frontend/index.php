@@ -307,56 +307,56 @@ if (!$is_open) {
 
     <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
         
-        <aside class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm self-start overflow-hidden">
+        <aside class="lg:col-span-1 bg-black rounded-xl border border-slate-700 shadow-sm self-start overflow-hidden">
             
-            <button onclick="toggleFilterMenu()" class="w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-50 dark:bg-slate-800 lg:bg-white dark:lg:bg-slate-800 border-b border-slate-100 dark:border-slate-700 lg:border-none">
-                <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-700"></i> Filter & Urutkan</h3>
-                <i id="filter-icon" class="fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-300 lg:hidden"></i>
+            <button onclick="toggleFilterMenu()" class="w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-black border-b border-slate-700 lg:border-none">
+                <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-400"></i> Filter & Urutkan</h3>
+                <i id="filter-icon" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300 lg:hidden"></i>
             </button>
 
             <div id="filter-content" class="hidden lg:block p-4 pt-4 lg:p-6 lg:pt-0">
-                <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100 dark:lg:border-slate-700">
-                    <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 dark:bg-astra-900/30 dark:hover:bg-astra-900/50 lg:bg-transparent lg:hover:bg-transparent dark:lg:bg-transparent dark:lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
+                <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
+                    <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-400 font-semibold bg-slate-800 hover:bg-slate-700 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
                         <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
                     </button>
                 </div>
 
                 <div class="mb-6">
-                    <button type="button" onclick="toggleCategoryPanel()" class="w-full flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
+                    <button type="button" onclick="toggleCategoryPanel()" class="w-full flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 focus:outline-none">
                         <span>Kategori</span>
-                        <i id="category-toggle-icon" class="fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-200"></i>
+                        <i id="category-toggle-icon" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
                     </button>
                     <div id="category-panel" class="space-y-1">
                         <div id="category-list" class="space-y-1"></div>
                     </div>
                 </div>
                 
-                <div class="mb-6 border-t border-slate-100 dark:border-slate-700 pt-5">
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
+                <div class="mb-6 border-t border-slate-700 pt-5">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Kondisi</label>
                     <div class="flex gap-2">
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Semua" onclick="handleCondition('Semua')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Semua" onclick="handleCondition('Semua')">
                             <i class="fa-solid fa-check hidden"></i> Semua
                         </button>
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Baru" onclick="handleCondition('Baru')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Baru" onclick="handleCondition('Baru')">
                             <i class="fa-solid fa-check hidden"></i> Baru
                         </button>
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Bekas" onclick="handleCondition('Bekas')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Bekas" onclick="handleCondition('Bekas')">
                             <i class="fa-solid fa-check hidden"></i> Bekas
                         </button>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-100 dark:border-slate-700 pt-5">
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
+                <div class="border-t border-slate-700 pt-5">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Urutkan</label>
                     <div class="space-y-1">
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="default" onclick="handleSort('default')">
-                            <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="default" onclick="handleSort('default')">
+                            <i class="fa-regular fa-star text-slate-500 w-4"></i> Rekomendasi Teratas
                         </button>
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="low-high" onclick="handleSort('low-high')">
-                            <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="low-high" onclick="handleSort('low-high')">
+                            <i class="fa-solid fa-arrow-up-wide-short text-slate-500 w-4"></i> Harga: Rendah ke Tinggi
                         </button>
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="high-low" onclick="handleSort('high-low')">
-                            <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="high-low" onclick="handleSort('high-low')">
+                            <i class="fa-solid fa-arrow-down-wide-short text-slate-500 w-4"></i> Harga: Tinggi ke Rendah
                         </button>
                     </div>
                 </div>
@@ -365,33 +365,33 @@ if (!$is_open) {
         </aside>
 
         <section class="lg:col-span-3 flex flex-col gap-6">
-            <div id="product-info-bar" class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hidden">
-                <div class="text-sm text-slate-600 dark:text-slate-300"><?php echo $product_info_html; ?></div>
-                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-0.5">
-                    <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-600 dark:text-slate-300" title="Tampilan Grid">
+            <div id="product-info-bar" class="flex items-center justify-between bg-black p-4 rounded-xl border border-slate-700 shadow-sm hidden">
+                <div class="text-sm text-slate-300"><?php echo $product_info_html; ?></div>
+                <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5">
+                    <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-300" title="Tampilan Grid">
                         <i class="fa-solid fa-grid-2"></i>
                     </button>
-                    <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-600 dark:text-slate-300" title="Tampilan Detail">
+                    <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-300" title="Tampilan Detail">
                         <i class="fa-solid fa-list"></i>
                     </button>
                 </div>
             </div>
 
-            <div id="search-prompt" class="bg-gradient-to-r from-astra-50 to-blue-50 dark:from-astra-950 dark:to-slate-900 border border-astra-200 dark:border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
-                <div class="flex-shrink-0 w-6 h-6 bg-astra-100 dark:bg-astra-800 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-magnifying-glass text-xs text-astra-600 dark:text-astra-300"></i>
+            <div id="search-prompt" class="bg-gradient-to-r from-astra-950 to-slate-900 border border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+                <div class="flex-shrink-0 w-6 h-6 bg-astra-800 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-astra-300"></i>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+                <p class="text-xs text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
             </div>
 
             <div id="banner-playlists" class="flex flex-col gap-4 mb-6"></div>
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
                 <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
-                <p class="text-slate-500 dark:text-slate-400 text-sm">Sedang memuat data produk...</p>
+                <p class="text-slate-400 text-sm">Sedang memuat data produk...</p>
             </div>
 
-            <div id="empty-state" class="hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                <i class="fa-solid fa-box-open text-5xl text-slate-300 dark:text-slate-500 mb-4"></i>
+            <div id="empty-state" class="hidden bg-black rounded-xl border border-slate-700 p-12 text-center">
+                <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-4"></i>
                 <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Produk Tidak Ditemukan</h4>
                 <p class="text-slate-500 dark:text-slate-400 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
             </div>
@@ -626,27 +626,23 @@ if (!$is_open) {
         });
         
         function updateCondUI(val) {
-            var isDark = document.documentElement.classList.contains('dark');
             document.querySelectorAll('.js-cond-btn').forEach(function(btn) {
                 var sel = btn.dataset.condition === val;
                 var cls = sel
                     ? 'bg-astra-700 text-white font-semibold shadow-sm'
-                    : (isDark
-                        ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100');
+                    : 'bg-black border border-slate-600 text-slate-300 hover:bg-slate-800';
                 btn.className = cls + ' js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center';
                 btn.querySelector('.fa-check').classList.toggle('hidden', !sel);
             });
         }
 
         function updateSortUI(val) {
-            var isDark = document.documentElement.classList.contains('dark');
             document.querySelectorAll('.js-sort-btn').forEach(function(btn) {
                 var sel = btn.dataset.sort === val;
                 var base = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2';
                 var cls = sel
                     ? base + ' bg-astra-700 text-white font-semibold shadow-sm'
-                    : base + (isDark ? ' text-slate-300 hover:bg-slate-700/50' : ' text-slate-600 hover:bg-slate-100');
+                    : base + ' text-slate-300 hover:bg-slate-800';
                 btn.className = cls;
                 var ico = btn.querySelector('i');
                 if (ico) {
@@ -654,7 +650,7 @@ if (!$is_open) {
                         ico.className = 'fa-solid fa-check text-white w-4';
                     } else {
                         var iconClass = btn.dataset.sort === 'default' ? 'fa-regular fa-star' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short' : 'fa-solid fa-arrow-down-wide-short';
-                        ico.className = iconClass + (isDark ? ' text-slate-400 w-4' : ' text-slate-400 w-4');
+                        ico.className = iconClass + ' text-slate-400 w-4';
                     }
                 }
             });
@@ -703,7 +699,7 @@ if (!$is_open) {
 
         function initViewToggle() {
             var activeClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white';
-            var inactiveClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 dark:hover:text-white';
+            var inactiveClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600';
             document.getElementById('view-grid-btn').className = currentView === 'grid' ? activeClass : inactiveClass;
             document.getElementById('view-detail-btn').className = currentView === 'detail' ? activeClass : inactiveClass;
         }
@@ -807,10 +803,10 @@ if (!$is_open) {
                 const isSelected = activeFilters.category === cat;
                 const button = document.createElement('button');
                 button.className = `w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
-                    isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                    isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
                 }`;
                 const count = cat === 'Semua' ? allProducts.length : allProducts.filter(p => p.category === cat).length;
-                button.innerHTML = `<span>${cat}</span><span class="${isSelected ? 'bg-astra-900/40' : 'bg-slate-100 text-slate-500'} text-xs px-2 py-0.5 rounded-full">${count}</span>`;
+                button.innerHTML = `<span>${cat}</span><span class="${isSelected ? 'bg-astra-900/40' : 'bg-slate-700 text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>`;
                 button.onclick = () => selectCategory(cat);
                 container.appendChild(button);
             });
