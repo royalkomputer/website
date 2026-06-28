@@ -275,16 +275,32 @@ if ($action === 'reorder_playlist_photos') {
         }
     }
 
-    // Rename files to match new indices
+    // Rename files to match new indices — two-pass to avoid collisions
+    $target_dir = __DIR__ . '/uploads/banners/';
+    $fe_dir = FE_DIR . '/uploads/banners/';
+    // Pass 1: rename all to temp names
     foreach ($reordered as $pi => &$photo) {
         $oldName = $photo['image'];
         $newName = photoFilename($playlistId, $pi);
         if ($oldName !== $newName) {
-            $target_dir = __DIR__ . '/uploads/banners/';
+            $tmpName = $playlistId . '_' . $pi . '.reorder_tmp';
+            if (file_exists($target_dir . $oldName)) {
+                rename($target_dir . $oldName, $target_dir . $tmpName);
+            }
+            if (file_exists($fe_dir . $oldName)) {
+                rename($fe_dir . $oldName, $fe_dir . $tmpName);
+            }
+            $photo['image'] = $tmpName;
+        }
+    }
+    // Pass 2: rename temps to final names
+    foreach ($reordered as $pi => &$photo) {
+        $oldName = $photo['image'];
+        $newName = photoFilename($playlistId, $pi);
+        if ($oldName !== $newName) {
             if (file_exists($target_dir . $oldName)) {
                 rename($target_dir . $oldName, $target_dir . $newName);
             }
-            $fe_dir = FE_DIR . '/uploads/banners/';
             if (file_exists($fe_dir . $oldName)) {
                 rename($fe_dir . $oldName, $fe_dir . $newName);
             }
