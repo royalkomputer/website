@@ -730,7 +730,7 @@ $heading = loadHeading();
             <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
                 <i class="fa-solid fa-money-bill-trend-up text-astra-700"></i> Laporan Penghasilan
             </h3>
-            <p class="text-sm text-slate-500 mt-0.5">Lihat total penjualan dan laba berdasarkan rentang tanggal.</p>
+            <p class="text-sm text-slate-500 mt-0.5">Lihat total penjualan, laba, dan deduksi BONUS berdasarkan rentang tanggal. Transaksi ke pelanggan BONUS otomatis dipisahkan.</p>
         </div>
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
             <div class="flex flex-wrap items-end gap-4">
@@ -766,7 +766,7 @@ $heading = loadHeading();
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-                        <tr><th class="px-5 py-3">Tanggal</th><th class="px-5 py-3 text-right">Jumlah</th><th class="px-5 py-3 text-right">Penjualan</th><th class="px-5 py-3 text-right">Modal (HPP)</th><th class="px-5 py-3 text-right">Bersih</th><th class="px-5 py-3 text-right">Margin</th></tr>
+                        <tr><th class="px-5 py-3">Tanggal</th><th class="px-5 py-3 text-right">Jumlah</th><th class="px-5 py-3 text-right">Penjualan</th><th class="px-5 py-3 text-right">Modal (HPP)</th><th class="px-5 py-3 text-right">Bersih</th><th class="px-5 py-3 text-right">Margin</th><th class="px-5 py-3 text-right text-orange-600">BONUS</th><th class="px-5 py-3 text-right text-orange-600">Nilai BONUS</th><th class="px-5 py-3 text-right text-red-600">RUSAK</th><th class="px-5 py-3 text-right text-red-600">Nilai RUSAK</th></tr>
                     </thead>
                     <tbody id="rev-daily-body" class="divide-y divide-slate-100"></tbody>
                 </table>
@@ -2189,6 +2189,8 @@ function loadRevenueData() {
 function renderRevSummary(d) {
     const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
     const canProfit = d.can_calc_profit === true;
+    const ded = d.deductions || {};
+    const hasDed = d.total_deductions_penjualan > 0;
     const cards = [
         { icon: 'fa-money-bill-wave', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', label: 'Total Penjualan', value: fmt(d.total_penjualan) },
         { icon: 'fa-receipt', color: 'text-blue-600 bg-blue-50 border-blue-200', label: 'Jumlah Transaksi', value: d.total_transaksi + ' transaksi' },
@@ -2200,6 +2202,24 @@ function renderRevSummary(d) {
         const mgClass = d.margin_persen >= 20 ? 'text-green-600 bg-green-50 border-green-200' : (d.margin_persen >= 10 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200');
         cards.push({ icon: 'fa-coins', color: 'text-slate-600 bg-slate-50 border-slate-200', label: 'Total Modal (HPP)', value: fmt(d.total_hpp) });
         cards.push({ icon: 'fa-sack-dollar', color: 'text-green-600 bg-green-50 border-green-200', label: 'Pendapatan Bersih', value: fmt(d.pendapatan_bersih) + ' <span class="text-xs font-bold ml-1 ' + mgClass.split(' ')[0] + '">(' + d.margin_persen + '%)</span>' });
+    }
+    // Deduction cards per category
+    if (hasDed) {
+        const dedConfigs = { bonus: { icon: 'fa-gift', cat: 'BONUS' }, rusak: { icon: 'fa-triangle-exclamation', cat: 'RUSAK' } };
+        Object.keys(ded).forEach(k => {
+            const cfg = dedConfigs[k] || { icon: 'fa-tag', cat: k.toUpperCase() };
+            const dd = ded[k];
+            if (dd.total_transaksi > 0 || dd.total_penjualan > 0) {
+                cards.push({ icon: cfg.icon, color: 'text-orange-600 bg-orange-50 border-orange-200', label: cfg.cat + ' (Deduksi)', value: fmt(dd.total_penjualan) + (dd.total_transaksi > 0 ? ' <span class="text-xs text-slate-400 font-normal">(' + dd.total_transaksi + ' tx)</span>' : '') });
+                if (canProfit && dd.total_hpp > 0) {
+                    cards.push({ icon: 'fa-box-open', color: 'text-rose-600 bg-rose-50 border-rose-200', label: 'Modal ' + cfg.cat, value: fmt(dd.total_hpp) });
+                }
+            }
+        });
+        // Bersih setelah semua deduksi
+        const mgNd = d.margin_non_ded || 0;
+        const mgNdClass = mgNd >= 20 ? 'text-green-600' : (mgNd >= 10 ? 'text-amber-600' : 'text-red-600');
+        cards.push({ icon: 'fa-chart-pie', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', label: 'Bersih (excl. Deduksi)', value: fmt(d.pendapatan_bersih_non_ded) + ' <span class="text-xs font-bold ml-1 ' + mgNdClass + '">(' + mgNd + '%)</span>' });
     }
     document.getElementById('rev-summary').innerHTML = cards.map(c =>
         '<div class="bg-white rounded-xl border ' + c.color.split(' ')[2] + ' shadow-sm p-5">' +
@@ -2219,16 +2239,31 @@ function renderRevDaily(harian) {
         const hasProfit = h.pendapatan_bersih !== undefined;
         let extraCols = '';
         if (hasProfit && h.total_hpp !== undefined) {
-            const marginH = h.total > 0 ? ((h.pendapatan_bersih / h.total) * 100).toFixed(1) : '0.0';
+            const bersih = h.pendapatan_bersih_ded !== undefined ? h.pendapatan_bersih_ded : h.pendapatan_bersih;
+            const marginH = h.margin_ded !== undefined ? h.margin_ded : (h.total > 0 ? ((h.pendapatan_bersih / h.total) * 100).toFixed(1) : '0.0');
             const mgClass = marginH >= 20 ? 'text-green-600' : (marginH >= 10 ? 'text-amber-600' : 'text-red-600');
             extraCols = '<td class="px-5 py-3 text-right text-slate-600">' + fmt(h.total_hpp) + '</td>' +
-                '<td class="px-5 py-3 text-right font-bold text-emerald-600">' + fmt(h.pendapatan_bersih) + '</td>' +
+                '<td class="px-5 py-3 text-right font-bold text-emerald-600">' + fmt(bersih) + '</td>' +
                 '<td class="px-5 py-3 text-right font-bold ' + mgClass + '">' + marginH + '%</td>';
+        }
+        // BONUS columns
+        const hasBonus = h.bonus_jumlah !== undefined && h.bonus_jumlah > 0;
+        let bonusCols = '<td class="px-5 py-3 text-right text-xs text-slate-400">-</td><td class="px-5 py-3 text-right text-xs text-slate-400">-</td>';
+        if (hasBonus) {
+            bonusCols = '<td class="px-5 py-3 text-right text-xs text-orange-600 font-bold">' + h.bonus_jumlah + '</td>' +
+                '<td class="px-5 py-3 text-right text-xs text-orange-600">' + fmt(h.bonus_total) + '</td>';
+        }
+        // RUSAK columns
+        const hasRusak = h.rusak_jumlah !== undefined && h.rusak_jumlah > 0;
+        let rusakCols = '<td class="px-5 py-3 text-right text-xs text-slate-400">-</td><td class="px-5 py-3 text-right text-xs text-slate-400">-</td>';
+        if (hasRusak) {
+            rusakCols = '<td class="px-5 py-3 text-right text-xs text-red-600 font-bold">' + h.rusak_jumlah + '</td>' +
+                '<td class="px-5 py-3 text-right text-xs text-red-600">' + fmt(h.rusak_total) + '</td>';
         }
         return '<tr class="hover:bg-slate-50 transition-colors">' +
             '<td class="px-5 py-3 font-semibold text-slate-700">' + t.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) + '</td>' +
             '<td class="px-5 py-3 text-right font-bold text-slate-600">' + h.jumlah + '</td>' +
-            '<td class="px-5 py-3 text-right font-bold text-emerald-600">' + fmt(h.total) + '</td>' + extraCols + '</tr>';
+            '<td class="px-5 py-3 text-right font-bold text-emerald-600">' + fmt(h.total) + '</td>' + extraCols + bonusCols + rusakCols + '</tr>';
     }).join('');
 }
 

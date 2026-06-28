@@ -255,3 +255,37 @@ PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `gi
 - `backend/admin.php`: Added left/right arrow buttons on each photo card inside photo modal (`movePlaylistPhoto()`) — swaps indices and sends `reorder_playlist_photos` API call
 - Boundary buttons (first/last) are disabled with `opacity-30 cursor-not-allowed`
 - Both features coexist with existing drag-and-drop reordering
+
+## 2026-06-28 (Session 2) — Dark Mode Removal & Black UI Theme
+
+### Dark Mode Toggle Removed
+- Removed theme init script from `<head>` in `index.php` and `index.html`
+- Removed `darkMode: 'class'` from Tailwind config in `index.php`
+- Removed toggle buttons (desktop navbar, mobile navbar, mobile menu) from `index.php` and `Navbar.js`
+- Removed `toggleTheme()`/`updateThemeIcon()` functions and all calls from `index.php` and `main.js`
+- Removed theme event listeners from `main.js` `renderApp()`
+- Removed `@custom-variant dark` from `src/style.css`
+- Removed safelist with dark-mode classes from `index.php`
+
+### Black Product Cards
+- Changed product card backgrounds to `bg-black` with white text in both `index.php` (`createGridCard`/`createDetailCard`) and Vite components (`ProductCard.js`/`ProductDetailRow.js`)
+- Borders: `border-slate-700`; Price text: `text-white`; Image areas: `bg-slate-100`; Category/condition badges: dark backgrounds
+
+### Black Filter Sidebar, Sort, Info Bar, Empty State, Search Prompt
+- Filter sidebar: `bg-black`, `border-slate-700`, header black with white text
+- Condition buttons: `bg-black border-slate-600 text-slate-300 hover:bg-slate-800`
+- Sort buttons: `text-slate-300 hover:bg-slate-800`
+- Category list: `text-slate-300 hover:bg-slate-800` with `bg-slate-700` count badges
+- Product info bar: `bg-black border-slate-700`
+- Empty state: `bg-black border-slate-700`
+- Search prompt: `from-astra-950 to-slate-900` with `text-slate-300`
+- Dynamic JS functions (`updateCondUI`, `updateSortUI`, `generateCategoryFilterOptions`, `initViewToggle`): removed dark-mode runtime checks, use static black-based classes
+
+### Banner Photo Bug Fixes
+- `backend/update_banner.php`: `reorder_playlist_photos` — two-pass rename (first to `.reorder_tmp`, then to final name) to avoid file collision when swapping filenames
+- `frontend/vite.config.js`: Added missing proxy entry for `/api_banner.php` → `http://localhost:8081` (Vite dev was serving raw PHP source instead of proxying to PHP backend)
+- `frontend/src/components/Banner.js`: Changed `BANNER_BASE_URL` from hardcoded Render URL to localhost detection — uses `/uploads/banners/` on localhost/Vite dev, Render URL on production
+- Pushed missing photo file `pl_6a411f2246a3f_1.webp` and updated `banners.json` to Render (sync agent committed but didn't push)
+
+### Admin Penghasilan Tab Fix
+- `backend/admin.php`: Fixed escaped double quotes (`\"`) in penghasilan tab button HTML — `onclick` attribute was invalid HTML, preventing click events from firing
