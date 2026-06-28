@@ -9,8 +9,13 @@
         "photos": [
             {
                 "image": "pl_6a411f2246a3f_0.webp",
-                "link": "",
+                "link": "https:\/\/www.msi.com\/Motherboard\/PRO-B760M-P",
                 "alt": "MSI PRO B760M-P DDR5"
+            },
+            {
+                "image": "pl_6a411f2246a3f_1.webp",
+                "link": "https:\/\/id.msi.com\/Motherboard\/PRO-B650M-A-WIFI",
+                "alt": "MSI PRO B650M-A WIFI"
             }
         ]
     },
