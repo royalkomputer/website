@@ -183,8 +183,8 @@ $heading = loadHeading();
         <button onclick="switchTab('push')" id="tab-push" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-upload"></i> Push ke Git
         </button>
-        <button onclick=\"switchTab('penghasilan')\" id=\"tab-penghasilan\" class=\"tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100\">
-            <i class=\"fa-solid fa-money-bill-trend-up\"></i> Penghasilan
+        <button onclick="switchTab('penghasilan')" id="tab-penghasilan" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-money-bill-trend-up"></i> Penghasilan
         </button>
 
     </div>

@@ -58,7 +58,7 @@ $sql_summary = "SELECT
 FROM tbl_ikhd
 WHERE tanggal::date >= '$tgl_mulai_esc'::date
   AND tanggal::date <= '$tgl_selesai_esc'::date
-  AND batal IS DISTINCT FROM '1'";
+  AND notrsretur IS NULL";
 
 $r_summary = @pg_query($db, $sql_summary);
 if (!$r_summary) {
@@ -79,7 +79,7 @@ $sql_harian = "SELECT
 FROM tbl_ikhd
 WHERE tanggal::date >= '$tgl_mulai_esc'::date
   AND tanggal::date <= '$tgl_selesai_esc'::date
-  AND batal IS DISTINCT FROM '1'
+  AND notrsretur IS NULL
 GROUP BY tanggal::date
 ORDER BY tanggal::date";
 
@@ -95,8 +95,8 @@ if ($r_harian) {
     }
 }
 
-// 4. Cek apakah tabel tbl_ikdt (detail penjualan) tersedia untuk laba kotor
-$profit_data = null;
+// 4. Hitung total item terjual dari tbl_ikdt (detail penjualan)
+$total_item_terjual = 0;
 $check_detail = @pg_query($db, "SELECT EXISTS (
     SELECT 1 FROM information_schema.tables
     WHERE table_name = 'tbl_ikdt'
@@ -104,32 +104,17 @@ $check_detail = @pg_query($db, "SELECT EXISTS (
 $has_detail_table = $check_detail && pg_fetch_result($check_detail, 0, 0) === 't';
 
 if ($has_detail_table) {
-    // Laba kotor = total jual - total beli (dari detail item yang terjual)
-    $sql_profit = "SELECT
-        COALESCE(SUM(COALESCE(d.harga_qty, 0)), 0) AS total_modal,
-        COUNT(*)::integer AS total_item_terjual
+    $sql_items = "SELECT COALESCE(SUM(COALESCE(d.jumlah, 0)), 0)::integer AS total_item
     FROM tbl_ikdt d
     JOIN tbl_ikhd h ON d.notransaksi = h.notransaksi
     WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
       AND h.tanggal::date <= '$tgl_selesai_esc'::date
-      AND h.batal IS DISTINCT FROM '1'";
+      AND h.notrsretur IS NULL";
 
-    $r_profit = @pg_query($db, $sql_profit);
-    if ($r_profit) {
-        $profit_row = pg_fetch_assoc($r_profit);
-        $total_modal = (float)($profit_row['total_modal'] ?? 0);
-        $total_penjualan = (float)$summary['total_penjualan'];
-        $profit_data = [
-            'total_modal' => $total_modal,
-            'total_laba_kotor' => $total_penjualan - $total_modal,
-            'total_item_terjual' => (int)($profit_row['total_item_terjual'] ?? 0)
-        ];
-    } else {
-        $profit_data = [
-            'total_modal' => 0,
-            'total_laba_kotor' => 0,
-            'total_item_terjual' => 0
-        ];
+    $r_items = @pg_query($db, $sql_items);
+    if ($r_items) {
+        $row_items = pg_fetch_assoc($r_items);
+        $total_item_terjual = (int)($row_items['total_item'] ?? 0);
     }
 }
 
@@ -144,7 +129,7 @@ FROM tbl_ikhd h
 LEFT JOIN tbl_supel sp ON h.kodesupel = sp.kode
 WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
   AND h.tanggal::date <= '$tgl_selesai_esc'::date
-  AND h.batal IS DISTINCT FROM '1'
+  AND h.notrsretur IS NULL
 ORDER BY h.tanggal DESC
 LIMIT 50";
 
@@ -174,7 +159,7 @@ echo json_encode([
         'rata_rata_per_hari' => $rata_harian,
         'hari_rentang' => (int)$hari_rentang,
         'harian' => $harian,
-        'profit' => $profit_data,
+        'total_item_terjual' => $total_item_terjual,
         'transaksi_terbaru' => $transaksi_terbaru
     ]
 ]);

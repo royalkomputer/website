@@ -44,7 +44,7 @@
         "name": "CASE 2",
         "order": 3,
         "active": true,
-        "interval": 5000,
+        "interval": 4000,
         "aspect": "1\/1",
         "photos": [
             {
