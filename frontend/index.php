@@ -126,8 +126,15 @@ if (!$is_open) {
             from { opacity: 1; transform: translateX(0); }
             to { opacity: 0; transform: translateX(80px); }
         }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-100%); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .banner-hiding {
             animation: slideRightFade 0.4s ease forwards;
+        }
+        .notif-enter {
+            animation: slideDownFade 0.4s ease forwards;
         }
 
         @keyframes shimmer {
@@ -343,16 +350,17 @@ if (!$is_open) {
                 </div>
             </div>
 
+            <div id="search-prompt" class="bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+                <div class="flex-shrink-0 w-6 h-6 bg-astra-100 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-astra-600"></i>
+                </div>
+                <p class="text-xs text-slate-500 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+            </div>
+
             <div id="banner-playlists" class="flex flex-col gap-4 mb-6"></div>
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
                 <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
                 <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
-            </div>
-
-            <div id="search-prompt" class="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                <i class="fa-solid fa-magnifying-glass text-5xl text-slate-300 mb-4"></i>
-                <h4 class="text-lg font-bold text-slate-800 mb-1">Cari Produk</h4>
-                <p class="text-slate-500 text-sm">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
             </div>
 
             <div id="empty-state" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
@@ -753,6 +761,13 @@ if (!$is_open) {
             setTimeout(function() { container.classList.add('hidden'); container.classList.remove('banner-hiding'); }, 400);
         }
 
+        function hideSearchPrompt() {
+            var prompt = document.getElementById('search-prompt');
+            if (!prompt || prompt.classList.contains('hidden') || prompt.classList.contains('banner-hiding')) return;
+            prompt.classList.add('banner-hiding');
+            setTimeout(function() { prompt.classList.add('hidden'); prompt.classList.remove('banner-hiding'); }, 400);
+        }
+
         function selectCategory(cat) {
             activeFilters.category = cat;
             hideBanner();
@@ -797,6 +812,13 @@ if (!$is_open) {
     applyFiltersAndSort();
 }
 
+        function showInfoBar(el) {
+            if (!el) return;
+            el.classList.remove('hidden', 'notif-enter');
+            void el.offsetHeight;
+            el.classList.add('notif-enter');
+        }
+
         function applyFiltersAndSort() {
             var prompt = document.getElementById('search-prompt');
             var grid = document.getElementById('product-grid');
@@ -804,17 +826,26 @@ if (!$is_open) {
             var productCount = document.getElementById('product-count');
 
             if (!hasActivated) {
-                if (prompt) prompt.classList.remove('hidden');
+                if (prompt) { prompt.classList.remove('hidden'); prompt.classList.remove('banner-hiding'); }
                 if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
                 if (emptyState) emptyState.classList.add('hidden');
                 if (productCount) productCount.innerText = '0';
-                document.getElementById('product-info-bar').classList.add('hidden');
+                var infoBar = document.getElementById('product-info-bar');
+                if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden'); }
                 return;
             }
 
-            if (prompt) prompt.classList.add('hidden');
+            if (prompt) hideSearchPrompt();
             if (grid) grid.classList.remove('hidden');
-            document.getElementById('product-info-bar').classList.remove('hidden');
+            var infoBar = document.getElementById('product-info-bar');
+            var bannerPl = document.getElementById('banner-playlists');
+            if (infoBar) {
+                if (bannerPl && bannerPl.classList.contains('banner-hiding')) {
+                    setTimeout(function() { showInfoBar(infoBar); }, 400);
+                } else {
+                    showInfoBar(infoBar);
+                }
+            }
             filteredProducts = allProducts.filter(p => {
                 const matchCategory = activeFilters.category === 'Semua' || p.category === activeFilters.category;
                 

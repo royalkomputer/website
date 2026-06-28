@@ -35,6 +35,7 @@ const state = {
 
 function renderApp() {
   const app = document.querySelector('#app')
+
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
     <div class="js-status-container"></div>
@@ -95,12 +96,10 @@ async function loadData() {
       bindFilterEvents(state.filters, function() {
         const isDefault = state.filters.category === 'Semua' && state.filters.search === '' && state.filters.sortBy === 'default' && state.filters.condition === 'Semua'
         if (isDefault) {
-          state.hasActivated = false
-          if (bannerVisible) {
-            const c = document.querySelector('.js-banner-container')
-            if (c) c.classList.remove('hidden')
-          }
-        } else if (state.filters.category !== 'Semua') {
+          // Reset filter → tampilkan semua produk, bukan kembali ke banner
+          state.hasActivated = true
+          hideBanner()
+        } else {
           hideBanner()
           state.hasActivated = true
         }
@@ -168,6 +167,23 @@ function hideBanner() {
   }, 400)
 }
 
+function showInfoBar(el) {
+  if (!el) return
+  el.classList.remove('hidden', 'notif-enter')
+  void el.offsetHeight
+  el.classList.add('notif-enter')
+}
+
+function hideSearchPrompt() {
+  const prompt = document.querySelector('.js-search-prompt')
+  if (!prompt || prompt.classList.contains('hidden') || prompt.classList.contains('banner-hiding')) return
+  prompt.classList.add('banner-hiding')
+  setTimeout(() => {
+    prompt.classList.add('hidden')
+    prompt.classList.remove('banner-hiding')
+  }, 400)
+}
+
 // ──────────────────────────────────────────────
 //  Filtering & Sorting
 // ──────────────────────────────────────────────
@@ -192,19 +208,28 @@ function applyFiltersAndRender() {
   const productGrid = document.querySelector('.js-product-grid')
 
   if (!state.hasActivated) {
-    if (searchPrompt) searchPrompt.classList.remove('hidden')
+    if (searchPrompt) { searchPrompt.classList.remove('hidden'); searchPrompt.classList.remove('banner-hiding') }
     if (productGrid) { productGrid.classList.add('hidden'); productGrid.innerHTML = '' }
     const emptyState = document.querySelector('.js-empty-state')
     if (emptyState) emptyState.classList.add('hidden')
     const countEl = document.querySelector('.js-product-count')
     if (countEl) countEl.textContent = '0'
+    const infoBar = document.querySelector('.js-product-info-bar')
+    if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden') }
     return
   }
 
-  if (searchPrompt) searchPrompt.classList.add('hidden')
+  if (searchPrompt) hideSearchPrompt()
   if (productGrid) productGrid.classList.remove('hidden')
   const infoBar = document.querySelector('.js-product-info-bar')
-  if (infoBar) infoBar.classList.remove('hidden')
+  const banner = document.querySelector('.js-banner-container')
+  if (infoBar) {
+    if (banner && banner.classList.contains('banner-hiding')) {
+      setTimeout(() => showInfoBar(infoBar), 400)
+    } else {
+      showInfoBar(infoBar)
+    }
+  }
 
   state.filteredProducts = state.allProducts.filter(p => {
     const matchCategory = category === 'Semua' || p.category === category

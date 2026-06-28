@@ -42,20 +42,16 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   return `
 <section class="lg:col-span-4 flex flex-col gap-6">
 
-  <!-- Search prompt (shown by default) - slim sticky notification above banner -->
-  <div class="js-search-prompt sticky top-4 z-10 bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm" role="status">
-    <div class="flex-shrink-0 w-8 h-8 bg-astra-100 rounded-full flex items-center justify-center">
-      <i class="fa-solid fa-magnifying-glass text-sm text-astra-600"></i>
-    </div>
-    <div class="flex-1 min-w-0">
-      <p class="text-sm font-semibold text-astra-800">Cari Produk</p>
-      <p class="text-xs text-slate-500">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
-    </div>
-    <i class="fa-solid fa-circle-info text-astra-300 text-sm flex-shrink-0"></i>
-  </div>
-
   <!-- Banner -->
   <div class="js-banner-container hidden rounded-2xl mb-6 transition-all duration-500 ease-in-out"></div>
+
+  <!-- Search notification (shown when no filters active) -->
+  <div class="js-search-prompt bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm" role="status">
+    <div class="flex-shrink-0 w-6 h-6 bg-astra-100 rounded-full flex items-center justify-center">
+      <i class="fa-solid fa-magnifying-glass text-xs text-astra-600"></i>
+    </div>
+    <p class="text-xs text-slate-500 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+  </div>
 
   <!-- Product count info + View toggle -->
   <div class="js-product-info-bar hidden flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
