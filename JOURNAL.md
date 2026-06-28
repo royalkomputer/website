@@ -289,3 +289,31 @@ PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `gi
 
 ### Admin Penghasilan Tab Fix
 - `backend/admin.php`: Fixed escaped double quotes (`\"`) in penghasilan tab button HTML — `onclick` attribute was invalid HTML, preventing click events from firing
+
+## 2026-06-28 (Session 3) — Penghasilan: BONUS & RUSAK Deductions
+
+### Deduction Categories (BONUS & RUSAK)
+- `backend/api_penghasilan.php`: Refactored from hardcoded BONUS to generic `$deductions` array (`bonus` + `rusak`)
+- Each deduction category has separate queries for: total penjualan, total transaksi, total HPP, and daily breakdown
+- **New API response fields:**
+  - `deductions.bonus` — total penjualan, transaksi, HPP untuk BONUS
+  - `deductions.rusak` — total penjualan, transaksi, HPP untuk RUSAK
+  - `total_deductions_penjualan` — total nominal semua deduksi
+  - `total_deductions_hpp` — total modal semua deduksi
+  - `pendapatan_bersih_non_ded` — pendapatan bersih setelah dikurangi HPP deduksi
+  - `margin_non_ded` — margin setelah deduksi
+- Daily data: setiap hari memiliki `bonus_jumlah`, `bonus_total`, `bonus_hpp`, `rusak_jumlah`, `rusak_total`, `rusak_hpp`, `pendapatan_bersih_ded`, `margin_ded`
+- Fixed PostgreSQL compatibility: replaced `COUNT(*) FILTER (WHERE ...)` with `SUM(CASE WHEN ...)`
+
+### Formula Perubahan
+- `pendapatan_bersih_non_ded = pendapatan_bersih - total_deductions_hpp`
+  → Pendapatan bersih dikurangi HPP (modal) dari barang BONUS dan RUSAK
+- `margin_non_ded` dihitung berdasarkan `total_penjualan` (bukan `penjualan_non_ded`)
+- Harian: `pendapatan_bersih_ded = pendapatan_bersih - bonus_hpp - rusak_hpp` per hari
+
+### Admin UI
+- `backend/admin.php` (`renderRevSummary`): Kartu deduksi dinamis — muncul otomatis untuk setiap kategori yang memiliki transaksi (BONUS: ikon `fa-gift` oranye, RUSAK: ikon `fa-triangle-exclamation` merah)
+- Kartu **Bersih (excl. Deduksi)** menampilkan pendapatan bersih setelah deduksi + margin %
+- `backend/admin.php` (`renderRevDaily`): Kolom **BONUS** (oranye) dan **RUSAK** (merah) beserta nilai nominal di tabel harian
+- Kolom **Bersih** dan **Margin %** di tabel harian menggunakan `pendapatan_bersih_ded` (setelah deduksi HPP)
+- Semua kolom deduksi tetap rapi walau kosong (menampilkan "-")
