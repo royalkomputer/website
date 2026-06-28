@@ -1,7 +1,7 @@
 [
     {
         "id": "pl_6a40cd9ba6d16",
-        "name": "Monitor",
+        "name": "CPU FAN",
         "order": 1,
         "active": true,
         "interval": 5000,
@@ -9,8 +9,8 @@
         "photos": [
             {
                 "image": "pl_6a40cd9ba6d16_0.webp",
-                "link": "https:\/\/www.mi.co.id\/id\/product\/xiaomi-monitor-a27i-2026\/",
-                "alt": "XIAOMI A27I 2026"
+                "link": "https:\/\/www.upheregaming.com\/?list_53\/139.html",
+                "alt": "UPHERE H85K6"
             }
         ]
     },
@@ -20,18 +20,37 @@
         "order": 2,
         "active": true,
         "interval": 5000,
-        "aspect": "16\/9",
+        "aspect": "21\/9",
         "photos": [
             {
                 "image": "pl_6a40ce6dd1146_0.webp",
-                "link": "",
-                "alt": ""
-            },
-            {
-                "image": "pl_6a40ce6dd1146_1.webp",
-                "link": "",
-                "alt": ""
+                "link": "https:\/\/id.msi.com\/Motherboard\/PRO-B650M-A-WIFI",
+                "alt": "MSI B650M-A WIFI"
             }
         ]
+    },
+    {
+        "id": "pl_6a40f97a0afce",
+        "name": "CASE",
+        "order": 3,
+        "active": true,
+        "interval": 5000,
+        "aspect": "21\/9",
+        "photos": [
+            {
+                "image": "pl_6a40f97a0afce_0.webp",
+                "link": "https:\/\/www.fpmax.net\/product_33\/Diamond-Z8.html",
+                "alt": "FPMAX Z8 WHITE"
+            }
+        ]
+    },
+    {
+        "id": "pl_6a40fa00728c0",
+        "name": "CASE 2",
+        "order": 4,
+        "active": true,
+        "interval": 2000,
+        "aspect": "1\/1",
+        "photos": []
     }
 ]

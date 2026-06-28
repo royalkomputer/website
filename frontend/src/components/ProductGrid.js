@@ -35,7 +35,7 @@ export async function loadProductInfoText() {
  * @returns {string} HTML string for the product section
  */
 export function ProductGrid({ viewMode = 'grid' } = {}) {
-  const infoHtml = _productInfoText.replace('{count}', '<span class="js-product-count font-bold text-slate-900">0</span>')
+  const infoHtml = _productInfoText.replace('{count}', '<span class="js-product-count font-bold text-slate-900 dark:text-white">0</span>')
 
   const isGrid = viewMode === 'grid'
 
@@ -46,24 +46,24 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   <div class="js-banner-container hidden rounded-2xl mb-6 transition-all duration-500 ease-in-out"></div>
 
   <!-- Search notification (shown when no filters active) -->
-  <div class="js-search-prompt bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm" role="status">
-    <div class="flex-shrink-0 w-6 h-6 bg-astra-100 rounded-full flex items-center justify-center">
-      <i class="fa-solid fa-magnifying-glass text-xs text-astra-600"></i>
+  <div class="js-search-prompt bg-gradient-to-r from-astra-50 to-blue-50 dark:from-astra-950 dark:to-slate-900 border border-astra-200 dark:border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm" role="status">
+    <div class="flex-shrink-0 w-6 h-6 bg-astra-100 dark:bg-astra-800 rounded-full flex items-center justify-center">
+      <i class="fa-solid fa-magnifying-glass text-xs text-astra-600 dark:text-astra-300"></i>
     </div>
-    <p class="text-xs text-slate-500 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+    <p class="text-xs text-slate-500 dark:text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
   </div>
 
   <!-- Product count info + View toggle -->
-  <div class="js-product-info-bar hidden flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-    <div class="text-sm text-slate-600">
+  <div class="js-product-info-bar hidden flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+    <div class="text-sm text-slate-600 dark:text-slate-300">
       ${infoHtml}
     </div>
-    <div class="flex items-center gap-1 bg-slate-50 rounded-lg p-1 border border-slate-200">
-      <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}" data-view="grid">
+    <div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-700 rounded-lg p-1 border border-slate-200 dark:border-slate-600">
+      <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-600 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}" data-view="grid">
         <i class="fa-solid fa-th"></i>
         <span class="hidden sm:inline">Grid</span>
       </button>
-      <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}" data-view="detail">
+      <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-600 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}" data-view="detail">
         <i class="fa-solid fa-list"></i>
         <span class="hidden sm:inline">Detail</span>
       </button>
@@ -73,14 +73,14 @@ export function ProductGrid({ viewMode = 'grid' } = {}) {
   <!-- Loading spinner -->
   <div class="js-loading-spinner py-20 flex flex-col items-center justify-center gap-3">
     <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
-    <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
+    <p class="text-slate-500 dark:text-slate-400 text-sm">Sedang memuat data produk...</p>
   </div>
 
   <!-- Empty state -->
-  <div class="js-empty-state hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
-    <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
-    <h4 class="text-lg font-bold text-slate-800 mb-1">Produk Tidak Ditemukan</h4>
-    <p class="text-slate-500 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
+  <div class="js-empty-state hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+    <i class="fa-solid fa-box-open text-5xl text-slate-300 dark:text-slate-500 mb-4"></i>
+    <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Produk Tidak Ditemukan</h4>
+    <p class="text-slate-500 dark:text-slate-400 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
   </div>
 
   <!-- Product cards grid/list -->

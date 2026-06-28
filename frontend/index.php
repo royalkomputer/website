@@ -68,7 +68,7 @@ if (file_exists($product_info_file)) {
     if (!empty($info_data['text'])) $product_info_text = $info_data['text'];
 }
 // Ganti {count} dengan span yang akan diisi JavaScript
-$product_info_html = str_replace('{count}', '<span id="product-count" class="font-bold text-slate-900">0</span>', $product_info_text);
+$product_info_html = str_replace('{count}', '<span id="product-count" class="font-bold text-slate-900 dark:text-white">0</span>', $product_info_text);
 
 // Menentukan jam buka selanjutnya jika sedang tutup
 $next_buka = '';
@@ -103,6 +103,7 @@ if (!$is_open) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], },
@@ -115,6 +116,9 @@ if (!$is_open) {
                 }
             },
         }
+    </script>
+    <script>
+        (function(){var t=localStorage.getItem('theme');if(t){document.documentElement.classList.toggle('dark',t==='dark')}else{document.documentElement.classList.toggle('dark',window.matchMedia('(prefers-color-scheme:dark)').matches)}})()
     </script>
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -152,32 +156,49 @@ if (!$is_open) {
                 display: none !important;
             }
         }
+
+        /* Dark mode overrides untuk product cards (dibuat oleh JavaScript) */
+        .dark #product-grid > div {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        .dark #product-grid h3 {
+            color: #e2e8f0 !important;
+        }
+        .dark #product-grid .text-astra-700 {
+            color: #60a5fa !important;
+        }
+        .dark #product-grid img[src*="data:image"] + .bg-white\/90,
+        .dark #product-grid [class*="bg-white/90"] {
+            background-color: rgba(30, 41, 59, 0.9) !important;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen flex flex-col font-sans">
 
     <!-- Safelist untuk Tailwind CDN JIT (class dipakai oleh JavaScript) -->
     <div class="hidden" aria-hidden="true">
-        <span class="bg-astra-700 text-white font-semibold shadow-sm"></span>
+        <span class="bg-astra-700 text-white font-semibold shadow-sm bg-slate-700 text-astra-300"></span>
         <span class="bg-astra-900/40 bg-white/20"></span>
-        <span class="text-slate-600 hover:bg-slate-100"></span>
+        <span class="text-slate-600 hover:bg-slate-100 text-slate-400 hover:text-slate-200"></span>
         <span class="bg-slate-100 text-slate-500"></span>
+        <span class="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:bg-slate-700/50 dark:border-slate-700 dark:lg:bg-slate-800 dark:lg:hover:bg-slate-800 dark:lg:hover:bg-transparent dark:lg:border-slate-700"></span>
     </div>
 
     <!-- Navbar -->
-<nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
+<nav class="bg-white dark:bg-astra-950 text-slate-800 dark:text-white sticky top-0 z-50 shadow-lg shadow-black/20 dark:shadow-black/20">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
         
         <!-- Logo -->
         <a href="#" class="flex items-center gap-2 flex-shrink-0">
             <img src="logo/logo.webp" alt="Logo" class="h-8 md:h-10 w-auto">
-            <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
+            <span class="font-bold text-sm md:text-xl tracking-wider text-slate-800 dark:text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
         </a>
         
         <!-- Search Bar (tengah, hanya desktop) -->
         <div class="hidden md:flex flex-grow max-w-md">
             <div class="relative flex-grow">
-                <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch('desktop')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch('desktop')" placeholder="Cari hardware..." class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
             </div>
             <button onclick="triggerSearch('desktop')" class="ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
@@ -185,40 +206,49 @@ if (!$is_open) {
             </button>
         </div>
         
-        <!-- Sosmed Links (desktop) -->
+        <!-- Sosmed Links (desktop) + Theme Toggle -->
         <div class="hidden md:flex items-center gap-3 flex-shrink-0">
-            <span class="text-xs text-slate-400 font-semibold hidden lg:inline">Ikuti Kami:</span>
-            <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
+            <!-- Theme Toggle -->
+            <button onclick="toggleTheme()" class="js-theme-btn flex items-center justify-center h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle tema">
+                <i class="js-theme-icon fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
+            </button>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold hidden lg:inline">Ikuti Kami:</span>
+            <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
                 <i class="fa-brands fa-facebook text-lg"></i>
             </a>
-            <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-300 hover:text-sky-400 transition-colors" title="Facebook Pages">
+            <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-sky-400 transition-colors" title="Facebook Pages">
                 <i class="fa-solid fa-flag text-lg"></i>
             </a>
-            <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-300 hover:text-pink-500 transition-colors" title="Instagram">
+            <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-pink-500 transition-colors" title="Instagram">
                 <i class="fa-brands fa-instagram text-lg"></i>
             </a>
-            <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-300 hover:text-white transition-colors" title="TikTok">
+            <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors" title="TikTok">
                 <i class="fa-brands fa-tiktok text-lg"></i>
             </a>
-            <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-300 hover:text-green-500 transition-colors" title="WhatsApp">
+            <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-green-500 transition-colors" title="WhatsApp">
                 <i class="fa-brands fa-whatsapp text-lg"></i>
             </a>
-            <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-300 hover:text-red-500 transition-colors" title="YouTube">
+            <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors" title="YouTube">
                 <i class="fa-brands fa-youtube text-lg"></i>
             </a>
         </div>
 
-        <!-- Hamburger (mobile) -->
-        <button onclick="toggleNavMenu()" class="md:hidden flex items-center justify-center text-slate-300 hover:text-white focus:outline-none h-9 w-9 bg-slate-900 border border-slate-700 rounded-lg flex-shrink-0">
-            <i class="fa-solid fa-bars text-lg"></i>
-        </button>
+        <!-- Hamburger + Theme Toggle (mobile) -->
+        <div class="flex md:hidden items-center gap-2">
+            <button onclick="toggleTheme()" class="js-theme-btn-mobile flex items-center justify-center h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle tema">
+                <i class="js-theme-icon-mobile fa-solid fa-sun text-lg text-slate-600 dark:text-yellow-400"></i>
+            </button>
+            <button onclick="toggleNavMenu()" class="flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Search Bar (mobile, di bawah row utama) -->
     <div class="md:hidden px-4 pb-3">
         <div class="flex gap-2">
             <div class="relative flex-grow">
-                <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch('mobile')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+                <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch('mobile')" placeholder="Cari hardware..." class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
             </div>
             <button onclick="triggerSearch('mobile')" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
@@ -228,30 +258,35 @@ if (!$is_open) {
     </div>
 
     <!-- Dropdown Menu Sosmed (mobile) -->
-    <div id="nav-sosmed-menu" class="hidden md:hidden border-t border-slate-800">
+    <div id="nav-sosmed-menu" class="hidden md:hidden border-t border-slate-300 dark:border-slate-800">
         <div class="container mx-auto px-4 py-3 flex flex-col gap-1">
-            <span class="text-xs text-slate-400 font-semibold mb-1">Ikuti Kami:</span>
-            <a href="https://www.facebook.com/royall.komp" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-blue-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Ikuti Kami:</span>
+                <button onclick="toggleTheme()" class="js-theme-btn-mobile2 flex items-center justify-center h-8 w-8 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0" title="Toggle tema">
+                    <i class="js-theme-icon-mobile2 fa-solid fa-sun text-sm text-slate-600 dark:text-yellow-400"></i>
+                </button>
+            </div>
+            <a href="https://www.facebook.com/royall.komp" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-blue-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-facebook text-lg w-5 text-blue-500"></i>
                 <span class="text-sm font-medium">Facebook</span>
             </a>
-            <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-sky-400 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+            <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-sky-400 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-solid fa-flag text-lg w-5 text-sky-500"></i>
                 <span class="text-sm font-medium">Facebook Pages</span>
             </a>
-            <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-pink-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+            <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-pink-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-instagram text-lg w-5 text-pink-500"></i>
                 <span class="text-sm font-medium">Instagram</span>
             </a>
-            <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
-                <i class="fa-brands fa-tiktok text-lg w-5 text-white"></i>
+            <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                <i class="fa-brands fa-tiktok text-lg w-5 text-black dark:text-white"></i>
                 <span class="text-sm font-medium">TikTok</span>
             </a>
-            <a href="https://wa.me/6281380686168" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-green-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+            <a href="https://wa.me/6281380686168" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-green-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-whatsapp text-lg w-5 text-green-500"></i>
                 <span class="text-sm font-medium">WhatsApp Admin</span>
             </a>
-            <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-red-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+            <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-youtube text-lg w-5 text-red-500"></i>
                 <span class="text-sm font-medium">YouTube</span>
             </a>
@@ -259,20 +294,20 @@ if (!$is_open) {
     </div>
 </nav>
 
-    <header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white py-12 px-4 shadow-inner relative overflow-hidden">
+    <header class="bg-gradient-to-r from-astra-100 via-white to-astra-50 dark:from-astra-950 dark:via-slate-900 dark:to-astra-900 text-slate-800 dark:text-white py-12 px-4 shadow-inner relative overflow-hidden">
         <div class="container mx-auto text-center relative z-10">
             
             <?php if ($tutup_sementara): ?>
-                <span class="bg-red-500/20 border border-red-500/50 text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2 shadow-lg"><i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>
+                <span class="bg-red-500/20 border border-red-500/50 text-red-600 dark:text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2 shadow-lg"><i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>
             <?php elseif ($is_open): ?>
-                <span class="bg-green-500/20 border border-green-500/50 text-green-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2"><i class="fa-solid fa-store"></i> Buka Sekarang (Tutup <?= str_replace(':', '.', $hari_ini['tutup']) ?> WIB)</span>
+                <span class="bg-green-500/20 border border-green-500/50 text-green-600 dark:text-green-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2"><i class="fa-solid fa-store"></i> Buka Sekarang (Tutup <?= str_replace(':', '.', $hari_ini['tutup']) ?> WIB)</span>
             <?php else: ?>
-                <span class="bg-slate-700 border border-slate-500 text-slate-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2"><i class="fa-solid fa-moon"></i> Toko Tutup (Buka <?= $next_hari ?> <?= str_replace(':', '.', $next_buka) ?> WIB)</span>
+                <span class="bg-slate-200 dark:bg-slate-700 border border-slate-400 dark:border-slate-500 text-slate-600 dark:text-slate-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2"><i class="fa-solid fa-moon"></i> Toko Tutup (Buka <?= $next_hari ?> <?= str_replace(':', '.', $next_buka) ?> WIB)</span>
             <?php endif; ?>
 
             <?php if (!empty($upcomingSchedule)): ?>
                 <div class="mt-3">
-                    <span class="bg-yellow-50 border border-yellow-100 text-yellow-700 text-xs px-3 py-1 rounded inline-flex items-center gap-2">
+                    <span class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 text-xs px-3 py-1 rounded inline-flex items-center gap-2">
                         <i class="fa-solid fa-calendar-days"></i>
                         Jadwal: Tutup <?= date('d M Y H:i', strtotime($upcomingSchedule['start'])) ?> sampai <?= date('d M Y H:i', strtotime($upcomingSchedule['end'])) ?> <?php echo htmlspecialchars($upcomingSchedule['note'] ?? ''); ?>
                     </span>
@@ -280,61 +315,61 @@ if (!$is_open) {
             <?php endif; ?>
 
             <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4"><?php echo htmlspecialchars($heading_prefix); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300"><?php echo htmlspecialchars($heading_brand); ?></span></h1>
-            <p class="text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light"><?php echo htmlspecialchars($tagline); ?></p>
+            <p class="text-slate-500 dark:text-slate-300 max-w-xl mx-auto text-sm md:text-base font-light"><?php echo htmlspecialchars($tagline); ?></p>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
         
-        <aside class="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-sm self-start overflow-hidden">
+        <aside class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm self-start overflow-hidden">
             
-            <button onclick="toggleFilterMenu()" class="w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-50 lg:bg-white border-b border-slate-100 lg:border-none">
-                <h3 class="font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-700"></i> Filter & Urutkan</h3>
-                <i id="filter-icon" class="fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 lg:hidden"></i>
+            <button onclick="toggleFilterMenu()" class="w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-50 dark:bg-slate-800 lg:bg-white dark:lg:bg-slate-800 border-b border-slate-100 dark:border-slate-700 lg:border-none">
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-700"></i> Filter & Urutkan</h3>
+                <i id="filter-icon" class="fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-300 lg:hidden"></i>
             </button>
 
             <div id="filter-content" class="hidden lg:block p-4 pt-4 lg:p-6 lg:pt-0">
-                <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100">
-                    <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
+                <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100 dark:lg:border-slate-700">
+                    <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 dark:bg-astra-900/30 dark:hover:bg-astra-900/50 lg:bg-transparent lg:hover:bg-transparent dark:lg:bg-transparent dark:lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
                         <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
                     </button>
                 </div>
 
                 <div class="mb-6">
-                    <button type="button" onclick="toggleCategoryPanel()" class="w-full flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
+                    <button type="button" onclick="toggleCategoryPanel()" class="w-full flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
                         <span>Kategori</span>
-                        <i id="category-toggle-icon" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
+                        <i id="category-toggle-icon" class="fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-200"></i>
                     </button>
                     <div id="category-panel" class="space-y-1">
                         <div id="category-list" class="space-y-1"></div>
                     </div>
                 </div>
                 
-                <div class="mb-6 border-t border-slate-100 pt-5">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
+                <div class="mb-6 border-t border-slate-100 dark:border-slate-700 pt-5">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
                     <div class="flex gap-2">
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Semua" onclick="handleCondition('Semua')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Semua" onclick="handleCondition('Semua')">
                             <i class="fa-solid fa-check hidden"></i> Semua
                         </button>
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Baru" onclick="handleCondition('Baru')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Baru" onclick="handleCondition('Baru')">
                             <i class="fa-solid fa-check hidden"></i> Baru
                         </button>
-                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white border border-slate-200 text-slate-600 hover:bg-slate-100" data-condition="Bekas" onclick="handleCondition('Bekas')">
+                        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Bekas" onclick="handleCondition('Bekas')">
                             <i class="fa-solid fa-check hidden"></i> Bekas
                         </button>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-100 pt-5">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-5">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
                     <div class="space-y-1">
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="default" onclick="handleSort('default')">
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="default" onclick="handleSort('default')">
                             <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
                         </button>
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="low-high" onclick="handleSort('low-high')">
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="low-high" onclick="handleSort('low-high')">
                             <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
                         </button>
-                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-sort="high-low" onclick="handleSort('high-low')">
+                        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="high-low" onclick="handleSort('high-low')">
                             <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
                         </button>
                     </div>
@@ -344,86 +379,86 @@ if (!$is_open) {
         </aside>
 
         <section class="lg:col-span-3 flex flex-col gap-6">
-            <div id="product-info-bar" class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm hidden">
-                <div class="text-sm text-slate-600"><?php echo $product_info_html; ?></div>
-                <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
-                    <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all" title="Tampilan Grid">
+            <div id="product-info-bar" class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hidden">
+                <div class="text-sm text-slate-600 dark:text-slate-300"><?php echo $product_info_html; ?></div>
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-0.5">
+                    <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-600 dark:text-slate-300" title="Tampilan Grid">
                         <i class="fa-solid fa-grid-2"></i>
                     </button>
-                    <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all" title="Tampilan Detail">
+                    <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-600 dark:text-slate-300" title="Tampilan Detail">
                         <i class="fa-solid fa-list"></i>
                     </button>
                 </div>
             </div>
 
-            <div id="search-prompt" class="bg-gradient-to-r from-astra-50 to-blue-50 border border-astra-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
-                <div class="flex-shrink-0 w-6 h-6 bg-astra-100 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-magnifying-glass text-xs text-astra-600"></i>
+            <div id="search-prompt" class="bg-gradient-to-r from-astra-50 to-blue-50 dark:from-astra-950 dark:to-slate-900 border border-astra-200 dark:border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+                <div class="flex-shrink-0 w-6 h-6 bg-astra-100 dark:bg-astra-800 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-astra-600 dark:text-astra-300"></i>
                 </div>
-                <p class="text-xs text-slate-500 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
             </div>
 
             <div id="banner-playlists" class="flex flex-col gap-4 mb-6"></div>
             <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
                 <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
-                <p class="text-slate-500 text-sm">Sedang memuat data produk...</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Sedang memuat data produk...</p>
             </div>
 
-            <div id="empty-state" class="hidden bg-white rounded-xl border border-slate-200 p-12 text-center">
-                <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4"></i>
-                <h4 class="text-lg font-bold text-slate-800 mb-1">Produk Tidak Ditemukan</h4>
-                <p class="text-slate-500 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
+            <div id="empty-state" class="hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+                <i class="fa-solid fa-box-open text-5xl text-slate-300 dark:text-slate-500 mb-4"></i>
+                <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">Produk Tidak Ditemukan</h4>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
             </div>
 
             <div id="product-grid" class="hidden grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
         </section>
     </main>
 
-    <footer class="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 mt-12 py-12">
+    <footer class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs border-t border-slate-200 dark:border-slate-800 mt-12 py-12">
         <div class="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
             
             <div class="flex flex-col gap-3 items-center md:items-start">
                 <img src="logo/logo.webp" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1">
-                <p class="font-bold text-slate-200 text-sm tracking-wide">ROYAL KOMPUTER KEDIRI</p>
-                <p class="text-slate-400 leading-relaxed text-center md:text-left text-xs">
+                <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide">ROYAL KOMPUTER KEDIRI</p>
+                <p class="text-slate-400 dark:text-slate-400 leading-relaxed text-center md:text-left text-xs">
                     <i class="fa-solid fa-location-dot text-red-500 mr-1"></i> 
                     Gg. Masjid No.22A, Jamsaren, Kec. Pesantren, Kota Kediri, Jawa Timur 64132
                 </p>
             </div>
             
             <div class="flex flex-col gap-3 items-center md:items-start w-full">
-                <p class="font-bold text-slate-200 text-sm tracking-wide border-b border-slate-800 pb-1 w-full text-center md:text-left">MEDIA SOSIAL</p>
+                <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide border-b border-slate-200 dark:border-slate-800 pb-1 w-full text-center md:text-left">MEDIA SOSIAL</p>
                 <div class="flex flex-col gap-2.5 text-sm items-center md:items-start w-full">
-                    <a href="https://www.facebook.com/royall.komp" target="_blank" class="hover:text-blue-500 flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-500 flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-brands fa-facebook text-sm text-blue-600"></i> Facebook Resmi
                     </a>
-                    <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="hover:text-blue-400 flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-solid fa-layer-group text-sm text-sky-500"></i> Facebook Pages
                     </a>
-                    <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="hover:text-pink-500 flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-pink-500 flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-brands fa-instagram text-sm text-pink-500"></i> Instagram
                     </a>
-                    <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="hover:text-white flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-white flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-brands fa-tiktok text-sm text-white"></i> TikTok
                     </a>
-                    <a href="https://wa.me/6281380686168" target="_blank" class="hover:text-green-500 flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-green-500 flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-brands fa-whatsapp text-sm text-green-500"></i> WhatsApp Admin
                     </a>
-                    <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="hover:text-red-500 flex items-center gap-2 transition-colors text-xs">
+                    <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-red-500 flex items-center gap-2 transition-colors text-xs">
                         <i class="fa-brands fa-youtube text-sm text-red-500"></i> YouTube
                     </a>
                 </div>
             </div>
 
             <div class="flex flex-col gap-3 items-center md:items-start w-full">
-                <p class="font-bold text-slate-200 text-sm tracking-wide border-b border-slate-800 pb-1 w-full text-center md:text-left">JAM BUKA TOKO</p>
-                <div class="w-full text-[11px] text-slate-400 max-w-[200px] mx-auto md:mx-0">
+                <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide border-b border-slate-200 dark:border-slate-800 pb-1 w-full text-center md:text-left">JAM BUKA TOKO</p>
+                <div class="w-full text-[11px] text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto md:mx-0">
                     <?php
                     foreach ($jam_buka as $hari => $waktu) {
                         $is_today = ($hari == $hari_inggris);
-                        $highlight = $is_today ? 'text-astra-400 font-bold bg-slate-900 rounded border border-slate-800' : '';
+                        $highlight = $is_today ? 'text-astra-400 font-bold bg-slate-200 dark:bg-slate-900 rounded border border-slate-300 dark:border-slate-800' : '';
                         $is_libur_item = !empty($waktu['libur']);
-                        $buka_tutup = $is_libur_item ? '<span class="text-red-400 font-bold">Libur</span>' : str_replace(':', '.', $waktu['buka']) . '–' . str_replace(':', '.', $waktu['tutup']);
+                        $buka_tutup = $is_libur_item ? '<span class="text-red-500 dark:text-red-400 font-bold">Libur</span>' : str_replace(':', '.', $waktu['buka']) . '–' . str_replace(':', '.', $waktu['tutup']);
                         
                         echo "<div class='flex justify-between py-1 px-2 mb-1 {$highlight}'>";
                         echo "<span>{$waktu['indo']}</span>";
@@ -435,7 +470,7 @@ if (!$is_open) {
             </div>
             
             <div class="flex flex-col gap-1 items-center lg:items-end lg:text-right h-full justify-center lg:justify-start lg:pt-6 w-full mt-4 lg:mt-0">
-                <p class="font-semibold text-slate-600 tracking-wider">ROYAL MARKETPLACE v2.2</p>
+                <p class="font-semibold text-slate-400 dark:text-slate-500 tracking-wider">ROYAL MARKETPLACE v2.2</p>
                 <p class="text-slate-500">&copy; <?php echo date("Y"); ?> Hak Cipta Dilindungi.</p>
             </div>
             
@@ -444,20 +479,20 @@ if (!$is_open) {
 
     <!-- MODAL DETAIL PRODUK -->
     <div id="detail-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
             <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-10 w-8 h-8 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
             
             <!-- Kiri: Galeri Foto -->
-            <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
+            <div class="w-full md:w-1/2 bg-slate-100 dark:bg-slate-700 relative group min-h-[300px] flex items-center justify-center">
                 <img id="detail-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" class="w-full h-full object-contain max-h-[500px]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                <div id="detail-image-fallback" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
+                <div id="detail-image-fallback" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-500 dark:text-slate-400">
                     <i class="fa-solid fa-image text-5xl mb-2"></i>
                     <span class="text-sm">Gambar tidak tersedia</span>
                 </div>
                 
                 <!-- Navigasi Carousel -->
-                <button id="btn-prev-img" onclick="changeImage(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-left"></i></button>
-                <button id="btn-next-img" onclick="changeImage(1)" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-right"></i></button>
+                <button id="btn-prev-img" onclick="changeImage(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-left"></i></button>
+                <button id="btn-next-img" onclick="changeImage(1)" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-right"></i></button>
                 
                 <div id="img-indicators" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"></div>
             </div>
@@ -465,15 +500,15 @@ if (!$is_open) {
             <!-- Kanan: Info Produk -->
             <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col max-h-[50vh] md:max-h-full overflow-y-auto">
                 <div id="detail-badge" class="mb-3"></div>
-                <h2 id="detail-name" class="text-2xl font-extrabold text-slate-800 mb-2"></h2>
-                <div class="text-3xl font-black text-astra-700 mb-6" id="detail-price"></div>
+                <h2 id="detail-name" class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 mb-2"></h2>
+                <div class="text-3xl font-black text-astra-700 dark:text-astra-400 mb-6" id="detail-price"></div>
                 
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex-grow">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
-                    <p id="detail-desc" class="text-sm text-slate-600 whitespace-pre-line leading-relaxed"></p>
+                <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 mb-6 flex-grow">
+                    <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
+                    <p id="detail-desc" class="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed"></p>
                 </div>
                 
-                <div class="mt-auto pt-4 border-t border-slate-100">
+                <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
                     <div class="flex items-center justify-between">
                         <a id="detail-wa-btn" href="#" target="_blank" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-lg text-sm" title="Pesan via WhatsApp">
                             <i class="fa-brands fa-whatsapp text-lg"></i> <span>Pesan</span>
@@ -500,6 +535,18 @@ if (!$is_open) {
                 icon.classList.toggle('rotate-180');
             }
         }
+
+        function toggleTheme() {
+            var isDark = document.documentElement.classList.toggle('dark')
+            localStorage.setItem('theme', isDark ? 'dark' : 'light')
+            updateThemeIcon()
+        }
+        function updateThemeIcon() {
+            var isDark = document.documentElement.classList.contains('dark')
+            document.querySelectorAll('.js-theme-icon').forEach(function(el) {
+                el.className = 'fa-solid ' + (isDark ? 'fa-sun' : 'fa-moon') + ' text-lg text-slate-600 dark:text-yellow-400'
+            })
+        }
         
         let allProducts = [];
         let filteredProducts = [];
@@ -517,12 +564,10 @@ if (!$is_open) {
             if (grid && grid.classList.contains('hidden')) return;
             currentView = mode;
             localStorage.setItem('viewMode', mode);
-            document.getElementById('view-grid-btn').className = mode === 'grid'
-                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
-                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
-            document.getElementById('view-detail-btn').className = mode === 'detail'
-                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
-                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+            var activeClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white';
+            var inactiveClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 dark:hover:text-white';
+            document.getElementById('view-grid-btn').className = mode === 'grid' ? activeClass : inactiveClass;
+            document.getElementById('view-detail-btn').className = mode === 'detail' ? activeClass : inactiveClass;
             renderProductGrid();
         }
 
@@ -536,9 +581,10 @@ if (!$is_open) {
             document.getElementById('detail-price').innerText = formattedPrice;
             document.getElementById('detail-desc').innerText = product.description || 'Tidak ada deskripsi rinci untuk produk ini.';
             const isBekas = (product.name || '').toUpperCase().includes('2ND');
+            var isDark = document.documentElement.classList.contains('dark');
             document.getElementById('detail-badge').innerHTML = isBekas 
-                ? `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2.5 py-1 rounded-md border border-orange-200">KONDISI: BEKAS</span>`
-                : `<span class="bg-sky-100 text-sky-700 text-xs font-bold px-2.5 py-1 rounded-md border border-sky-200">KONDISI: BARU</span>`;
+                ? `<span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-bold px-2.5 py-1 rounded-md border border-orange-200 dark:border-orange-800">KONDISI: BEKAS</span>`
+                : `<span class="bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-bold px-2.5 py-1 rounded-md border border-sky-200 dark:border-sky-800">KONDISI: BARU</span>`;
 
             const waNumber = "6281380686168";
             const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
@@ -600,23 +646,42 @@ if (!$is_open) {
         }
         
         window.addEventListener('DOMContentLoaded', () => {
+            updateThemeIcon();
             initPage();
         });
         
         function updateCondUI(val) {
+            var isDark = document.documentElement.classList.contains('dark');
             document.querySelectorAll('.js-cond-btn').forEach(function(btn) {
                 var sel = btn.dataset.condition === val;
-                btn.className = (sel ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100') + ' js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center';
+                var cls = sel
+                    ? 'bg-astra-700 text-white font-semibold shadow-sm'
+                    : (isDark
+                        ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100');
+                btn.className = cls + ' js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center';
                 btn.querySelector('.fa-check').classList.toggle('hidden', !sel);
             });
         }
 
         function updateSortUI(val) {
+            var isDark = document.documentElement.classList.contains('dark');
             document.querySelectorAll('.js-sort-btn').forEach(function(btn) {
                 var sel = btn.dataset.sort === val;
-                btn.className = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ' + (sel ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-100');
+                var base = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2';
+                var cls = sel
+                    ? base + ' bg-astra-700 text-white font-semibold shadow-sm'
+                    : base + (isDark ? ' text-slate-300 hover:bg-slate-700/50' : ' text-slate-600 hover:bg-slate-100');
+                btn.className = cls;
                 var ico = btn.querySelector('i');
-                if (ico) ico.className = sel ? 'fa-solid fa-check text-white w-4' : btn.dataset.sort === 'default' ? 'fa-regular fa-star text-slate-400 w-4' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short text-slate-400 w-4' : 'fa-solid fa-arrow-down-wide-short text-slate-400 w-4';
+                if (ico) {
+                    if (sel) {
+                        ico.className = 'fa-solid fa-check text-white w-4';
+                    } else {
+                        var iconClass = btn.dataset.sort === 'default' ? 'fa-regular fa-star' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short' : 'fa-solid fa-arrow-down-wide-short';
+                        ico.className = iconClass + (isDark ? ' text-slate-400 w-4' : ' text-slate-400 w-4');
+                    }
+                }
             });
         }
 
@@ -662,12 +727,10 @@ if (!$is_open) {
         }
 
         function initViewToggle() {
-            document.getElementById('view-grid-btn').className = currentView === 'grid'
-                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
-                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
-            document.getElementById('view-detail-btn').className = currentView === 'detail'
-                ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all bg-white text-astra-700 shadow-sm'
-                : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700';
+            var activeClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white';
+            var inactiveClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 dark:hover:text-white';
+            document.getElementById('view-grid-btn').className = currentView === 'grid' ? activeClass : inactiveClass;
+            document.getElementById('view-detail-btn').className = currentView === 'detail' ? activeClass : inactiveClass;
         }
 
         function loadBanners() {
@@ -830,8 +893,6 @@ if (!$is_open) {
     hasActivated = true;
     document.getElementById('search-input').value = '';
     document.getElementById('search-input-mobile').value = '';
-    document.getElementById('sort-select').value = 'default';
-    document.getElementById('condition-select').value = 'Semua';
     generateCategoryFilterOptions();
     applyFiltersAndSort();
 }
@@ -873,7 +934,7 @@ if (!$is_open) {
                 if (bannerPl && bannerPl.classList.contains('banner-hiding')) {
                     setTimeout(function() { showInfoBar(infoBar); }, 400);
                 } else {
-                    showInfoBar(infoBar);
+                    infoBar.classList.remove('hidden');
                 }
             }
             var resetBtn = document.getElementById('reset-filter-btn');

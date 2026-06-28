@@ -12,7 +12,7 @@ import { formatIDR, isBekas } from '../lib/format.js'
 export function ProductModal() {
   return `
 <div class="js-detail-modal fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
 
     <!-- Close button -->
     <button class="js-modal-close absolute top-4 right-4 z-10 w-8 h-8 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors">
@@ -20,18 +20,18 @@ export function ProductModal() {
     </button>
 
     <!-- Left: Image gallery -->
-    <div class="w-full md:w-1/2 bg-slate-100 relative group min-h-[300px] flex items-center justify-center">
+    <div class="w-full md:w-1/2 bg-slate-100 dark:bg-slate-700 relative group min-h-[300px] flex items-center justify-center">
       <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="js-modal-image-fallback hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
+      <div class="js-modal-image-fallback hidden absolute inset-0 flex-col items-center justify-center text-slate-500 dark:text-slate-400">
         <i class="fa-solid fa-image text-5xl mb-2"></i>
         <span class="text-sm">Gambar tidak tersedia</span>
       </div>
 
       <!-- Carousel navigation -->
-      <button class="js-prev-img absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden">
+      <button class="js-prev-img absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden">
         <i class="fa-solid fa-chevron-left"></i>
       </button>
-      <button class="js-next-img absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-slate-800 rounded-full flex items-center justify-center shadow-lg hidden">
+      <button class="js-next-img absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
 
@@ -42,15 +42,15 @@ export function ProductModal() {
     <!-- Right: Product info -->
     <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col max-h-[50vh] md:max-h-full overflow-y-auto">
       <div class="js-detail-badge mb-3"></div>
-      <h2 class="js-detail-name text-2xl font-extrabold text-slate-800 mb-2"></h2>
-      <div class="js-detail-price text-3xl font-black text-astra-700 mb-6"></div>
+      <h2 class="js-detail-name text-2xl font-extrabold text-slate-800 dark:text-slate-100 mb-2"></h2>
+      <div class="js-detail-price text-3xl font-black text-astra-700 dark:text-astra-400 mb-6"></div>
 
-      <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex-grow">
-        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
-        <p class="js-detail-desc text-sm text-slate-600 whitespace-pre-line leading-relaxed"></p>
+      <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 mb-6 flex-grow">
+        <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
+        <p class="js-detail-desc text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed"></p>
       </div>
 
-      <div class="mt-auto pt-4 border-t border-slate-100">
+      <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
         <a class="js-detail-wa-btn w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm" href="#" target="_blank">
           <i class="fa-brands fa-whatsapp text-xl"></i> Beli via WhatsApp
         </a>
