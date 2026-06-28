@@ -1678,6 +1678,7 @@ function loadPlaylists() {
             playlists.forEach((pl, idx) => {
                 const isActive = pl.active !== false;
                 const photoCount = (pl.photos || []).length;
+                const total = playlists.length;
                 const firstPhoto = photoCount > 0 && pl.photos[0].image ? 'uploads/banners/' + pl.photos[0].image : null;
 
                 const div = document.createElement('div');
@@ -1698,6 +1699,10 @@ function loadPlaylists() {
                         '<p class="text-xs text-slate-400">' + photoCount + ' foto &middot; interval ' + (pl.interval || 5) + ' detik &middot; ' + (isActive ? '<span class="text-green-600 font-medium">Aktif</span>' : '<span class="text-slate-400">Nonaktif</span>') + '</p>' +
                     '</div>' +
                     '<div class="flex items-center gap-1 flex-shrink-0">' +
+                        '<div class="flex flex-col gap-0.5 mr-1">' +
+                            '<button type="button" onclick="movePlaylist(\'' + pl.id + '\', -1)" class="text-xs text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded-t transition-colors' + (idx === 0 ? ' opacity-30 cursor-not-allowed' : '') + '" title="Naik"' + (idx === 0 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-up"></i></button>' +
+                            '<button type="button" onclick="movePlaylist(\'' + pl.id + '\', 1)" class="text-xs text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded-b transition-colors' + (idx === total - 1 ? ' opacity-30 cursor-not-allowed' : '') + '" title="Turun"' + (idx === total - 1 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-down"></i></button>' +
+                        '</div>' +
                         '<button type="button" onclick="openPlaylistPhotos(\'' + pl.id + '\', \'' + escHtml(pl.name || '') + '\')" class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Kelola Foto"><i class="fa-solid fa-images"></i></button>' +
                         '<button type="button" onclick="editPlaylist(\'' + pl.id + '\')" class="text-xs text-astra-600 hover:text-astra-800 bg-astra-50 hover:bg-astra-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Edit"><i class="fa-solid fa-pen"></i></button>' +
                         '<button type="button" onclick="deletePlaylist(\'' + pl.id + '\')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>' +
@@ -1845,6 +1850,30 @@ function deletePlaylist(id) {
     });
 }
 
+function movePlaylist(id, direction) {
+    const items = Array.from(document.querySelectorAll('.playlist-item'));
+    const idx = items.findIndex(el => el.dataset.playlistId === id);
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= items.length) return;
+    if (newIdx > idx) {
+        items[idx].parentNode.insertBefore(items[newIdx], items[idx]);
+    } else {
+        items[idx].parentNode.insertBefore(items[idx], items[newIdx]);
+    }
+    const ids = Array.from(document.querySelectorAll('.playlist-item')).map(el => el.dataset.playlistId);
+    const fd = new FormData();
+    fd.append('action', 'reorder_playlists');
+    fd.append('ids', JSON.stringify(ids));
+    fetch('update_banner.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) loadPlaylists();
+            else showNotification(data.message || 'Gagal mengurutkan.', 'error');
+        })
+        .catch(() => showNotification('Gagal terhubung.', 'error'));
+}
+
 // --- Foto dalam Playlist ---
 function openPlaylistPhotos(id, name) {
     document.getElementById('playlist-photo-id').value = id;
@@ -1875,6 +1904,7 @@ function loadPlaylistPhotos(id) {
             grid.className = 'space-y-4';
             pl.photos.forEach((photo, idx) => {
                 const imgUrl = 'uploads/banners/' + photo.image;
+                const total = pl.photos.length;
                 const div = document.createElement('div');
                 div.className = 'flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden';
                 div.innerHTML =
@@ -1891,6 +1921,10 @@ function loadPlaylistPhotos(id) {
                             '</div>' +
                         '</div>' +
                         '<div class="flex flex-col gap-1.5 flex-shrink-0 justify-start">' +
+                            '<div class="flex border border-slate-200 rounded-lg overflow-hidden">' +
+                                '<button type="button" onclick="movePlaylistPhoto(\'' + id + '\', ' + idx + ', -1)" class="text-xs text-slate-600 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-2 py-1 transition-colors border-r border-slate-200' + (idx === 0 ? ' opacity-30 cursor-not-allowed' : '') + '" title="Geser ke kiri"' + (idx === 0 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-left"></i></button>' +
+                                '<button type="button" onclick="movePlaylistPhoto(\'' + id + '\', ' + idx + ', 1)" class="text-xs text-slate-600 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-2 py-1 transition-colors' + (idx === total - 1 ? ' opacity-30 cursor-not-allowed' : '') + '" title="Geser ke kanan"' + (idx === total - 1 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-right"></i></button>' +
+                            '</div>' +
                             '<button type="button" onclick="savePlaylistPhotoInfo(\'' + id + '\', ' + idx + ', this)" class="text-xs text-white bg-astra-700 hover:bg-astra-800 px-2.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>' +
                             '<button type="button" onclick="deletePlaylistPhoto(\'' + id + '\', \'' + photo.image + '\', ' + idx + ')" class="text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1"><i class="fa-solid fa-trash-can"></i></button>' +
                         '</div>' +
@@ -1992,6 +2026,39 @@ function deletePlaylistPhoto(playlistId, image, idx) {
             })
             .catch(() => showNotification('Gagal terhubung.', 'error'));
     });
+}
+
+function movePlaylistPhoto(playlistId, index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0) return;
+    const fd = new FormData();
+    fd.append('action', 'reorder_playlist_photos');
+    fd.append('playlist_id', playlistId);
+    const order = [];
+    fetch('api_banner.php')
+        .then(r => r.json())
+        .then(playlists => {
+            const pl = playlists.find(x => x.id === playlistId);
+            if (!pl || !pl.photos) return;
+            const total = pl.photos.length;
+            if (newIndex >= total) return;
+            for (let i = 0; i < total; i++) {
+                order.push(i);
+            }
+            [order[index], order[newIndex]] = [order[newIndex], order[index]];
+            fd.append('order', JSON.stringify(order));
+            return fetch('update_banner.php', { method: 'POST', body: fd });
+        })
+        .then(r => r ? r.json() : null)
+        .then(data => {
+            if (data && data.success) {
+                loadPlaylistPhotos(playlistId);
+                loadPlaylists();
+            } else if (data) {
+                showNotification(data.message || 'Gagal mengurutkan foto.', 'error');
+            }
+        })
+        .catch(() => showNotification('Gagal terhubung.', 'error'));
 }
 </script>
 </body>

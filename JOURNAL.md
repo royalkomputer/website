@@ -228,3 +228,30 @@ PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `gi
 
 #### `backend/admin.php` — Push panel updated
 - Added instructions for two setup options: token `.env` or `setup_push_task.bat`
+
+## 2026-06-28 — Dark Mode & Banner Reorder Arrows
+
+### Dark Mode Toggle (Frontend)
+- `frontend/index.php`: Added `darkMode: 'class'` to Tailwind config, inline theme init script in `<head>` to prevent FOUC, toggle button (sun/moon) in desktop + mobile navbar, `toggleTheme()`/`updateThemeIcon()` functions, safelist with dynamically constructed dark classes
+- `frontend/index.html`: Added theme init script in `<head>`
+- `frontend/src/main.js`: `toggleTheme()`, `updateThemeIcon()`, dark-mode event binding in `renderApp()`
+- `frontend/src/style.css`: Added `@custom-variant dark (&:where(.dark, .dark *));`
+- Theme init script runs synchronously in `<head>` before rendering; falls back to `prefers-color-scheme` if no `localStorage` key; persists choice in `localStorage.theme`
+
+### Dark Mode Styling (All Components)
+- `body`: `bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200`
+- `navbar`: `bg-white dark:bg-astra-950 text-slate-800 dark:text-white`
+- `hero`: `from-astra-100 via-white to-astra-50 dark:from-astra-950 dark:via-slate-900 dark:to-astra-900`
+- `FilterSidebar.js`: All containers, buttons, labels, borders with `dark:` variants
+- `ProductGrid.js`, `ProductCard.js`, `ProductDetailRow.js`: Cards, text, prices, badges with dark variants
+- `ProductModal.js`: Modal bg, image area, info panel, close button
+- `Footer.js`: All sections with dark variants
+- `StoreStatus.js`: Dark gradient header, dark badges
+- `index.php`: All dynamic JS functions (`updateCondUI`, `updateSortUI`, `updateCategoryButtons`, `updateViewToggleUI`, `setView`, `initViewToggle`, `openDetailModal`) use `isDark` runtime check for dynamically built class strings
+- View toggle buttons: Active uses `bg-astra-700 text-white shadow-sm`; inactive uses `dark:bg-slate-600 dark:text-slate-300` for visibility against `dark:bg-slate-700` parent
+
+### Banner Reorder Arrows (Admin)
+- `backend/admin.php`: Added up/down arrow buttons on each playlist card (`movePlaylist()`) — swaps DOM position and sends `reorder_playlists` API call
+- `backend/admin.php`: Added left/right arrow buttons on each photo card inside photo modal (`movePlaylistPhoto()`) — swaps indices and sends `reorder_playlist_photos` API call
+- Boundary buttons (first/last) are disabled with `opacity-30 cursor-not-allowed`
+- Both features coexist with existing drag-and-drop reordering
