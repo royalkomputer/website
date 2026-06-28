@@ -4,6 +4,9 @@
  * @param {number} index - Playlist index
  * @returns {string} HTML string
  */
+
+const BANNER_BASE_URL = 'https://royal-backend-s3ir.onrender.com/uploads/banners/'
+
 export function renderPlaylist(playlist, index) {
   const photos = playlist.photos || []
   if (photos.length === 0) return ''
@@ -21,7 +24,7 @@ export function renderPlaylist(playlist, index) {
         ${photos.map(p => `
           <div class="pl-slide min-w-full w-full flex-shrink-0 h-full" data-pl="${plId}">
             ${p.link ? `<a href="${escAttr(p.link)}" target="_blank" rel="noopener" class="block h-full">` : ''}
-              <img src="uploads/banners/${escAttr(p.image)}" alt="${escAttr(p.alt || playlist.name || 'Banner')}"
+              <img src="${BANNER_BASE_URL}${escAttr(p.image)}" alt="${escAttr(p.alt || playlist.name || 'Banner')}"
                    class="w-full h-full object-cover">
             ${p.link ? '</a>' : ''}
           </div>

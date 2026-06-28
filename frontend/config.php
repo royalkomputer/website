@@ -14,6 +14,9 @@ define('STATUS_FILE',  __DIR__ . '/status_toko.txt');
 define('SCHEDULE_FILE',      __DIR__ . '/jadwal_tutup.json');
 define('PRODUCT_INFO_FILE', __DIR__ . '/product_info.json');
 
+// --- BACKEND URL UNTUK ASSETS ---
+define('BACKEND_URL', getenv('BACKEND_URL') ?: 'https://royal-backend-s3ir.onrender.com');
+
 // --- FUNGSI KONEKSI DATABASE ---
 function getDBConnection() {
     if (!function_exists('pg_connect')) {

@@ -520,6 +520,8 @@ if (!$is_open) {
     </div>
 
     <script>
+        const BANNER_BASE_URL = '<?php echo BACKEND_URL; ?>/uploads/banners/';
+
         // Fungsi untuk buka-tutup menu sosmed (Navbar) di Mobile
         function toggleNavMenu() {
             const menu = document.getElementById('nav-sosmed-menu');
@@ -762,7 +764,7 @@ if (!$is_open) {
                                     photos.map(p =>
                                         '<div class="pl-slide min-w-full w-full flex-shrink-0 h-full" data-pl="' + plId + '">' +
                                             (p.link ? '<a href="' + escAttr(p.link) + '" target="_blank" rel="noopener" class="block h-full">' : '') +
-                                                '<img src="uploads/banners/' + escAttr(p.image) + '" alt="' + escAttr(p.alt || pl.name || 'Banner') + '" class="w-full h-full object-cover">' +
+                                                '<img src="' + BANNER_BASE_URL + escAttr(p.image) + '" alt="' + escAttr(p.alt || pl.name || 'Banner') + '" class="w-full h-full object-cover">' +
                                             (p.link ? '</a>' : '') +
                                         '</div>'
                                     ).join('') +
