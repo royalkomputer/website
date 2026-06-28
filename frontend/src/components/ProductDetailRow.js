@@ -50,7 +50,7 @@ return `
       <span class="hidden sm:inline text-xs text-slate-400 font-medium">${product.category}</span>
     </div>
 
-    <div class="text-base sm:text-lg font-extrabold text-astra-400 whitespace-nowrap">${formattedPrice}</div>
+    <div class="text-base sm:text-lg font-extrabold text-white whitespace-nowrap">${formattedPrice}</div>
 
     <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
       <i class="fa-brands fa-whatsapp text-sm"></i>

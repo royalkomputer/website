@@ -43,7 +43,7 @@ return `
   <div class="p-3 md:p-4 flex flex-col flex-grow">
     <h3 class="font-bold text-white text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>
     <div class="mt-auto pt-2 md:pt-3 border-t border-slate-700 flex items-center justify-between gap-2">
-      <div class="text-sm md:text-base font-extrabold text-astra-400 truncate min-w-0">${formattedPrice}</div>
+      <div class="text-sm md:text-base font-extrabold text-white truncate min-w-0">${formattedPrice}</div>
       <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
         <i class="fa-brands fa-whatsapp text-sm"></i>
       </a>
