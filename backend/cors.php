@@ -28,6 +28,7 @@ function handleCORS(): void {
         'https://royal-komputer.netlify.app',
         'https://tiny-druid-60182f.netlify.app',
         'https://royal-backend-s3ir.onrender.com',
+        'https://royalkomputer.github.io',
     ];
 
     // Determine the origin to allow
