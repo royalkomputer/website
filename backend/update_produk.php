@@ -338,27 +338,24 @@ if ($uploadFiles || !empty($imageOrder)) {
     }
 }
 
-// Simpan deskripsi ke cache jika DB tidak tersedia (sebagai fallback)
-$desc_provided = !empty($description);
-if (!$db_available && $desc_provided) {
-    $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $id);
-    $cache_files = [
-        __DIR__ . '/data/cache_produk.json',
-        __DIR__ . '/../frontend/cache_produk.json',
-    ];
-    foreach ($cache_files as $cache_file) {
-        if (file_exists($cache_file)) {
-            $cacheData = json_decode(file_get_contents($cache_file), true);
-            if (is_array($cacheData)) {
-                foreach ($cacheData as &$entry) {
-                    if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
-                        $entry['description'] = $description;
-                        break;
-                    }
+// Simpan deskripsi ke cache (update_produk.php & api_produk.php membaca dari cache)
+$safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $id);
+$cache_files = [
+    __DIR__ . '/data/cache_produk.json',
+    __DIR__ . '/../frontend/cache_produk.json',
+];
+foreach ($cache_files as $cache_file) {
+    if (file_exists($cache_file)) {
+        $cacheData = json_decode(file_get_contents($cache_file), true);
+        if (is_array($cacheData)) {
+            foreach ($cacheData as &$entry) {
+                if (isset($entry['id']) && preg_replace('/[^A-Za-z0-9]/', '_', $entry['id']) === $safe_kode) {
+                    $entry['description'] = $description;
+                    break;
                 }
-                unset($entry);
-                file_put_contents($cache_file, json_encode($cacheData));
             }
+            unset($entry);
+            file_put_contents($cache_file, json_encode($cacheData));
         }
     }
 }
@@ -379,12 +376,7 @@ if ($db_available) {
     pg_close($conn);
 }
 
-if (!$db_available && $desc_provided) {
-    echo json_encode(["success" => true, "warning" => true, "message" => "Foto dan deskripsi berhasil disimpan (offline mode). Database tidak terhubung, data disimpan di cache."]);
-} else {
-    
 echo json_encode(["success" => true, "message" => "Item berhasil diperbarui."]);
-}
 
 } catch (Throwable $e) {
     echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
