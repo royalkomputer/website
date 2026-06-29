@@ -13,74 +13,74 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   categoryCounts = categoryCounts || {}
 
   return `
-<aside class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm self-start overflow-hidden">
+<aside class="lg:col-span-1 bg-black rounded-xl border border-slate-700 shadow-sm self-start overflow-hidden">
 
   <!-- Toggle header (mobile) -->
-  <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-50 dark:bg-slate-800 lg:bg-white dark:lg:bg-slate-800 border-b border-slate-100 dark:border-slate-700 lg:border-none">
-    <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-      <i class="fa-solid fa-sliders text-astra-700"></i> Filter & Urutkan
+  <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-black lg:bg-black border-b border-slate-700 lg:border-none">
+    <h3 class="font-bold text-white flex items-center gap-2">
+      <i class="fa-solid fa-sliders text-astra-400"></i> Filter & Urutkan
     </h3>
-    <i class="js-filter-icon fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-300 lg:hidden"></i>
+    <i class="js-filter-icon fa-solid fa-chevron-down text-slate-400 transition-transform duration-300 lg:hidden"></i>
   </button>
 
   <!-- Filter content -->
   <div class="js-filter-content hidden lg:block p-3 lg:p-4 lg:pt-0">
 
     <!-- Reset button -->
-    <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-100 dark:lg:border-slate-700">
-      <button class="js-reset-filters text-xs text-astra-600 font-semibold bg-astra-50 hover:bg-astra-100 dark:bg-astra-900/30 dark:hover:bg-astra-900/50 lg:bg-transparent lg:hover:bg-transparent dark:lg:bg-transparent dark:lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
+    <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
+      <button class="js-reset-filters text-xs text-astra-400 font-semibold bg-astra-900/30 hover:bg-astra-900/50 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
         <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
       </button>
     </div>
 
     <!-- Category -->
     <div class="mb-6">
-      <button type="button" class="js-category-toggle w-full flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
+      <button type="button" class="js-category-toggle w-full flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
         <span>Kategori</span>
-        <i class="js-category-icon fa-solid fa-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-200"></i>
+        <i class="js-category-icon fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
       </button>
       <div class="js-category-panel space-y-1">
         ${categories.map(cat => {
           const isSelected = filters.category === cat
           const count = categoryCounts[cat] || 0
           return `<button class="js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
-            isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+            isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
           }" data-category="${cat}">
             ${isSelected ? '<i class="fa-solid fa-check mr-1.5 text-white"></i>' : ''}
             <span>${cat}</span>
-            <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>
+            <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>
           </button>`
         }).join('')}
       </div>
     </div>
 
     <!-- Condition -->
-    <div class="mb-6 border-t border-slate-100 dark:border-slate-700 pt-5">
-      <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
+    <div class="mb-6 border-t border-slate-700 pt-5">
+      <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
       <div class="flex gap-2">
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Semua">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Semua">
           <i class="fa-solid fa-check hidden"></i> Semua
         </button>
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Baru">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Baru">
           <i class="fa-solid fa-check hidden"></i> Baru
         </button>
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600" data-condition="Bekas">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Bekas">
           <i class="fa-solid fa-check hidden"></i> Bekas
         </button>
       </div>
     </div>
 
     <!-- Sort -->
-    <div class="border-t border-slate-100 dark:border-slate-700 pt-5">
-      <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
+    <div class="border-t border-slate-700 pt-5">
+      <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
       <div class="space-y-1">
-        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="default">
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="default">
           <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
         </button>
-        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="low-high">
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="low-high">
           <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
         </button>
-        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50" data-sort="high-low">
+        <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="high-low">
           <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
         </button>
       </div>
@@ -170,23 +170,21 @@ export function bindFilterEvents(filters, onFilterChange, canReset) {
  * Update visual selection state for category buttons.
  */
 export function updateConditionButtons(selected) {
-  const isDark = document.documentElement.classList.contains('dark')
   document.querySelectorAll('.js-cond-btn').forEach(btn => {
     const isSelected = btn.dataset.condition === selected
-    btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : (isDark ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100')} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
+    btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-black border border-slate-600 text-slate-300 hover:bg-slate-800'} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
     const icon = btn.querySelector('.fa-check')
     if (icon) icon.classList.toggle('hidden', !isSelected)
   })
 }
 
 export function updateSortButtons(selected) {
-  const isDark = document.documentElement.classList.contains('dark')
   document.querySelectorAll('.js-sort-btn').forEach(btn => {
     const isSelected = btn.dataset.sort === selected
     const base = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2'
     btn.className = isSelected
       ? `${base} bg-astra-700 text-white font-semibold shadow-sm`
-      : `${base} ${isDark ? 'text-slate-300 hover:bg-slate-700/50' : 'text-slate-600 hover:bg-slate-100'}`
+      : `${base} text-slate-300 hover:bg-slate-800`
     const icon = btn.querySelector('i')
     if (icon) {
       if (isSelected) {
@@ -200,7 +198,6 @@ export function updateSortButtons(selected) {
 }
 
 export function updateCategoryButtons(selectedCategory) {
-  const isDark = document.documentElement.classList.contains('dark')
   document.querySelectorAll('.js-cat-btn').forEach(btn => {
     const isSelected = btn.dataset.category === selectedCategory
     const name = btn.querySelector('span')
@@ -216,11 +213,11 @@ export function updateCategoryButtons(selectedCategory) {
         countBadge.className = 'bg-white/20 text-white text-xs px-2 py-0.5 rounded-full'
       }
     } else {
-      btn.className = `js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${isDark ? 'text-slate-300 hover:bg-slate-700/50' : 'text-slate-600 hover:bg-slate-100'}`
+      btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between text-slate-300 hover:bg-slate-800'
       const icon = btn.querySelector('.fa-check')
       if (icon) icon.remove()
       if (countBadge) {
-        countBadge.className = `${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'} text-xs px-2 py-0.5 rounded-full`
+        countBadge.className = 'bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full'
       }
     }
   })

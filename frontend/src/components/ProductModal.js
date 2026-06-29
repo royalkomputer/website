@@ -45,12 +45,12 @@ export function ProductModal() {
       <h2 class="js-detail-name text-2xl font-extrabold text-slate-800 dark:text-slate-100 mb-2"></h2>
       <div class="js-detail-price text-3xl font-black text-astra-700 dark:text-astra-400 mb-6"></div>
 
-      <div class="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 mb-6 flex-grow">
-        <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
-        <p class="js-detail-desc text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line leading-relaxed"></p>
+      <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700 mb-6 flex-grow">
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
+        <p class="js-detail-desc text-sm text-slate-300 whitespace-pre-line leading-relaxed"></p>
       </div>
 
-      <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
+      <div class="mt-auto pt-4 border-t border-slate-700">
         <a class="js-detail-wa-btn w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm" href="#" target="_blank">
           <i class="fa-brands fa-whatsapp text-xl"></i> Beli via WhatsApp
         </a>
