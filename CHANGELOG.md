@@ -17,10 +17,11 @@
 - AGENTS.md: updated with session progress, key decisions, and relevant file references
 
 ### Changed
-- `execGitPush()`: `git add` now includes `frontend/status_toko.txt`, `frontend/jam_operasional.json`, `frontend/jadwal_tutup.json` (settings files outside `frontend/data/`)
+- `execGitPush()`: `git add` includes ALL frontend settings files (`cache_produk.json`, `heading.json`, `jadwal_tutup.json`, `jam_operasional.json`, `product_info.json`, `tagline.json`, `status_toko.txt`)
+- `backupPhotosToGit()`: `git add` now includes `data/`, `../frontend/*.json/*.txt` besides `uploads/` (so photo + description + settings changes are committed together)
 - `update_jam.php`: auto-push to git after saving operating hours
 - `update_admin.php`: auto-push to git after saving status, schedules, heading, tagline, product info
-- Admin settings changes (jam, status, jadwal) are now auto-committed and pushed to GitHub immediately
+- Admin settings changes (jam, status, jadwal, heading, tagline, product info) auto-commit and push immediately
 
 ### In Progress
 - Photo upload after admin save: user reports photo appears "not found" in grid despite successful upload. Verified upload works programmatically (file saved, API returns correct URL, HTTP 200). Issue persists on user's end — needs browser-side debugging.

@@ -744,7 +744,7 @@ function execGitPush(string $workdir, string $token, string $repo_url, string $b
     exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
     exec('git config user.name "Royal Auto Backup" 2>&1');
 
-    exec('git add -A backend/data/ backend/uploads/ frontend/data/ frontend/status_toko.txt frontend/jam_operasional.json frontend/jadwal_tutup.json 2>&1', $add_out, $add_code);
+    exec('git add -A backend/data/ backend/uploads/ frontend/data/ frontend/cache_produk.json frontend/heading.json frontend/jadwal_tutup.json frontend/jam_operasional.json frontend/product_info.json frontend/tagline.json frontend/status_toko.txt 2>&1', $add_out, $add_code);
     if ($add_code !== 0) {
         chdir($cwd);
         return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
@@ -824,8 +824,8 @@ function backupPhotosToGit(): array {
     exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
     exec('git config user.name "Royal Auto Backup" 2>&1');
 
-    // Stage file uploads (git add akan mendeteksi sendiri apakah ada perubahan)
-    exec('git add -A uploads/ 2>&1', $add_out, $add_code);
+    // Stage file uploads + cache + data (git add akan mendeteksi sendiri apakah ada perubahan)
+    exec('git add -A uploads/ data/ ../frontend/cache_produk.json ../frontend/heading.json ../frontend/jadwal_tutup.json ../frontend/jam_operasional.json ../frontend/product_info.json ../frontend/tagline.json ../frontend/status_toko.txt ../frontend/data/ 2>&1', $add_out, $add_code);
     if ($add_code !== 0) {
         chdir($cwd);
         return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
@@ -835,11 +835,11 @@ function backupPhotosToGit(): array {
     exec('git diff --cached --quiet 2>&1', $diff_out, $diff_code);
     if ($diff_code === 0) {
         chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan foto untuk di-backup'];
+        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-backup'];
     }
 
     // Commit
-    $msg = 'backup: photo upload ' . date('Y-m-d H:i:s');
+    $msg = 'backup: update ' . date('Y-m-d H:i:s');
     $escaped_msg = str_replace('"', '\\"', $msg);
     exec("git commit -m \"$escaped_msg\" 2>&1", $commit_out, $commit_code);
     if ($commit_code !== 0) {
