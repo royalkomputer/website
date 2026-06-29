@@ -664,7 +664,14 @@ function backupToGit(): array {
     $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
     $branch    = getenv('GIT_BRANCH') ?: 'main';
 
-    // Di lokal (Windows), prioritaskan push_admin.bat
+    // Kalau ada token, prioritaskan PHP exec (lebih reliable, tidak perlu string substitution batch)
+    if ($git_token) {
+        $exec_ret = execGitPush(__DIR__, $git_token, $repo_url, $branch);
+        if ($exec_ret['success']) return $exec_ret;
+        // PHP push gagal — fallback ke batch file
+    }
+
+    // Di lokal (Windows), coba push_admin.bat (jalan sebagai user login atau pakai credentials default)
     $bat_path = __DIR__ . '/push_admin.bat';
     if (PHP_OS_FAMILY === 'Windows' && file_exists($bat_path)) {
         $output = [];
@@ -678,12 +685,6 @@ function backupToGit(): array {
         // Bat gagal — coba trigger scheduled task (jalan sebagai user login)
         if (triggerAdminPushTask()) {
             return ['success' => true, 'message' => 'Push dijalankan melalui task scheduler sebagai user login. Periksa hasilnya beberapa saat lagi.'];
-        }
-
-        // Fallback: coba exec git langsung dengan token (jika ada)
-        if ($git_token) {
-            $exec_ret = execGitPush(__DIR__, $git_token, $repo_url, $branch);
-            if ($exec_ret['success']) return $exec_ret;
         }
 
         return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . '). Buat GitHub token dan tambahkan ke backend/.env, atau jalankan backend/setup_push_task.bat sebagai Administrator.'];
