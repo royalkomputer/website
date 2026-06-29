@@ -50,7 +50,7 @@
         "order": 3,
         "active": true,
         "interval": 3000,
-        "aspect": "16\/9",
+        "aspect": "1\/1",
         "photos": [
             {
                 "image": "pl_6a40fa00728c0_0.webp",
