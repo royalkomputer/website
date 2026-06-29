@@ -48,7 +48,7 @@ if %errorlevel% neq 0 (
 
 REM ---- Push with token if available ----
 if not "%TOKEN%"=="" (
-    set AUTH_URL=https://x-access-token:%TOKEN%@github.com/royalkomputer/website.git
+    set AUTH_URL=https://x-access-token:%TOKEN%@%REMOTE_URL:https://=%
     "%GIT%" remote set-url origin !AUTH_URL!
     "%GIT%" push origin main
     set PUSH_EXIT=%errorlevel%
