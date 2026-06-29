@@ -44,8 +44,8 @@
         "name": "CASE 2",
         "order": 3,
         "active": true,
-        "interval": 4000,
-        "aspect": "1\/1",
+        "interval": 3000,
+        "aspect": "16\/9",
         "photos": [
             {
                 "image": "pl_6a40fa00728c0_0.webp",
@@ -61,6 +61,11 @@
                 "image": "pl_6a40fa00728c0_2.webp",
                 "link": "https:\/\/enlight-indonesia.com\/product\/en-z10\/",
                 "alt": "ENLIGHT Z10 BLACK"
+            },
+            {
+                "image": "pl_6a40fa00728c0_3.webp",
+                "link": "https:\/\/enlight-indonesia.com\/product\/enlight-a1\/",
+                "alt": "ENLIGHT A1"
             }
         ]
     }
