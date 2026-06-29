@@ -59,4 +59,11 @@ if (!saveJamOperasional($jam_baru)) {
 
 // Catat history
 logAdminHistory('update_jam', 'jam_operasional', '', 'Jam operasional toko diperbarui');
+
+// Auto push ke git agar perubahan sinkron dengan live site
+$push = backupToGit();
+if (!$push['success']) {
+    error_log('[PUSH JAM] ' . $push['message']);
+}
+
 echo json_encode(['success' => true, 'message' => 'Jam operasional berhasil disimpan.']);

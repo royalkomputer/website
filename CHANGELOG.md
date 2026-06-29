@@ -16,5 +16,11 @@
 - `config.php`: `backupToGit()` attempts PHP `execGitPush()` first when token is available, falls back to batch file
 - AGENTS.md: updated with session progress, key decisions, and relevant file references
 
+### Changed
+- `execGitPush()`: `git add` now includes `frontend/status_toko.txt`, `frontend/jam_operasional.json`, `frontend/jadwal_tutup.json` (settings files outside `frontend/data/`)
+- `update_jam.php`: auto-push to git after saving operating hours
+- `update_admin.php`: auto-push to git after saving status, schedules, heading, tagline, product info
+- Admin settings changes (jam, status, jadwal) are now auto-committed and pushed to GitHub immediately
+
 ### In Progress
 - Photo upload after admin save: user reports photo appears "not found" in grid despite successful upload. Verified upload works programmatically (file saved, API returns correct URL, HTTP 200). Issue persists on user's end — needs browser-side debugging.

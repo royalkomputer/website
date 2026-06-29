@@ -157,6 +157,8 @@ if ($action === 'set_manual_status') {
     $status = ($_POST['status'] ?? 'buka') === 'tutup' ? 'tutup' : 'buka';
     if (saveStatus($status)) {
         logAdminHistory('update_status', 'status_toko', '', 'Mengubah status toko menjadi: ' . ($_POST['status'] ?? ''));
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH STATUS] ' . $push['message']);
 echo json_encode(['success'=>true,'message'=>'Status manual berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan status.']);
@@ -193,6 +195,8 @@ if ($action === 'add_schedule') {
 
     if (saveSchedules($schedules)) {
         logAdminHistory('add_schedule', 'jadwal_tutup', '', 'Menambahkan jadwal tutup sementara');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH SCHEDULE] ' . $push['message']);
 echo json_encode(['success'=>true,'message'=>'Jadwal tutup sementara berhasil ditambahkan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan jadwal.']);
@@ -229,7 +233,12 @@ if ($action === 'edit_schedule') {
     }
     unset($s);
     if (!$found) { echo json_encode(['success'=>false,'message'=>'Jadwal tidak ditemukan.']); exit; }
-    if (saveSchedules($schedules)) { logAdminHistory('edit_schedule', 'jadwal_tutup', '', 'Mengedit jadwal tutup sementara'); echo json_encode(['success'=>true,'message'=>'Jadwal berhasil diperbarui.']); }
+    if (saveSchedules($schedules)) {
+        logAdminHistory('edit_schedule', 'jadwal_tutup', '', 'Mengedit jadwal tutup sementara');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH SCHEDULE] ' . $push['message']);
+        echo json_encode(['success'=>true,'message'=>'Jadwal berhasil diperbarui.']);
+    }
     else echo json_encode(['success'=>false,'message'=>'Gagal menyimpan jadwal.']);
     exit;
 }
@@ -238,7 +247,12 @@ if ($action === 'delete_schedule') {
     $id = $_POST['id'] ?? '';
     if (empty($id)) { echo json_encode(['success'=>false,'message'=>'ID jadwal tidak ditemukan.']); exit; }
     $schedules = array_values(array_filter(loadSchedules(), function($s) use($id){ return ($s['id'] ?? '') !== $id; }));
-    if (saveSchedules($schedules)) { logAdminHistory('delete_schedule', 'jadwal_tutup', $id ?? '', 'Menghapus jadwal tutup sementara'); echo json_encode(['success'=>true,'message'=>'Jadwal berhasil dihapus.']); }
+    if (saveSchedules($schedules)) {
+        logAdminHistory('delete_schedule', 'jadwal_tutup', $id ?? '', 'Menghapus jadwal tutup sementara');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH SCHEDULE] ' . $push['message']);
+        echo json_encode(['success'=>true,'message'=>'Jadwal berhasil dihapus.']);
+    }
     else echo json_encode(['success'=>false,'message'=>'Gagal menghapus jadwal.']);
     exit;
 }
@@ -255,6 +269,8 @@ if ($action === 'save_heading') {
     }
     if (saveHeading($prefix, $brand)) {
         logAdminHistory('update_heading', 'heading', '', 'Mengupdate heading toko');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH HEADING] ' . $push['message']);
 echo json_encode(['success'=>true,'message'=>'Heading toko berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan heading toko.']);
@@ -282,6 +298,8 @@ if ($action === 'save_product_info') {
     }
     if (saveProductInfoText($text)) {
         logAdminHistory('update_product_info', 'product_info', '', 'Mengupdate info produk di halaman toko');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH PRODINFO] ' . $push['message']);
 echo json_encode(['success'=>true,'message'=>'Teks info produk berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan teks info produk.']);
@@ -302,6 +320,8 @@ if ($action === 'save_tagline') {
     }
     if (saveTagline($tagline)) {
         logAdminHistory('update_tagline', 'tagline', '', 'Mengupdate tagline toko');
+        $push = backupToGit();
+        if (!$push['success']) error_log('[PUSH TAGLINE] ' . $push['message']);
 echo json_encode(['success'=>true,'message'=>'Tagline berhasil disimpan.']);
     } else {
         echo json_encode(['success'=>false,'message'=>'Gagal menyimpan tagline.']);

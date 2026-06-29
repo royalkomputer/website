@@ -744,7 +744,7 @@ function execGitPush(string $workdir, string $token, string $repo_url, string $b
     exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
     exec('git config user.name "Royal Auto Backup" 2>&1');
 
-    exec('git add -A backend/data/ backend/uploads/ frontend/data/ 2>&1', $add_out, $add_code);
+    exec('git add -A backend/data/ backend/uploads/ frontend/data/ frontend/status_toko.txt frontend/jam_operasional.json frontend/jadwal_tutup.json 2>&1', $add_out, $add_code);
     if ($add_code !== 0) {
         chdir($cwd);
         return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
