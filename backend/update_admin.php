@@ -30,8 +30,9 @@ if ($action === 'tambah_admin') {
     if (findAdminByUsername($username)) { echo json_encode(['success'=>false,'message'=>'Username sudah digunakan.']); exit; }
 
     $admins   = loadAdmins();
+    $new_id   = generateAdminId();
     $admins[] = [
-        'id'            => generateAdminId(),
+        'id'            => $new_id,
         'username'      => $username,
         'password_hash' => password_hash($password, PASSWORD_BCRYPT),
         'role'          => $role,
@@ -39,8 +40,8 @@ if ($action === 'tambah_admin') {
         'created_at'    => date('Y-m-d'),
     ];
     saveAdmins($admins);
-    logAdminHistory('tambah_admin', 'admin', $id_new, 'Menambahkan admin: ' . ($_POST['nama'] ?? $_POST['username']));
-echo json_encode(['success'=>true,'message'=>'Admin baru berhasil ditambahkan.']);
+    logAdminHistory('tambah_admin', 'admin', $new_id, 'Menambahkan admin: ' . ($_POST['nama'] ?? $_POST['username']));
+    echo json_encode(['success'=>true,'message'=>'Admin baru berhasil ditambahkan.']);
     exit;
 }
 
