@@ -790,7 +790,19 @@ function execGitPush(string $workdir, string $token, string $repo_url, string $b
 }
 
 function backupPhotosToGit(): array {
-    $git_token = ENV_GIT_TOKEN ?: getenv('GIT_TOKEN');
+    // Baca .env dulu (local XAMPP), fallback ke env var (Render)
+    $env_token = '';
+    $env_file = __DIR__ . '/.env';
+    if (file_exists($env_file)) {
+        $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $parts = explode('=', $line, 2);
+            if (count($parts) === 2 && trim($parts[0]) === 'GIT_TOKEN') {
+                $env_token = trim($parts[1]);
+            }
+        }
+    }
+    $git_token = $env_token ?: (ENV_GIT_TOKEN ?: getenv('GIT_TOKEN'));
     $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
     $branch    = getenv('GIT_BRANCH') ?: 'main';
 
