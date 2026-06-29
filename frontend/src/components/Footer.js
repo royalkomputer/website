@@ -10,7 +10,7 @@
 import { LOGO_URL } from '../lib/env.js'
 
 export function Footer(hours) {
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const currentDay = dayNames[new Date().getDay()]
 
   let hoursRows = ''
