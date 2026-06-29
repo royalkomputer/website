@@ -666,8 +666,11 @@ function backupToGit(): array {
 
     // Kalau ada token, prioritaskan PHP exec (lebih reliable, tidak perlu string substitution batch)
     if ($git_token) {
-        $exec_ret = execGitPush(__DIR__, $git_token, $repo_url, $branch);
-        if ($exec_ret['success']) return $exec_ret;
+        $git_dir = findGitDir(__DIR__);
+        if ($git_dir) {
+            $exec_ret = execGitPush($git_dir, $git_token, $repo_url, $branch);
+            if ($exec_ret['success']) return $exec_ret;
+        }
         // PHP push gagal — fallback ke batch file
     }
 
