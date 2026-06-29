@@ -77,10 +77,10 @@ async function loadData() {
   await loadProductInfoText()
   await loadHeadingText()
 
-  showLoading(true)
-
-  // Step 1: Load banners first (lightweight)
+  // Step 1: Load banners first — no spinner, biar web terlihat ringan
   await loadBanners()
+
+  showLoading(true)
 
   // Step 2: Load products (heavier)
   try {
