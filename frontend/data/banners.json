@@ -5,7 +5,7 @@
         "order": 1,
         "active": true,
         "interval": 5000,
-        "aspect": "16\/9",
+        "aspect": "21\/9",
         "photos": [
             {
                 "image": "pl_6a411f2246a3f_0.webp",
@@ -24,7 +24,7 @@
         "name": "CASE",
         "order": 2,
         "active": true,
-        "interval": 5000,
+        "interval": 4000,
         "aspect": "16\/9",
         "photos": [
             {
@@ -36,6 +36,11 @@
                 "image": "pl_6a40f97a0afce_1.webp",
                 "link": "https:\/\/www.fpmax.net\/product_20\/Wind-Shell-G2.html",
                 "alt": "FPMAX WIND SHELL G2"
+            },
+            {
+                "image": "pl_6a40f97a0afce_2.webp",
+                "link": "https:\/\/fpmax.net\/product_33\/Diamond-R4M.html",
+                "alt": "FPMAX R4M NOVA BLACK"
             }
         ]
     },
