@@ -47,11 +47,17 @@ if %errorlevel% neq 0 (
 )
 
 REM ---- Push with token if available ----
+echo [%date% %time%] DEBUG: TOKEN is set, starting push...
 if not "%TOKEN%"=="" (
+    echo [%date% %time%] DEBUG: Building auth URL...
     for /f "tokens=*" %%h in ('"%GIT%" remote get-url origin 2^>nul') do set HOST_PART=%%h
+    echo [%date% %time%] DEBUG: HOST_PART=!HOST_PART!
     set HOST_PART=!HOST_PART:https://=!
+    echo [%date% %time%] DEBUG: After strip HOST_PART=!HOST_PART!
     set AUTH_URL=https://x-access-token:%TOKEN%@!HOST_PART!
+    echo [%date% %time%] DEBUG: AUTH_URL built
     "%GIT%" remote set-url origin !AUTH_URL!
+    echo [%date% %time%] DEBUG: Pushing...
     "%GIT%" push origin main
     set PUSH_EXIT=!errorlevel!
     "%GIT%" remote set-url origin %REMOTE_URL%
