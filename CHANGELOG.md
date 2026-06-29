@@ -23,5 +23,10 @@
 - `update_admin.php`: auto-push to git after saving status, schedules, heading, tagline, product info
 - Admin settings changes (jam, status, jadwal, heading, tagline, product info) auto-commit and push immediately
 
+### Changed
+- Dark mode: switched Tailwind from `media` (follow OS preference) to `class` strategy; forced `.dark` class on `<html>` so site always uses dark theme regardless of user system settings
+  - Vite app: `@custom-variant dark` in `style.css`, `class="dark"` on `<html>` in `index.html`
+  - PHP site: `darkMode: 'class'` in CDN tailwind.config, `class="dark"` on `<html>` in `index.php`
+
 ### In Progress
 - Photo upload after admin save: user reports photo appears "not found" in grid despite successful upload. Verified upload works programmatically (file saved, API returns correct URL, HTTP 200). Issue persists on user's end — needs browser-side debugging.
