@@ -12,6 +12,7 @@
 - **`backupPhotosToGit()` git add paths**: sekarang juga stage `data/` + `../frontend/*.json/*.txt` selain `uploads/`, sehingga perubahan foto + deskripsi dikomit bersamaan
 - **`tambah_admin` crash**: `$id_new` tidak pernah di-assign dari `generateAdminId()`, menyebabkan `TypeError` di `logAdminHistory(string $target_id)`. Admin tersimpan ke JSON tapi script crash sebelum mengirim response sukses. Diperbaiki dengan menyimpan `generateAdminId()` ke `$new_id` dan menggunakannya di history log. (`update_admin.php:33-43`)
 - **Deskripsi produk tidak tersimpan di cache**: `update_produk.php` hanya menyimpan deskripsi ke `cache_produk.json` ketika DB tidak tersedia (`if (!$db_available && $desc_provided)`). Karena `api_produk.php` membaca dari cache terlebih dahulu, deskripsi yang disimpan ke DB tidak pernah tampil kembali. Diperbaiki dengan menghapus guard `!$db_available` sehingga cache selalu diperbarui. (`update_produk.php:341-364`)
+- **Hari yang disorot di tabel jam buka geser 1 hari**: `Footer.js` `dayNames` array dimulai dari `'Monday'` bukan `'Sunday'`, sementara `Date.getDay()` return 0=Sunday, 1=Monday. Akibatnya hari Senin malah menyorot baris Tuesday. Diperbaiki dengan mengubah urutan array. (`Footer.js:13`)
 
 ### Added
 - **`backend/.env`**: menyimpan `GIT_TOKEN` untuk autentikasi git via HTTPS
