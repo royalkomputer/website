@@ -48,10 +48,12 @@ if %errorlevel% neq 0 (
 
 REM ---- Push with token if available ----
 if not "%TOKEN%"=="" (
-    set AUTH_URL=https://x-access-token:%TOKEN%@%REMOTE_URL:https://=%
+    for /f "tokens=*" %%h in ('"%GIT%" remote get-url origin 2^>nul') do set HOST_PART=%%h
+    set HOST_PART=!HOST_PART:https://=!
+    set AUTH_URL=https://x-access-token:%TOKEN%@!HOST_PART!
     "%GIT%" remote set-url origin !AUTH_URL!
     "%GIT%" push origin main
-    set PUSH_EXIT=%errorlevel%
+    set PUSH_EXIT=!errorlevel!
     "%GIT%" remote set-url origin %REMOTE_URL%
     if !PUSH_EXIT! equ 0 (
         echo [%date% %time%] Admin push complete.
