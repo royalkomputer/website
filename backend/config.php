@@ -776,8 +776,8 @@ function execGitPush(string $workdir, string $token, string $repo_url, string $b
     $auth_url = str_replace('https://', "https://x-access-token:$token@", $repo_url);
     exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
 
-    $escaped_branch = escapeshellarg($branch);
-    exec("git push $escaped_branch 2>&1", $push_out, $push_code);
+    // Gunakan format lengkap git push origin main (tidak hanya 'main' karena dianggap remote name)
+    exec("git push origin $branch 2>&1", $push_out, $push_code);
     $push_output = implode(', ', $push_out);
 
     exec("git remote set-url origin \"$repo_url\" 2>&1");
@@ -840,8 +840,7 @@ function backupPhotosToGit(): array {
     exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
 
     // Push ke branch
-    $escaped_branch = escapeshellarg($branch);
-    exec("git push $escaped_branch 2>&1", $push_out, $push_code);
+    exec("git push origin $branch 2>&1", $push_out, $push_code);
     $push_output = implode(', ', $push_out);
 
     // Reset remote URL ke semula (tetap dijalankan meskipun push gagal)
