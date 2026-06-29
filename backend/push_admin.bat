@@ -46,21 +46,16 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM ---- Push with token if available ----
-echo [%date% %time%] DEBUG: TOKEN is set, starting push...
+REM ---- Push with credentials ----
+REM First try: if .env has GIT_TOKEN, build auth URL using PowerShell
 if not "%TOKEN%"=="" (
-    echo [%date% %time%] DEBUG: Building auth URL...
-    for /f "tokens=*" %%h in ('"%GIT%" remote get-url origin 2^>nul') do set HOST_PART=%%h
-    echo [%date% %time%] DEBUG: HOST_PART=!HOST_PART!
-    set HOST_PART=!HOST_PART:https://=!
-    echo [%date% %time%] DEBUG: After strip HOST_PART=!HOST_PART!
-    set AUTH_URL=https://x-access-token:%TOKEN%@!HOST_PART!
-    echo [%date% %time%] DEBUG: AUTH_URL built
+    for /f "usebackq tokens=*" %%h in (`"%GIT%" remote get-url origin 2^>nul`) do set RAW_URL=%%h
+    for /f "delims=" %%x in ('powershell -NoProfile -Command "Write-Output '%RAW_URL%' -replace '^https?://',''"') do set HOST_ONLY=%%x
+    set AUTH_URL=https://x-access-token:%TOKEN%@!HOST_ONLY!
     "%GIT%" remote set-url origin !AUTH_URL!
-    echo [%date% %time%] DEBUG: Pushing...
     "%GIT%" push origin main
     set PUSH_EXIT=!errorlevel!
-    "%GIT%" remote set-url origin %REMOTE_URL%
+    "%GIT%" remote set-url origin "%REMOTE_URL%"
     if !PUSH_EXIT! equ 0 (
         echo [%date% %time%] Admin push complete.
         exit /b 0
@@ -69,7 +64,7 @@ if not "%TOKEN%"=="" (
         exit /b 1
     )
 ) else (
-    echo [%date% %time%] WARNING: No GIT_TOKEN in .env. Trying default credentials...
+    REM No token - try default credentials
     "%GIT%" push origin main
     if %errorlevel% equ 0 (
         echo [%date% %time%] Admin push complete.
