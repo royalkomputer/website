@@ -1,15 +1,993 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Royal Komputer Kediri</title>
-  <meta http-equiv="refresh" content="0; url=frontend/" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <script>
-    window.location.replace('frontend/');
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            astra: {
+              50: '#f0f7ff', 100: '#e0effe', 200: '#b9dffd', 300: '#7cc3fc', 400: '#36a4fa',
+              500: '#0c87eb', 600: '#0069c9', 700: '#0254A3', 800: '#064787', 900: '#0b3c70', 950: '#07162c',
+            }
+          }
+        }
+      },
+    }
   </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #0254A3; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #0b3c70; }
+
+    @keyframes slideRightFade {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(80px); }
+    }
+    @keyframes slideDownFade {
+      from { opacity: 0; transform: translateY(-100%); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .banner-hiding {
+      animation: slideRightFade 0.4s ease forwards;
+    }
+    .notif-enter {
+      animation: slideDownFade 0.4s ease forwards;
+    }
+    .product-enter {
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .shimmer {
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s ease-in-out infinite;
+    }
+    .product-grid>* {
+      animation: fadeUp 0.4s ease forwards;
+      opacity: 0;
+    }
+    .product-grid>*:nth-child(1) { animation-delay: 0.05s; }
+    .product-grid>*:nth-child(2) { animation-delay: 0.1s; }
+    .product-grid>*:nth-child(3) { animation-delay: 0.15s; }
+    .product-grid>*:nth-child(4) { animation-delay: 0.2s; }
+    .product-grid>*:nth-child(5) { animation-delay: 0.25s; }
+    .product-grid>*:nth-child(6) { animation-delay: 0.3s; }
+    .product-grid>*:nth-child(7) { animation-delay: 0.35s; }
+    .product-grid>*:nth-child(8) { animation-delay: 0.4s; }
+    @media (min-width: 1024px) {
+      #filter-icon { display: none !important; }
+    }
+  </style>
 </head>
-<body>
-  <p>Redirecting to <a href="frontend/">frontend</a>...</p>
+<body class="bg-slate-900 text-slate-200 min-h-screen flex flex-col font-sans">
+
+  <!-- ========== NAVBAR ========== -->
+  <nav class="bg-astra-950 text-white sticky top-0 z-50 shadow-lg shadow-black/20">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-2 flex-shrink-0">
+        <img src="https://royal-backend-s3ir.onrender.com/logo/logo.webp" alt="Logo" class="h-8 md:h-10 w-auto" onerror="this.style.display='none'">
+        <span class="font-bold text-sm md:text-xl tracking-wider text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
+      </a>
+
+      <div class="hidden md:flex flex-grow max-w-md">
+        <div class="relative flex-grow">
+          <input type="text" id="search-input" onkeydown="if(event.key==='Enter') triggerSearch('desktop')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        </div>
+        <button onclick="triggerSearch('desktop')" class="ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
+          <i class="fa-solid fa-magnifying-glass"></i> Cari
+        </button>
+      </div>
+
+      <div class="hidden md:flex items-center gap-3 flex-shrink-0">
+        <span class="text-xs text-slate-400 font-semibold hidden lg:inline">Ikuti Kami:</span>
+        <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-300 hover:text-blue-500 transition-colors" title="Facebook"><i class="fa-brands fa-facebook text-lg"></i></a>
+        <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-300 hover:text-pink-500 transition-colors" title="Instagram"><i class="fa-brands fa-instagram text-lg"></i></a>
+        <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-300 hover:text-white transition-colors" title="TikTok"><i class="fa-brands fa-tiktok text-lg"></i></a>
+        <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-300 hover:text-green-500 transition-colors" title="WhatsApp"><i class="fa-brands fa-whatsapp text-lg"></i></a>
+        <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-300 hover:text-red-500 transition-colors" title="YouTube"><i class="fa-brands fa-youtube text-lg"></i></a>
+      </div>
+
+      <div class="flex md:hidden items-center gap-2">
+        <button onclick="toggleNavMenu()" class="flex items-center justify-center text-slate-400 hover:text-white focus:outline-none h-9 w-9 bg-slate-800 border border-slate-700 rounded-lg flex-shrink-0">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="md:hidden px-4 pb-3">
+      <div class="flex gap-2">
+        <div class="relative flex-grow">
+          <input type="text" id="search-input-mobile" onkeydown="if(event.key==='Enter') triggerSearch('mobile')" placeholder="Cari hardware..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        </div>
+        <button onclick="triggerSearch('mobile')" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+    </div>
+
+    <div id="nav-sosmed-menu" class="hidden md:hidden border-t border-slate-800">
+      <div class="container mx-auto px-4 py-3 flex flex-col gap-1">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs text-slate-400 font-semibold">Ikuti Kami:</span>
+        </div>
+        <a href="https://www.facebook.com/royall.komp" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-blue-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+          <i class="fa-brands fa-facebook text-lg w-5 text-blue-500"></i><span class="text-sm font-medium">Facebook</span>
+        </a>
+        <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-pink-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+          <i class="fa-brands fa-instagram text-lg w-5 text-pink-500"></i><span class="text-sm font-medium">Instagram</span>
+        </a>
+        <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+          <i class="fa-brands fa-tiktok text-lg w-5 text-white"></i><span class="text-sm font-medium">TikTok</span>
+        </a>
+        <a href="https://wa.me/6281380686168" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-green-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+          <i class="fa-brands fa-whatsapp text-lg w-5 text-green-500"></i><span class="text-sm font-medium">WhatsApp Admin</span>
+        </a>
+        <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-red-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-800">
+          <i class="fa-brands fa-youtube text-lg w-5 text-red-500"></i><span class="text-sm font-medium">YouTube</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== STORE STATUS BADGE ========== -->
+  <div id="store-status" class="container mx-auto px-4 pt-6 flex items-center justify-center gap-4 flex-wrap min-h-[44px]">
+    <div class="flex items-center gap-2 text-slate-400 text-sm"><i class="fa-solid fa-spinner animate-spin"></i> Memuat status toko...</div>
+  </div>
+
+  <!-- ========== HERO SECTION (LOADED FIRST) ========== -->
+  <header class="bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 text-white pb-4 px-4 relative overflow-hidden">
+    <div class="container mx-auto text-center relative z-10 py-6">
+      <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
+        Solusi Hardware di <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">Royal Komputer</span>
+      </h1>
+      <p id="tagline-text" class="text-slate-400 max-w-xl mx-auto text-sm md:text-base font-light">Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.</p>
+    </div>
+  </header>
+
+  <!-- ========== BANNER CAROUSEL (HIGH PRIORITY) ========== -->
+  <section id="banner-section" class="container mx-auto px-4 -mt-2 mb-2">
+    <div id="banner-loading" class="rounded-2xl overflow-hidden bg-slate-800 shimmer" style="padding-bottom: 42%"></div>
+    <div id="banner-playlists" class="flex flex-col gap-4 hidden"></div>
+  </section>
+
+  <!-- ========== MAIN CONTENT (LOADED AFTER BANNER) ========== -->
+  <main class="container mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+    <!-- Filter Sidebar -->
+    <aside class="lg:col-span-1 bg-black rounded-xl border border-slate-700 shadow-sm self-start overflow-hidden">
+      <button onclick="toggleFilterMenu()" class="w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-black border-b border-slate-700 lg:border-none">
+        <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-400"></i> Filter & Urutkan</h3>
+        <i id="filter-icon" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-300 lg:hidden"></i>
+      </button>
+
+      <div id="filter-content" class="hidden lg:block p-4 pt-4 lg:p-6 lg:pt-0">
+        <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
+          <button id="reset-filter-btn" onclick="resetFilters()" class="text-xs text-astra-400 font-semibold bg-slate-800 hover:bg-slate-700 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors opacity-50 cursor-not-allowed">
+            <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
+          </button>
+        </div>
+
+        <div class="mb-6">
+          <button type="button" onclick="toggleCategoryPanel()" class="w-full flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 focus:outline-none">
+            <span>Kategori</span>
+            <i id="category-toggle-icon" class="fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
+          </button>
+          <div id="category-panel" class="space-y-1 hidden">
+            <div id="category-list" class="space-y-1"></div>
+          </div>
+        </div>
+
+        <div class="mb-6 border-t border-slate-700 pt-5">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Kondisi</label>
+          <div class="flex gap-2">
+            <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Semua" onclick="handleCondition('Semua')">
+              <i class="fa-solid fa-check hidden"></i> Semua
+            </button>
+            <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Baru" onclick="handleCondition('Baru')">
+              <i class="fa-solid fa-check hidden"></i> Baru
+            </button>
+            <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Bekas" onclick="handleCondition('Bekas')">
+              <i class="fa-solid fa-check hidden"></i> Bekas
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-700 pt-5">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Urutkan</label>
+          <div class="space-y-1">
+            <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="default" onclick="handleSort('default')">
+              <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
+            </button>
+            <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="low-high" onclick="handleSort('low-high')">
+              <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
+            </button>
+            <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="high-low" onclick="handleSort('high-low')">
+              <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Product Area -->
+    <section class="lg:col-span-3 flex flex-col gap-6">
+      <div id="product-info-bar" class="flex items-center justify-between bg-black p-4 rounded-xl border border-slate-700 shadow-sm hidden">
+        <div class="text-sm text-slate-300">Menampilkan <span id="product-count" class="font-bold text-white">0</span> produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.</div>
+        <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5">
+          <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600" title="Tampilan Grid">
+            <i class="fa-solid fa-grid-2"></i>
+          </button>
+          <button id="view-detail-btn" onclick="setView('detail')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600" title="Tampilan Detail">
+            <i class="fa-solid fa-list"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="search-prompt" class="bg-gradient-to-r from-astra-950 to-slate-900 border border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+        <div class="flex-shrink-0 w-6 h-6 bg-astra-800 rounded-full flex items-center justify-center">
+          <i class="fa-solid fa-magnifying-glass text-xs text-astra-300"></i>
+        </div>
+        <p class="text-xs text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+      </div>
+
+      <div id="loading-spinner" class="py-20 flex flex-col items-center justify-center gap-3">
+        <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
+        <p class="text-slate-400 text-sm">Sedang memuat data produk...</p>
+      </div>
+
+      <div id="empty-state" class="hidden bg-black rounded-xl border border-slate-700 p-12 text-center">
+        <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-4"></i>
+        <h4 class="text-lg font-bold text-slate-100 mb-1">Produk Tidak Ditemukan</h4>
+        <p class="text-slate-400 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
+      </div>
+
+      <div id="product-grid" class="hidden product-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"></div>
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer id="footer" class="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 mt-12 py-12">
+    <div class="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+      <div class="flex flex-col gap-3 items-center md:items-start">
+        <img src="https://royal-backend-s3ir.onrender.com/logo/logo.webp" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1" onerror="this.style.display='none'">
+        <p class="font-bold text-slate-200 text-sm tracking-wide">ROYAL KOMPUTER KEDIRI</p>
+        <p class="text-slate-400 leading-relaxed text-center md:text-left text-xs">
+          <i class="fa-solid fa-location-dot text-red-500 mr-1"></i>
+          Gg. Masjid No.22A, Jamsaren, Kec. Pesantren, Kota Kediri, Jawa Timur 64132
+        </p>
+      </div>
+      <div class="flex flex-col gap-3 items-center md:items-start w-full">
+        <p class="font-bold text-slate-200 text-sm tracking-wide border-b border-slate-800 pb-1 w-full text-center md:text-left">MEDIA SOSIAL</p>
+        <div class="flex flex-col gap-2.5 text-sm items-center md:items-start w-full">
+          <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-400 hover:text-blue-500 flex items-center gap-2 transition-colors text-xs">
+            <i class="fa-brands fa-facebook text-sm text-blue-600"></i> Facebook Resmi
+          </a>
+          <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-400 hover:text-pink-500 flex items-center gap-2 transition-colors text-xs">
+            <i class="fa-brands fa-instagram text-sm text-pink-500"></i> Instagram
+          </a>
+          <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-400 hover:text-white flex items-center gap-2 transition-colors text-xs">
+            <i class="fa-brands fa-tiktok text-sm text-white"></i> TikTok
+          </a>
+          <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-400 hover:text-green-500 flex items-center gap-2 transition-colors text-xs">
+            <i class="fa-brands fa-whatsapp text-sm text-green-500"></i> WhatsApp Admin
+          </a>
+          <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-400 hover:text-red-500 flex items-center gap-2 transition-colors text-xs">
+            <i class="fa-brands fa-youtube text-sm text-red-500"></i> YouTube
+          </a>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3 items-center md:items-start w-full">
+        <p class="font-bold text-slate-200 text-sm tracking-wide border-b border-slate-800 pb-1 w-full text-center md:text-left">JAM BUKA TOKO</p>
+        <div id="footer-hours" class="w-full text-[11px] text-slate-400 max-w-[200px] mx-auto md:mx-0">
+          <div class="text-center md:text-left py-1 text-slate-500"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Memuat...</div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1 items-center lg:items-end lg:text-right h-full justify-center lg:justify-start lg:pt-6 w-full mt-4 lg:mt-0">
+        <p class="font-semibold text-slate-500 tracking-wider">ROYAL MARKETPLACE v3.0</p>
+        <p class="text-slate-500">&copy; 2026 Hak Cipta Dilindungi.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== MODAL DETAIL PRODUK ========== -->
+  <div id="detail-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative">
+      <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-10 w-8 h-8 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+      <div class="w-full md:w-1/2 bg-slate-700 relative group min-h-[300px] flex items-center justify-center">
+        <img id="detail-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" class="w-full h-full object-contain max-h-[500px]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div id="detail-image-fallback" class="hidden absolute inset-0 flex-col items-center justify-center text-slate-400">
+          <i class="fa-solid fa-image text-5xl mb-2"></i>
+          <span class="text-sm">Gambar tidak tersedia</span>
+        </div>
+        <button id="btn-prev-img" onclick="changeImage(-1)" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-left"></i></button>
+        <button id="btn-next-img" onclick="changeImage(1)" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center shadow-lg hidden"><i class="fa-solid fa-chevron-right"></i></button>
+        <div id="img-indicators" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"></div>
+      </div>
+      <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col max-h-[50vh] md:max-h-full overflow-y-auto">
+        <div id="detail-badge" class="mb-3"></div>
+        <h2 id="detail-name" class="text-2xl font-extrabold text-white mb-2"></h2>
+        <div class="text-3xl font-black text-astra-400 mb-6" id="detail-price"></div>
+        <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-700 mb-6 flex-grow">
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deskripsi & Spesifikasi</h4>
+          <p id="detail-desc" class="text-sm text-slate-300 whitespace-pre-line leading-relaxed"></p>
+        </div>
+        <div class="mt-auto pt-4 border-t border-slate-700">
+          <div class="flex items-center justify-between">
+            <a id="detail-wa-btn" href="#" target="_blank" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-lg text-sm" title="Pesan via WhatsApp">
+              <i class="fa-brands fa-whatsapp text-lg"></i> <span>Pesan</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── CONFIG ─────────────────────────────────
+    const BACKEND = 'https://royal-backend-s3ir.onrender.com';
+    const BANNER_BASE = BACKEND + '/uploads/banners/';
+
+    // ─── STATE ──────────────────────────────────
+    let allProducts = [];
+    let filteredProducts = [];
+    let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
+    let hasActivated = false;
+    let bannerLoaded = false;
+    let currentView = localStorage.getItem('viewMode') || 'grid';
+    let currentDetailImages = [];
+    let currentImageIndex = 0;
+
+    // ─── NAVBAR ─────────────────────────────────
+    function toggleNavMenu() {
+      document.getElementById('nav-sosmed-menu').classList.toggle('hidden');
+    }
+    function toggleFilterMenu() {
+      if (window.innerWidth < 1024) {
+        document.getElementById('filter-content').classList.toggle('hidden');
+        document.getElementById('filter-icon').classList.toggle('rotate-180');
+      }
+    }
+    function toggleCategoryPanel() {
+      document.getElementById('category-panel').classList.toggle('hidden');
+      document.getElementById('category-toggle-icon').classList.toggle('rotate-180');
+    }
+
+    // ─── ESC ATTR ───────────────────────────────
+    function escAttr(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ─── STEP 1: LOAD STORE STATUS (ringan) ─────
+    async function loadStoreStatus() {
+      const container = document.getElementById('store-status');
+      try {
+        const res = await fetch(BACKEND + '/api_status.php');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        renderStoreStatus(data);
+        if (data.hours) renderFooterHours(data.hours);
+        if (data.tagline) document.getElementById('tagline-text').textContent = data.tagline;
+        if (data.heading) {
+          document.querySelector('header h1').innerHTML =
+            data.heading.prefix + ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">' + data.heading.brand + '</span>';
+        }
+      } catch {
+        try {
+          const [hours, schedules, tagData] = await Promise.all([
+            fetch(BACKEND + '/jam_operasional.json').then(r => r.json()).catch(() => null),
+            fetch(BACKEND + '/jadwal_tutup.json').then(r => r.json()).catch(() => []),
+            fetch(BACKEND + '/tagline.json').then(r => r.json()).catch(() => null)
+          ]);
+          if (tagData && tagData.tagline) document.getElementById('tagline-text').textContent = tagData.tagline;
+          if (hours) renderClientStatus(hours, schedules);
+        } catch {}
+      }
+    }
+
+    function renderStoreStatus(data) {
+      const c = document.getElementById('store-status');
+      let html = '';
+      if (data.isTemporarilyClosed) {
+        html = '<span class="bg-red-500/20 border border-red-500/50 text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2 shadow-sm"><i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>';
+      } else if (data.isOpen) {
+        html = '<span class="bg-green-500/20 border border-green-500/50 text-green-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2"><i class="fa-solid fa-store"></i> Buka Sekarang (Tutup ' + (data.closeTime || '').replace(':', '.') + ' WIB)</span>';
+      } else {
+        html = '<span class="bg-slate-700 border border-slate-500 text-slate-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2"><i class="fa-solid fa-moon"></i> Toko Tutup (Buka ' + (data.nextOpenDay || '') + ' ' + (data.nextOpenTime || '').replace(':', '.') + ' WIB)</span>';
+      }
+      if (data.upcomingSchedule) {
+        html += '<span class="bg-yellow-900/30 border border-yellow-800 text-yellow-300 text-xs px-3 py-1 rounded inline-flex items-center gap-2"><i class="fa-solid fa-calendar-days"></i> Jadwal: Tutup ' +
+          formatDate(data.upcomingSchedule.start) + ' sampai ' + formatDate(data.upcomingSchedule.end) + ' ' + escAttr(data.upcomingSchedule.note || '') + '</span>';
+      }
+      c.innerHTML = html;
+    }
+
+    function formatDate(dt) {
+      const d = new Date(dt.replace(' ', 'T') + '+07:00');
+      return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+        d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderClientStatus(hours, schedules) {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const now = new Date();
+      const cd = dayNames[now.getDay()];
+      const ct = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+      const iso = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+ct;
+      const today = hours[cd];
+      let tutup = false, isOpen = false, nextDay = '', nextTime = '';
+      for (const s of schedules) {
+        if (s.start && s.end && iso >= s.start && iso <= s.end) { tutup = true; break; }
+      }
+      if (today && !tutup && !today.libur) {
+        isOpen = ct >= today.buka && ct <= today.tutup;
+      }
+      if (!isOpen || tutup) {
+        if (today && !tutup && !today.libur && ct < today.buka) {
+          nextDay = today.indo; nextTime = today.buka;
+        } else {
+          for (let i = 1; i <= 7; i++) {
+            const d = dayNames[(now.getDay()+i)%7];
+            if (hours[d] && hours[d].buka && !hours[d].libur) { nextDay = hours[d].indo; nextTime = hours[d].buka; break; }
+          }
+        }
+      }
+      const c = document.getElementById('store-status');
+      let html = '';
+      if (tutup) {
+        html = '<span class="bg-red-500/20 border border-red-500/50 text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2 shadow-sm"><i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>';
+      } else if (isOpen) {
+        html = '<span class="bg-green-500/20 border border-green-500/50 text-green-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2"><i class="fa-solid fa-store"></i> Buka Sekarang (Tutup ' + (today.tutup || '').replace(':', '.') + ' WIB)</span>';
+      } else {
+        html = '<span class="bg-slate-700 border border-slate-500 text-slate-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold inline-flex items-center gap-2"><i class="fa-solid fa-moon"></i> Toko Tutup (Buka ' + nextDay + ' ' + nextTime.replace(':', '.') + ' WIB)</span>';
+      }
+      c.innerHTML = html;
+      renderFooterHours(hours);
+    }
+
+    function renderFooterHours(hours) {
+      const c = document.getElementById('footer-hours');
+      const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+      const indo = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+      const todayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+      let html = '';
+      days.forEach((d, i) => {
+        const h = hours[d];
+        const isToday = d === todayName;
+        const hl = isToday ? 'text-astra-400 font-bold bg-slate-900 rounded border border-slate-800' : '';
+        if (h) {
+          const bt = h.libur ? '<span class="text-red-400 font-bold">Libur</span>' : (h.buka || '--').replace(':', '.') + '–' + (h.tutup || '--').replace(':', '.');
+          html += '<div class="flex justify-between py-1 px-2 mb-1 ' + hl + '"><span>' + (h.indo || indo[i]) + '</span><span>' + bt + '</span></div>';
+        }
+      });
+      c.innerHTML = html;
+    }
+
+    // ─── STEP 2: LOAD BANNERS (prioritas tinggi) ─
+    async function loadBanners() {
+      const loading = document.getElementById('banner-loading');
+      const container = document.getElementById('banner-playlists');
+      try {
+        const res = await fetch(BACKEND + '/api_banner.php');
+        const playlists = await res.json();
+        const active = (playlists || []).filter(p => p.active !== false);
+        if (active.length === 0) { loading.remove(); return; }
+
+        container.innerHTML = '';
+        loading.classList.add('hidden');
+        container.classList.remove('hidden');
+
+        let allImages = [];
+
+        active.forEach((pl, idx) => {
+          const photos = pl.photos || [];
+          if (photos.length === 0) return;
+          const plId = 'pl-' + idx;
+          const interval = pl.interval || 5000;
+          const aspect = pl.aspect || '16/9';
+          const [aw, ah] = aspect.split('/').map(Number);
+          const padPct = (ah / aw * 100) + '%';
+          const hasMultiple = photos.length > 1;
+
+          let html = '<div class="relative w-full rounded-2xl overflow-hidden bg-slate-800 shadow-sm" style="padding-bottom:' + padPct + '">' +
+            '<div class="pl-carousel absolute inset-0 overflow-hidden rounded-2xl" data-pl="' + plId + '">' +
+              '<div class="pl-track flex transition-transform duration-500 ease-in-out w-full h-full" data-pl="' + plId + '">' +
+                photos.map(p => {
+                  allImages.push(BANNER_BASE + escAttr(p.image));
+                  return '<div class="pl-slide min-w-full w-full flex-shrink-0 h-full" data-pl="' + plId + '">' +
+                    (p.link ? '<a href="' + escAttr(p.link) + '" target="_blank" rel="noopener" class="block h-full">' : '') +
+                      '<img src="' + BANNER_BASE + escAttr(p.image) + '" alt="' + escAttr(p.alt || pl.name || 'Banner') + '" class="w-full h-full object-cover">' +
+                    (p.link ? '</a>' : '') +
+                  '</div>';
+                }).join('') +
+              '</div>' +
+              (hasMultiple ?
+                '<button class="pl-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="' + plId + '"><i class="fa-solid fa-chevron-left text-sm"></i></button>' +
+                '<button class="pl-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="' + plId + '"><i class="fa-solid fa-chevron-right text-sm"></i></button>' +
+                '<div class="pl-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10" data-pl="' + plId + '">' +
+                  photos.map((_, i) => '<button class="pl-dot w-2 h-2 rounded-full transition-all ' + (i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80') + '" data-pl="' + plId + '" data-index="' + i + '"></button>').join('') +
+                '</div>' : '') +
+            '</div></div>';
+          container.innerHTML += html;
+        });
+
+        // Init carousels AFTER all images in this playlist are loaded
+        const loaded = await Promise.all(allImages.map(src => {
+          return new Promise(resolve => {
+            const img = new Image();
+            img.onload = img.onerror = resolve;
+            img.src = src;
+          });
+        }));
+
+        bannerLoaded = true;
+
+        // Init carousel controls now that images are loaded
+        document.querySelectorAll('.pl-carousel').forEach(carousel => {
+          const pId = carousel.dataset.pl;
+          const track = carousel.querySelector('.pl-track');
+          if (!track || track.children.length <= 1) return;
+          const total = track.children.length;
+          const idx = parseInt(pId.split('-')[1]);
+          const playlist = active[idx];
+          const interval = (playlist && playlist.interval) || 5000;
+          let current = 0;
+
+          function goTo(index) {
+            if (index < 0) index = total - 1;
+            if (index >= total) index = 0;
+            current = index;
+            track.style.transform = 'translateX(-' + (current * 100) + '%)';
+            carousel.querySelectorAll('.pl-dot').forEach((dot, i) => {
+              dot.className = 'pl-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+            });
+          }
+
+          const nb = carousel.querySelector('.pl-next');
+          const pb = carousel.querySelector('.pl-prev');
+          if (nb) nb.addEventListener('click', () => goTo(current + 1));
+          if (pb) pb.addEventListener('click', () => goTo(current - 1));
+          carousel.querySelectorAll('.pl-dot').forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index) || 0)));
+
+          let autoInterval = setInterval(() => goTo(current + 1), interval);
+          carousel.addEventListener('mouseenter', () => clearInterval(autoInterval));
+          carousel.addEventListener('mouseleave', () => { autoInterval = setInterval(() => goTo(current + 1), interval); });
+        });
+
+        // ─── STEP 3: AFTER BANNER LOADED → LOAD PRODUCTS ───
+        loadProducts();
+
+      } catch (err) {
+        loading.remove();
+        bannerLoaded = true;
+        container.innerHTML = '<div class="bg-slate-800 rounded-xl p-8 text-center text-slate-400 text-sm">Banner tidak tersedia</div>';
+        container.classList.remove('hidden');
+        loadProducts();
+      }
+    }
+
+    // ─── STEP 3: LOAD PRODUCTS (setelah banner) ─
+    function showLoading(state) {
+      document.getElementById('loading-spinner').style.display = state ? 'flex' : 'none';
+    }
+
+    async function loadProducts() {
+      showLoading(true);
+      try {
+        const res = await fetch(BACKEND + '/api_produk.php');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        allProducts = data;
+        generateCategoryFilterOptions();
+        initViewToggle();
+        hideSearchPromptDelayed();
+      } catch (err) {
+        console.error(err);
+        try {
+          const cacheRes = await fetch(BACKEND + '/data/cache_produk.json');
+          if (cacheRes.ok) {
+            allProducts = await cacheRes.json();
+            generateCategoryFilterOptions();
+            initViewToggle();
+            hideSearchPromptDelayed();
+          } else {
+            document.getElementById('empty-state').classList.remove('hidden');
+          }
+        } catch {
+          document.getElementById('empty-state').classList.remove('hidden');
+        }
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function hideSearchPromptDelayed() {
+      var prompt = document.getElementById('search-prompt');
+      if (!prompt) return;
+      setTimeout(function() {
+        prompt.classList.add('banner-hiding');
+        setTimeout(function() {
+          prompt.classList.add('hidden');
+          prompt.classList.remove('banner-hiding');
+        }, 400);
+      }, 800);
+    }
+
+    // ─── FILTER / SORT / SEARCH ──────────────────
+    function hideBanner() {
+      var container = document.getElementById('banner-playlists');
+      if (!container || container.classList.contains('hidden') || container.classList.contains('banner-hiding')) return;
+      container.classList.add('banner-hiding');
+      setTimeout(function() {
+        container.classList.add('hidden');
+        container.classList.remove('banner-hiding');
+      }, 400);
+    }
+
+    function selectCategory(cat) {
+      activeFilters.category = cat;
+      hideBanner();
+      hasActivated = true;
+      generateCategoryFilterOptions();
+      applyFiltersAndSort();
+    }
+
+    function triggerSearch(source) {
+      var val = source === 'mobile'
+        ? document.getElementById('search-input-mobile').value
+        : document.getElementById('search-input').value;
+      document.getElementById('search-input').value = val;
+      document.getElementById('search-input-mobile').value = val;
+      handleSearch(val);
+    }
+
+    function handleSearch(val) {
+      activeFilters.search = val.toLowerCase();
+      hideBanner();
+      hasActivated = true;
+      applyFiltersAndSort();
+    }
+
+    function handleCondition(val) {
+      activeFilters.condition = val;
+      updateCondUI(val);
+      hideBanner();
+      hasActivated = true;
+      applyFiltersAndSort();
+    }
+
+    function handleSort(val) {
+      activeFilters.sortBy = val;
+      updateSortUI(val);
+      hideBanner();
+      hasActivated = true;
+      applyFiltersAndSort();
+    }
+
+    function resetFilters() {
+      if (!hasActivated) return;
+      activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
+      hasActivated = true;
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-input-mobile').value = '';
+      generateCategoryFilterOptions();
+      applyFiltersAndSort();
+    }
+
+    function updateCondUI(val) {
+      document.querySelectorAll('.js-cond-btn').forEach(function(btn) {
+        var sel = btn.dataset.condition === val;
+        btn.className = (sel
+          ? 'bg-astra-700 text-white font-semibold shadow-sm'
+          : 'bg-black border border-slate-600 text-slate-300 hover:bg-slate-800'
+        ) + ' js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center';
+        btn.querySelector('.fa-check').classList.toggle('hidden', !sel);
+      });
+    }
+
+    function updateSortUI(val) {
+      document.querySelectorAll('.js-sort-btn').forEach(function(btn) {
+        var sel = btn.dataset.sort === val;
+        var base = 'js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2';
+        btn.className = sel
+          ? base + ' bg-astra-700 text-white font-semibold shadow-sm'
+          : base + ' text-slate-300 hover:bg-slate-800';
+        var ico = btn.querySelector('i');
+        if (ico) {
+          ico.className = sel
+            ? 'fa-solid fa-check text-white w-4'
+            : (btn.dataset.sort === 'default' ? 'fa-regular fa-star' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short' : 'fa-solid fa-arrow-down-wide-short') + ' text-slate-400 w-4';
+        }
+      });
+    }
+
+    function generateCategoryFilterOptions() {
+      const categories = ['Semua', ...new Set(allProducts.map(p => p.category))];
+      const container = document.getElementById('category-list');
+      container.innerHTML = '';
+      categories.forEach(cat => {
+        const isSelected = activeFilters.category === cat;
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ' +
+          (isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800');
+        const count = cat === 'Semua' ? allProducts.length : allProducts.filter(p => p.category === cat).length;
+        btn.innerHTML = '<span>' + cat + '</span><span class="' + (isSelected ? 'bg-astra-900/40' : 'bg-slate-700 text-slate-400') + ' text-xs px-2 py-0.5 rounded-full">' + count + '</span>';
+        btn.onclick = () => selectCategory(cat);
+        container.appendChild(btn);
+      });
+    }
+
+    function applyFiltersAndSort() {
+      var grid = document.getElementById('product-grid');
+      var emptyState = document.getElementById('empty-state');
+      var productCount = document.getElementById('product-count');
+      var infoBar = document.getElementById('product-info-bar');
+      var resetBtn = document.getElementById('reset-filter-btn');
+
+      if (!hasActivated) {
+        updateCondUI('Semua');
+        updateSortUI('default');
+        var prompt = document.getElementById('search-prompt');
+        if (prompt) { prompt.classList.remove('hidden'); prompt.classList.remove('banner-hiding'); }
+        if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
+        if (emptyState) emptyState.classList.add('hidden');
+        if (productCount) productCount.textContent = '0';
+        if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden'); }
+        if (resetBtn) { resetBtn.classList.add('opacity-50', 'cursor-not-allowed'); }
+        return;
+      }
+
+      updateCondUI(activeFilters.condition);
+      updateSortUI(activeFilters.sortBy);
+      if (grid) grid.classList.remove('hidden');
+      if (infoBar) {
+        var bannerPl = document.getElementById('banner-playlists');
+        if (bannerPl && bannerPl.classList.contains('banner-hiding')) {
+          setTimeout(function() { showInfoBar(infoBar); }, 400);
+        } else {
+          infoBar.classList.remove('hidden');
+        }
+      }
+      if (resetBtn) { resetBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+
+      filteredProducts = allProducts.filter(p => {
+        var matchCategory = activeFilters.category === 'Semua' || p.category === activeFilters.category;
+        var searchStr = (activeFilters.search || '').toLowerCase();
+        var matchSearch = (p.name || '').toLowerCase().includes(searchStr);
+        var isBekas = (p.name || '').toUpperCase().includes('2ND');
+        var matchCondition = true;
+        if (activeFilters.condition === 'Baru') matchCondition = !isBekas;
+        if (activeFilters.condition === 'Bekas') matchCondition = isBekas;
+        return matchCategory && matchSearch && matchCondition;
+      });
+
+      if (activeFilters.sortBy === 'low-high') {
+        filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+      } else if (activeFilters.sortBy === 'high-low') {
+        filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+      }
+
+      renderProductGrid();
+    }
+
+    function showInfoBar(el) {
+      if (!el) return;
+      el.classList.remove('hidden', 'notif-enter');
+      void el.offsetHeight;
+      el.classList.add('notif-enter');
+    }
+
+    function initViewToggle() {
+      document.getElementById('view-grid-btn').className = currentView === 'grid'
+        ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white'
+        : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600';
+      document.getElementById('view-detail-btn').className = currentView === 'detail'
+        ? 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white'
+        : 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600';
+    }
+
+    function setView(mode) {
+      var grid = document.getElementById('product-grid');
+      if (grid && grid.classList.contains('hidden')) return;
+      currentView = mode;
+      localStorage.setItem('viewMode', mode);
+      var active = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all shadow-sm bg-astra-700 text-white';
+      var inactive = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600';
+      document.getElementById('view-grid-btn').className = mode === 'grid' ? active : inactive;
+      document.getElementById('view-detail-btn').className = mode === 'detail' ? active : inactive;
+      renderProductGrid();
+    }
+
+    // ─── RENDER PRODUCTS ────────────────────────
+    function renderProductGrid() {
+      var grid = document.getElementById('product-grid');
+      var emptyState = document.getElementById('empty-state');
+      var productCount = document.getElementById('product-count');
+
+      if (!grid || grid.classList.contains('hidden')) return;
+      grid.innerHTML = '';
+      if (productCount) productCount.textContent = filteredProducts.length;
+
+      if (filteredProducts.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        if (currentView === 'grid') {
+          grid.style.gridTemplateColumns = '';
+          grid.className = 'product-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6';
+        } else {
+          grid.style.gridTemplateColumns = '1fr';
+          grid.className = 'product-grid flex flex-col gap-3 sm:gap-4';
+        }
+
+        filteredProducts.forEach(function(product) {
+          var el = currentView === 'grid' ? createGridCard(product) : createDetailCard(product);
+          grid.appendChild(el);
+        });
+      }
+    }
+
+    function createGridCard(product) {
+      var card = document.createElement('div');
+      card.className = 'bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group';
+      var price = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+      var waUrl = 'https://wa.me/6281380686168?text=' + encodeURIComponent('Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*' + product.name + '*\nHarga: ' + price + '\n\nApakah stoknya masih ready?');
+      var bekas = (product.name || '').toUpperCase().includes('2ND');
+      var badge = bekas
+        ? '<div class="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 bg-orange-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-lg shadow-sm border border-orange-400">BEKAS</div>'
+        : '<div class="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 bg-sky-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded sm:rounded-lg shadow-sm border border-sky-400">BARU</div>';
+      var imgSrc = escAttr(product.image || '');
+      card.innerHTML = '<div class="relative overflow-hidden aspect-[4/3] bg-slate-800 cursor-pointer" onclick="openDetailModal(\'' + product.id + '\')">' +
+          '<img src="' + imgSrc + '" alt="' + escAttr(product.name) + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27300%27 viewBox=%270 0 400 300%27%3E%3Crect fill=%27%23334155%27 width=%27400%27 height=%27300%27/%3E%3Ctext fill=%27%2394a3b8%27 font-family=%27sans-serif%27 font-size=%2714%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E\'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">' +
+          badge +
+          '<div class="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 bg-slate-900/90 backdrop-blur-sm text-astra-400 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded sm:rounded-lg shadow-sm border border-slate-700">' + escAttr(product.category) + '</div>' +
+        '</div>' +
+        '<div class="p-2.5 sm:p-5 flex flex-col flex-grow">' +
+          '<h3 class="font-bold text-white text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal(\'' + product.id + '\')">' + escAttr(product.name) + '</h3>' +
+          '<div class="mt-auto pt-2 sm:pt-4 border-t border-slate-700 flex items-center justify-between gap-1.5">' +
+            '<div class="text-sm sm:text-xl font-extrabold text-white truncate min-w-0">' + price + '</div>' +
+            '<a href="' + waUrl + '" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">' +
+              '<i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i>' +
+            '</a>' +
+          '</div>' +
+        '</div>';
+      return card;
+    }
+
+    function createDetailCard(product) {
+      var card = document.createElement('div');
+      card.className = 'bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group';
+      var price = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+      var waUrl = 'https://wa.me/6281380686168?text=' + encodeURIComponent('Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*' + product.name + '*\nHarga: ' + price + '\n\nApakah stoknya masih ready?');
+      var bekas = (product.name || '').toUpperCase().includes('2ND');
+      var badge = bekas
+        ? '<span class="bg-orange-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded border border-orange-500">BEKAS</span>'
+        : '<span class="bg-sky-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded border border-sky-500">BARU</span>';
+      var imgSrc = escAttr(product.image || '');
+      card.innerHTML = '<div class="w-24 sm:w-32 md:w-48 shrink-0 bg-slate-800 cursor-pointer" onclick="openDetailModal(\'' + product.id + '\')">' +
+          '<img src="' + imgSrc + '" alt="' + escAttr(product.name) + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27150%27 viewBox=%270 0 200 150%27%3E%3Crect fill=%27%23334155%27 width=%27200%27 height=%27150%27/%3E%3Ctext fill=%27%2394a3b8%27 font-family=%27sans-serif%27 font-size=%2712%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E\'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">' +
+        '</div>' +
+        '<div class="p-3 sm:p-4 md:p-5 flex flex-col flex-grow min-w-0">' +
+          '<div class="flex items-center gap-1.5 sm:gap-2 mb-1">' + badge +
+            '<span class="text-[9px] sm:text-[10px] font-semibold text-white bg-slate-700 px-1.5 sm:px-2 py-0.5 rounded">' + escAttr(product.category) + '</span>' +
+          '</div>' +
+          '<h3 class="font-bold text-white text-sm sm:text-base md:text-lg leading-tight cursor-pointer line-clamp-2 sm:mb-1.5" onclick="openDetailModal(\'' + product.id + '\')">' + escAttr(product.name) + '</h3>' +
+          '<p class="text-[11px] sm:text-xs text-slate-400 line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 hidden sm:block">' + escAttr(product.description || 'Tidak ada deskripsi rinci untuk produk ini.') + '</p>' +
+          '<div class="mt-auto flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-700">' +
+            '<div class="text-sm sm:text-lg md:text-xl font-extrabold text-white">' + price + '</div>' +
+            '<div class="flex items-center gap-1.5 sm:gap-2">' +
+              '<a href="' + waUrl + '" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3.5 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">' +
+                '<i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i> <span class="hidden sm:inline">Pesan</span>' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      return card;
+    }
+
+    // ─── MODAL DETAIL ───────────────────────────
+    function openDetailModal(id) {
+      var product = allProducts.find(function(p) { return p.id === id; });
+      if (!product) return;
+
+      document.getElementById('detail-name').textContent = product.name;
+      var price = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+      document.getElementById('detail-price').textContent = price;
+      document.getElementById('detail-desc').textContent = product.description || 'Tidak ada deskripsi rinci untuk produk ini.';
+      var bekas = (product.name || '').toUpperCase().includes('2ND');
+      document.getElementById('detail-badge').innerHTML = bekas
+        ? '<span class="bg-orange-900/30 text-orange-300 text-xs font-bold px-2.5 py-1 rounded-md border border-orange-800">KONDISI: BEKAS</span>'
+        : '<span class="bg-sky-900/30 text-sky-300 text-xs font-bold px-2.5 py-1 rounded-md border border-sky-800">KONDISI: BARU</span>';
+
+      document.getElementById('detail-wa-btn').href = 'https://wa.me/6281380686168?text=' + encodeURIComponent('Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*' + product.name + '*\nHarga: ' + price + '\n\nApakah stoknya masih ready?');
+
+      currentDetailImages = product.images || [product.image];
+      currentImageIndex = 0;
+      updateCarousel();
+
+      var prevBtn = document.getElementById('btn-prev-img');
+      var nextBtn = document.getElementById('btn-next-img');
+      if (currentDetailImages.length > 1) {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+      } else {
+        prevBtn.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+      }
+
+      document.body.style.overflow = 'hidden';
+      document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.body.style.overflow = 'auto';
+      document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function changeImage(dir) {
+      currentImageIndex += dir;
+      if (currentImageIndex >= currentDetailImages.length) currentImageIndex = 0;
+      if (currentImageIndex < 0) currentImageIndex = currentDetailImages.length - 1;
+      updateCarousel();
+    }
+
+    function setImage(index) {
+      currentImageIndex = index;
+      updateCarousel();
+    }
+
+    function updateCarousel() {
+      var img = document.getElementById('detail-image');
+      var fallback = img.nextElementSibling;
+      img.style.display = '';
+      fallback.style.display = 'none';
+      img.src = currentDetailImages[currentImageIndex];
+
+      var indicators = document.getElementById('img-indicators');
+      indicators.innerHTML = '';
+      if (currentDetailImages.length > 1) {
+        for (var i = 0; i < currentDetailImages.length; i++) {
+          var dot = document.createElement('button');
+          dot.onclick = (function(idx) { return function() { setImage(idx); }; })(i);
+          dot.className = 'w-2 h-2 rounded-full transition-all ' + (i === currentImageIndex ? 'bg-astra-500 w-4' : 'bg-slate-400 hover:bg-slate-300');
+          indicators.appendChild(dot);
+        }
+      }
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeDetailModal();
+    });
+
+    // ─── INIT ────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+      loadStoreStatus();
+      loadBanners();
+    });
+
+    // Keyboard shortcut: Escape to close modal
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeDetailModal();
+    });
+  </script>
 </body>
 </html>
