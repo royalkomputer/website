@@ -133,10 +133,13 @@ if ($is_open && !empty($effective_close) && !$is_libur) {
     $effective_close = '';
 }
 
-// ── 8. Tagline toko ──
+// ── Tagline toko ──
 $tagline = loadTagline();
 
-// ── 7. Build response ──
+// ── Heading toko ──
+$heading = loadHeading();
+
+// ── Build response ──
 $response = [
     'isOpen'               => $is_open,
     'isTemporarilyClosed'  => $tutup_sementara,
@@ -150,6 +153,7 @@ $response = [
     'currentTime'          => $jam_sekarang,
     'hours'                => $jam_buka,
     'tagline'              => $tagline,
+    'heading'              => $heading,
     'timestamp'            => date('c'),
 ];
 

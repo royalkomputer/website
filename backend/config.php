@@ -255,6 +255,12 @@ function loadJamOperasional(): array {
         'Sunday'    => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Minggu',   'libur' => false],
     ];
 
+    // Prioritaskan file (source of truth dari git sync). DB = fallback.
+    if (file_exists(JAM_FILE)) {
+        $data = json_decode(file_get_contents(JAM_FILE), true);
+        if ($data) return $data;
+    }
+
     $db = getDB();
     if ($db) {
         $r = @pg_query($db, "SELECT day, buka, tutup, indo, libur FROM jam_operasional ORDER BY
@@ -269,16 +275,11 @@ function loadJamOperasional(): array {
                     'libur' => $row['libur'] === 't',
                 ];
             }
-            return $result;
+            if ($result) return $result;
         }
     }
 
-    if (!file_exists(JAM_FILE)) {
-        file_put_contents(JAM_FILE, json_encode($default, JSON_PRETTY_PRINT));
-        return $default;
-    }
-    $data = json_decode(file_get_contents(JAM_FILE), true);
-    return $data ?: $default;
+    return $default;
 }
 
 function saveJamOperasional(array $jam): bool {
@@ -447,6 +448,16 @@ function saveProductInfoText(string $text): bool {
 
 function loadHeading(): array {
     $default = ['prefix' => HEADING_DEFAULT_PREFIX, 'brand' => HEADING_DEFAULT_BRAND];
+    // Prioritaskan file
+    if (file_exists(HEADING_FILE)) {
+        $data = json_decode(file_get_contents(HEADING_FILE), true);
+        if (!empty($data['prefix'])) {
+            return [
+                'prefix' => $data['prefix'],
+                'brand'  => $data['brand'] ?? HEADING_DEFAULT_BRAND,
+            ];
+        }
+    }
     $db = getDB();
     if ($db) {
         $r = @pg_query($db, "SELECT prefix, brand FROM heading WHERE id = 1");
@@ -454,15 +465,7 @@ function loadHeading(): array {
             return ['prefix' => $row['prefix'], 'brand' => $row['brand']];
         }
     }
-    if (!file_exists(HEADING_FILE)) {
-        @file_put_contents(HEADING_FILE, json_encode($default, JSON_PRETTY_PRINT));
-        return $default;
-    }
-    $data = json_decode(file_get_contents(HEADING_FILE), true);
-    return [
-        'prefix' => $data['prefix'] ?? HEADING_DEFAULT_PREFIX,
-        'brand'  => $data['brand']  ?? HEADING_DEFAULT_BRAND,
-    ];
+    return $default;
 }
 
 function saveHeading(string $prefix, string $brand): bool {

@@ -384,21 +384,37 @@
         renderStoreStatus(data);
         if (data.hours) renderFooterHours(data.hours);
         if (data.tagline) document.getElementById('tagline-text').textContent = data.tagline;
-        if (data.heading) {
+        if (data.heading && data.heading.prefix) {
           document.querySelector('header h1').innerHTML =
-            data.heading.prefix + ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">' + data.heading.brand + '</span>';
+            data.heading.prefix + ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">' + (data.heading.brand || 'Royal Komputer') + '</span>';
         }
       } catch {
         try {
-          const [hours, schedules, tagData] = await Promise.all([
-            fetch(BACKEND + '/jam_operasional.json').then(r => r.json()).catch(() => null),
-            fetch(BACKEND + '/jadwal_tutup.json').then(r => r.json()).catch(() => []),
-            fetch(BACKEND + '/tagline.json').then(r => r.json()).catch(() => null)
+          const [hours, schedules, tagRes, headRes] = await Promise.all([
+            fetch(BACKEND + '/api_data.php?file=jam_operasional.json').then(r => r.json()).catch(() => null),
+            fetch(BACKEND + '/api_data.php?file=jadwal_tutup.json').then(r => r.json()).catch(() => []),
+            fetch(BACKEND + '/api_data.php?file=tagline.json').then(r => r.json()).catch(() => null),
+            fetch(BACKEND + '/api_data.php?file=heading.json').then(r => r.json()).catch(() => null)
           ]);
-          if (tagData && tagData.tagline) document.getElementById('tagline-text').textContent = tagData.tagline;
+          if (tagRes && tagRes.tagline) document.getElementById('tagline-text').textContent = tagRes.tagline;
+          if (headRes && headRes.prefix) {
+            document.querySelector('header h1').innerHTML =
+              headRes.prefix + ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">' + (headRes.brand || 'Royal Komputer') + '</span>';
+          }
           if (hours) renderClientStatus(hours, schedules);
         } catch {}
       }
+      // Load heading terpisah (api_status tidak selalu return heading)
+      try {
+        const headRes = await fetch(BACKEND + '/api_data.php?file=heading.json');
+        if (headRes.ok) {
+          const headData = await headRes.json();
+          if (headData.prefix) {
+            document.querySelector('header h1').innerHTML =
+              headData.prefix + ' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">' + (headData.brand || 'Royal Komputer') + '</span>';
+          }
+        }
+      } catch {}
     }
 
     function renderStoreStatus(data) {
