@@ -6,10 +6,10 @@
         "libur": false
     },
     "Tuesday": {
-        "buka": "",
-        "tutup": "",
+        "buka": "09:00",
+        "tutup": "22:00",
         "indo": "Selasa",
-        "libur": true
+        "libur": false
     },
     "Wednesday": {
         "buka": "09:00",
