@@ -34,7 +34,7 @@ function buildJenisWhere(string $jenis_nota): string {
 // SUMMARY
 // ─────────────────────────────────────────────────────────
 if ($action === 'get_summary') {
-    $base_where = "jmlkredit > 0 AND (jmlkredit - COALESCE(krd_jml_byr, 0)) > 0 AND (notrsretur IS NULL)";
+    $base_where = "jmlkredit > 0 AND (jmlkredit - COALESCE(krd_jml_byr, 0)) > 0 AND (notrsretur IS NULL) AND tipe != 'RKI'";
 
     $sql = "SELECT
         COUNT(*)::integer AS total_faktur,
@@ -55,16 +55,16 @@ if ($action === 'get_summary') {
     // Count supplier
     $r2 = @pg_query($db, "SELECT COUNT(DISTINCT i.kodesupel)::integer AS total
         FROM tbl_imhd i
-        WHERE i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL)");
+        WHERE i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL) AND i.tipe != 'RKI'");
     $row2 = pg_fetch_assoc($r2);
-
+ 
     // Breakdown per jenis nota
     $r3 = @pg_query($db, "SELECT
         i.tipe,
         COUNT(*)::integer AS faktur,
         COALESCE(SUM(i.jmlkredit - COALESCE(i.krd_jml_byr, 0)), 0) AS total
     FROM tbl_imhd i
-    WHERE i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL)
+    WHERE i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL) AND i.tipe != 'RKI'
     GROUP BY i.tipe
     ORDER BY i.tipe");
 
@@ -103,7 +103,7 @@ $sort_by = $_POST['sort_by'] ?? 'due_date_asc';
 $supplier_search = trim($_POST['supplier_search'] ?? '');
 $overdue_only = $_POST['overdue_only'] ?? '';
 
-$where = "i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL)";
+$where = "i.jmlkredit > 0 AND (i.jmlkredit - COALESCE(i.krd_jml_byr, 0)) > 0 AND (i.notrsretur IS NULL) AND i.tipe != 'RKI'";
 $where .= buildJenisWhere($jenis_nota);
 
 if ($supplier_search !== '') {

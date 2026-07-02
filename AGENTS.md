@@ -298,6 +298,10 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 
 **Data source:** `tbl_imhd` (purchase transactions with `jmlkredit > 0` and outstanding balance > 0). Supplier names from `tbl_supel` (LEFT JOIN on `kodesupel = kode`). Currently `tbl_byrhutanghd`/`tbl_byrhutangdt` are unused (all payments are zero).
 
+**Notes:**
+- RKI (Retur Kongsi) transactions are **excluded** from all queries because returns to suppliers are not debts.
+- The filter dropdown and table badges only show BL (Pembelian) and KI (Kongsi).
+
 ---
 
 ## Data Model

@@ -827,7 +827,6 @@ $heading = loadHeading();
                         <option value="all">Semua Jenis</option>
                         <option value="BL">Pembelian (BL)</option>
                         <option value="KI">Kongsi (KI)</option>
-                        <option value="RKI">Retur Kongsi (RKI)</option>
                     </select>
                 </div>
                 <div>
@@ -2305,6 +2304,7 @@ function renderRevSummary(d) {
         const mgClass = d.margin_persen >= 20 ? 'text-green-600 bg-green-50 border-green-200' : (d.margin_persen >= 10 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-red-600 bg-red-50 border-red-200');
         cards.push({ icon: 'fa-coins', color: 'text-slate-600 bg-slate-50 border-slate-200', label: 'Total Modal (HPP)', value: fmt(d.total_hpp) });
         cards.push({ icon: 'fa-sack-dollar', color: 'text-green-600 bg-green-50 border-green-200', label: 'Pendapatan Bersih', value: fmt(d.pendapatan_bersih) + ' <span class="text-xs font-bold ml-1 ' + mgClass.split(' ')[0] + '">(' + d.margin_persen + '%)</span>' });
+        cards.push({ icon: 'fa-chart-line', color: 'text-teal-600 bg-teal-50 border-teal-200', label: 'Rata-rata Bersih/Hari', value: fmt(d.rata_rata_bersih_per_hari) });
     }
     // Deduction cards per category
     if (hasDed) {
@@ -2487,10 +2487,9 @@ function renderHutangSummary(d) {
             const warna = {
                 Pembelian: 'from-blue-500 to-blue-600 ring-blue-200',
                 Kongsi: 'from-amber-500 to-amber-600 ring-amber-200',
-                'Retur Kongsi': 'from-red-500 to-red-600 ring-red-200',
             };
             const grad = warna[b.label] || 'from-slate-500 to-slate-600 ring-slate-200';
-            const ikon = b.label === 'Kongsi' ? 'fa-handshake' : b.label === 'Retur Kongsi' ? 'fa-rotate-left' : 'fa-cart-shopping';
+            const ikon = b.label === 'Kongsi' ? 'fa-handshake' : 'fa-cart-shopping';
             html += '<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-w-[200px] shrink-0">' +
                 '<div class="bg-gradient-to-r ' + grad + ' px-4 py-2 flex items-center gap-2">' +
                     '<i class="fa-solid ' + ikon + ' text-white/80 text-sm"></i>' +
@@ -2534,7 +2533,6 @@ function renderHutangTable(res) {
         }
 
         const jenisBadge = h.tipe === 'KI' ? '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200"><i class="fa-solid fa-handshake"></i> Kongsi</span>' :
-            h.tipe === 'RKI' ? '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-rotate-left"></i> R. Kongsi</span>' :
             '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-blue-100 text-blue-700 border border-blue-200"><i class="fa-solid fa-cart-shopping"></i> Beli</span>';
 
         return '<tr class="hover:bg-slate-50 transition-colors' + (h.status === 'terlambat' ? ' bg-red-50/30' : '') + '">' +

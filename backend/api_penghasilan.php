@@ -341,6 +341,7 @@ $response = [
         'transaksi_terbaru' => $transaksi_terbaru,
         'total_hpp' => $total_hpp,
         'pendapatan_bersih' => $pendapatan_bersih,
+        'rata_rata_bersih_per_hari' => $hari_rentang > 0 ? round($pendapatan_bersih / $hari_rentang, 2) : 0,
         'margin_persen' => $margin_persen,
         'can_calc_profit' => $can_calc_profit,
         // Deductions (BONUS, RUSAK, etc.)
