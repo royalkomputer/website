@@ -125,6 +125,7 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `update_admin.php` | Admin CRUD + schedules + status API | Session |
 | `update_jam.php` | Operating hours API | Super Admin |
 | `api_manage_photos.php` | Photo delete/reorder API | Session |
+| `api_hutang.php` | Outstanding debt report API | Session |
 | `data/admins.json` | Admin accounts (bcrypt) | — |
 | `data/jam_operasional.json` | Per-day operating hours | — |
 | `data/jadwal_tutup.json` | Closure schedules | — |
@@ -245,6 +246,57 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `reorder` | `id`, `files` (JSON array of URLs) | Renumber all photos in order |
 
 **Security:** Validates file path via `realpath()` to prevent directory traversal. Only files starting with the product's `safe_kode` prefix in `uploads/` can be deleted.
+
+### 6. `api_hutang.php` — Outstanding Debt Report
+
+**Method:** POST  
+**Auth:** Session (admin logged in)
+
+**Actions:**
+
+| Action | Parameters | Description |
+|--------|------------|-------------|
+| `get_summary` | — | Aggregate totals: total hutang, total faktur, overdue amount, supplier count, breakdown per jenis nota (BL/KI/RKI) |
+| `get_list` | `sort_by`, `supplier_search`, `jenis_nota`, `overdue_only` | Detailed list of outstanding invoices with due dates, status, and days overdue |
+
+**`get_list` parameters:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `sort_by` | string | `due_date_asc` | `due_date_asc`, `due_date_desc`, `amount_desc`, `amount_asc`, `supplier_asc`, `supplier_desc` |
+| `supplier_search` | string | — | Filter by supplier name or kode (case-insensitive LIKE) |
+| `jenis_nota` | string | `all` | `all`, `BL`, `KI`, `RKI` |
+| `overdue_only` | string | — | Set to `1` to show only overdue invoices |
+
+**Response (`get_list`):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "notransaksi": "BL-2026-00001",
+      "tgl_beli": "2026-06-15",
+      "kodesupel": "SUP001",
+      "nama_supplier": "PT Supplier",
+      "totalakhir": 5000000,
+      "jmlkredit": 5000000,
+      "krd_jml_byr": 1000000,
+      "sisa": 4000000,
+      "byr_krd_jt": "2026-07-15",
+      "tipe": "BL",
+      "jenis_label": "Pembelian",
+      "keterangan": "",
+      "status": "terlambat",
+      "hari_terlambat": 5
+    }
+  ],
+  "grand_total_faktur": 5000000,
+  "grand_total_sisa": 4000000,
+  "total": 1
+}
+```
+
+**Data source:** `tbl_imhd` (purchase transactions with `jmlkredit > 0` and outstanding balance > 0). Supplier names from `tbl_supel` (LEFT JOIN on `kodesupel = kode`). Currently `tbl_byrhutanghd`/`tbl_byrhutangdt` are unused (all payments are zero).
 
 ---
 

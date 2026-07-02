@@ -186,6 +186,9 @@ $heading = loadHeading();
         <button onclick="switchTab('penghasilan')" id="tab-penghasilan" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-money-bill-trend-up"></i> Penghasilan
         </button>
+        <button onclick="switchTab('hutang')" id="tab-hutang" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Hutang
+        </button>
 
     </div>
 
@@ -796,6 +799,105 @@ $heading = loadHeading();
         </div>
     </div>
 
+    <!-- PANEL HUTANG -->
+    <div id="panel-hutang" class="hidden">
+        <div class="mb-5">
+            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                <i class="fa-solid fa-hand-holding-dollar text-astra-700"></i> Laporan Hutang Beredar
+            </h3>
+            <p class="text-sm text-slate-500 mt-0.5">Pantau hutang pembelian ke supplier. Data diambil dari transaksi pembelian kredit (tbl_imhd).</p>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div id="hutang-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+
+        <!-- FILTERS -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="min-w-[200px] flex-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cari Supplier</label>
+                    <div class="relative">
+                        <input type="text" id="hutang-search" oninput="handleHutangSearch(this.value)" placeholder="Nama atau kode supplier..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 placeholder-slate-400 rounded-lg px-4 py-2.5 pl-10 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Jenis Nota</label>
+                    <select id="hutang-jenis" onchange="handleHutangFilter()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer">
+                        <option value="all">Semua Jenis</option>
+                        <option value="BL">Pembelian (BL)</option>
+                        <option value="KI">Kongsi (KI)</option>
+                        <option value="RKI">Retur Kongsi (RKI)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Filter Status</label>
+                    <select id="hutang-status" onchange="handleHutangFilter()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer">
+                        <option value="all">Semua Hutang</option>
+                        <option value="overdue">Terlambat Saja</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Urutkan</label>
+                    <select id="hutang-sort" onchange="handleHutangSort(this.value)" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 cursor-pointer">
+                        <option value="due_date_asc">Jatuh Tempo (Terdekat)</option>
+                        <option value="due_date_desc">Jatuh Tempo (Terjauh)</option>
+                        <option value="amount_desc">Sisa Hutang (Terbesar)</option>
+                        <option value="amount_asc">Sisa Hutang (Terkecil)</option>
+                        <option value="supplier_asc">Supplier (A-Z)</option>
+                        <option value="supplier_desc">Supplier (Z-A)</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="loadHutangData()" id="btn-hutang-refresh" class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Muat Ulang
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <div id="hutang-loading" class="hidden py-12 flex flex-col items-center justify-center gap-3">
+            <i class="fa-solid fa-circle-notch text-3xl text-astra-700 animate-spin"></i>
+            <p class="text-slate-500 text-sm font-medium">Memuat data hutang...</p>
+        </div>
+
+        <!-- TABLE -->
+        <div id="hutang-table-container" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-receipt text-astra-700"></i> Daftar Hutang</h4>
+                <span id="hutang-count" class="text-xs text-slate-400"></span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-3 whitespace-nowrap">No. Faktur</th>
+                            <th class="px-3 py-3 whitespace-nowrap">Tgl Beli</th>
+                            <th class="px-3 py-3">Supplier</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">Jenis</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Total Faktur</th>
+                            <th class="px-3 py-3 text-right whitespace-nowrap">Sisa Hutang</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">Jatuh Tempo</th>
+                            <th class="px-3 py-3 text-center whitespace-nowrap">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hutang-table-body" class="divide-y divide-slate-100"></tbody>
+                    <tfoot id="hutang-table-footer" class="bg-slate-50 font-bold border-t-2 border-slate-200"></tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div id="hutang-empty" class="hidden py-12 text-center">
+            <i class="fa-solid fa-hand-holding-dollar text-4xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 text-sm font-medium">Tidak ada hutang beredar. Semua pembelian sudah lunas.</p>
+        </div>
+        <div id="hutang-error" class="hidden py-12 text-center">
+            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i>
+            <p id="hutang-error-text" class="text-red-500 text-sm font-medium"></p>
+        </div>
+    </div>
+
         </main>
 
 <!-- MODAL KELOLA PRODUK -->
@@ -975,7 +1077,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push','penghasilan'];
+    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push','penghasilan','hutang'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -992,6 +1094,7 @@ function showPanel(name){
     if (name === 'schedule') loadSchedules();
     if (name === 'banner') loadPlaylists();
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
+    if (name === 'hutang') loadHutangData();
 }
 
 function switchTab(tab){ showPanel(tab); }
@@ -2277,6 +2380,185 @@ function renderRevTransactions(transaksi) {
             '<td class="px-5 py-3 text-sm text-slate-600">' + escHtml(t.pelanggan) + '</td>' +
             '<td class="px-5 py-3 text-right font-bold text-emerald-600">' + fmt(t.totalakhir) + '</td></tr>';
     }).join('');
+}
+
+// ============================================================
+// HUTANG (OUTSTANDING DEBT REPORT)
+// ============================================================
+let _hutangSort = 'due_date_asc';
+let _hutangSearch = '';
+let _hutangStatus = 'all';
+let _hutangJenis = 'all';
+
+function handleHutangSearch(val) { _hutangSearch = val; loadHutangData(); }
+function handleHutangSort(val) { _hutangSort = val; loadHutangData(); }
+function handleHutangFilter() {
+    _hutangStatus = document.getElementById('hutang-status').value;
+    _hutangJenis = document.getElementById('hutang-jenis').value;
+    loadHutangData();
+}
+
+function loadHutangData() {
+    const el = id => document.getElementById(id);
+    el('hutang-loading').classList.remove('hidden');
+    el('hutang-summary').classList.add('hidden');
+    el('hutang-table-container').classList.add('hidden');
+    el('hutang-empty').classList.add('hidden');
+    el('hutang-error').classList.add('hidden');
+
+    const btn = el('btn-hutang-refresh');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Memuat...';
+
+    const fdSummary = new FormData();
+    fdSummary.append('action', 'get_summary');
+
+    const fdList = new FormData();
+    fdList.append('action', 'get_list');
+    fdList.append('sort_by', _hutangSort || 'due_date_asc');
+    fdList.append('supplier_search', _hutangSearch || '');
+    fdList.append('jenis_nota', _hutangJenis || 'all');
+    if (_hutangStatus === 'overdue') fdList.append('overdue_only', '1');
+
+    Promise.all([
+        fetch('api_hutang.php', { method: 'POST', body: fdSummary }).then(r => r.json()),
+        fetch('api_hutang.php', { method: 'POST', body: fdList }).then(r => r.json())
+    ])
+    .then(([summaryRes, listRes]) => {
+        el('hutang-loading').classList.add('hidden');
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Muat Ulang';
+
+        if (!summaryRes.success) {
+            el('hutang-error').classList.remove('hidden');
+            el('hutang-error-text').textContent = summaryRes.message;
+            return;
+        }
+        if (!listRes.success) {
+            el('hutang-error').classList.remove('hidden');
+            el('hutang-error-text').textContent = listRes.message;
+            return;
+        }
+
+        renderHutangSummary(summaryRes.data);
+        el('hutang-summary').classList.remove('hidden');
+
+        if (listRes.data.length === 0) {
+            el('hutang-empty').classList.remove('hidden');
+            return;
+        }
+
+        renderHutangTable(listRes);
+        el('hutang-table-container').classList.remove('hidden');
+    })
+    .catch(() => {
+        el('hutang-loading').classList.add('hidden');
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Muat Ulang';
+        el('hutang-error').classList.remove('hidden');
+        el('hutang-error-text').textContent = 'Gagal terhubung ke server.';
+    });
+}
+
+function renderHutangSummary(d) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    const cards = [
+        { icon: 'fa-hand-holding-dollar', color: 'text-red-600 bg-red-50 border-red-200', label: 'Total Hutang', value: fmt(d.total_hutang) },
+        { icon: 'fa-file-invoice', color: 'text-blue-600 bg-blue-50 border-blue-200', label: 'Jumlah Faktur', value: d.total_faktur + ' faktur' },
+        { icon: 'fa-building', color: 'text-purple-600 bg-purple-50 border-purple-200', label: 'Supplier', value: d.total_supplier + ' supplier' },
+        { icon: 'fa-clock', color: d.overdue_count > 0 ? 'text-orange-600 bg-orange-50 border-orange-200' : 'text-green-600 bg-green-50 border-green-200', label: 'Terlambat', value: d.overdue_count > 0 ? fmt(d.total_overdue) + ' (' + d.overdue_count + ' faktur)' : 'Tidak ada' },
+    ];
+    let html = '<div class="flex flex-wrap gap-4">' +
+        cards.map(c => {
+            const cls = c.color.split(' ');
+            return '<div class="bg-white rounded-xl border ' + cls[2] + ' shadow-sm p-5 flex flex-col gap-3 flex-1 min-w-[180px] shrink-0">' +
+                '<div class="flex items-center gap-3">' +
+                    '<div class="w-10 h-10 rounded-lg ' + cls.slice(1,3).join(' ') + ' flex items-center justify-center shrink-0"><i class="fa-solid ' + c.icon + ' ' + cls[0] + '"></i></div>' +
+                    '<span class="text-xs font-bold text-slate-400 uppercase tracking-wider">' + c.label + '</span>' +
+                '</div>' +
+                '<div class="text-xl font-extrabold text-slate-900">' + c.value + '</div>' +
+            '</div>';
+        }).join('') +
+    '</div>';
+
+    // Breakdown per jenis nota
+    if (d.breakdown && d.breakdown.length > 1) {
+        html += '<div class="mt-6 pt-5 border-t border-slate-200">';
+        html += '<h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Rincian per Jenis Nota</h4>';
+        html += '<div class="flex flex-wrap gap-4">';
+        d.breakdown.forEach(b => {
+            const warna = {
+                Pembelian: 'from-blue-500 to-blue-600 ring-blue-200',
+                Kongsi: 'from-amber-500 to-amber-600 ring-amber-200',
+                'Retur Kongsi': 'from-red-500 to-red-600 ring-red-200',
+            };
+            const grad = warna[b.label] || 'from-slate-500 to-slate-600 ring-slate-200';
+            const ikon = b.label === 'Kongsi' ? 'fa-handshake' : b.label === 'Retur Kongsi' ? 'fa-rotate-left' : 'fa-cart-shopping';
+            html += '<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex-1 min-w-[200px] shrink-0">' +
+                '<div class="bg-gradient-to-r ' + grad + ' px-4 py-2 flex items-center gap-2">' +
+                    '<i class="fa-solid ' + ikon + ' text-white/80 text-sm"></i>' +
+                    '<span class="text-sm font-bold text-white">' + b.label + '</span>' +
+                '</div>' +
+                '<div class="p-4 space-y-2">' +
+                    '<div class="text-lg font-extrabold text-slate-900">' + fmt(b.total) + '</div>' +
+                    '<div class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">' +
+                        '<i class="fa-solid fa-receipt text-slate-400"></i> ' + b.faktur + ' faktur' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        });
+        html += '</div></div>';
+    }
+
+    document.getElementById('hutang-summary').innerHTML = html;
+}
+
+function renderHutangTable(res) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    const data = res.data;
+    document.getElementById('hutang-count').textContent = data.length + ' faktur';
+
+    document.getElementById('hutang-table-body').innerHTML = data.map(h => {
+        const tglBeli = h.tgl_beli ? new Date(h.tgl_beli + 'T00:00:00') : null;
+        const tglBeliStr = tglBeli ? tglBeli.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-';
+
+        let jtStr = '-';
+        let statusBadge = '';
+        if (h.byr_krd_jt) {
+            const jt = new Date(h.byr_krd_jt);
+            jtStr = jt.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+            if (h.status === 'terlambat') {
+                statusBadge = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-triangle-exclamation"></i> Terlambat ' + h.hari_terlambat + ' hr</span>';
+            } else {
+                statusBadge = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-green-100 text-green-700 border border-green-200"><i class="fa-solid fa-circle-check"></i> Belum Jatuh Tempo</span>';
+            }
+        } else {
+            statusBadge = '<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">Tidak ada JT</span>';
+        }
+
+        const jenisBadge = h.tipe === 'KI' ? '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-amber-100 text-amber-700 border border-amber-200"><i class="fa-solid fa-handshake"></i> Kongsi</span>' :
+            h.tipe === 'RKI' ? '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200"><i class="fa-solid fa-rotate-left"></i> R. Kongsi</span>' :
+            '<span class="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-blue-100 text-blue-700 border border-blue-200"><i class="fa-solid fa-cart-shopping"></i> Beli</span>';
+
+        return '<tr class="hover:bg-slate-50 transition-colors' + (h.status === 'terlambat' ? ' bg-red-50/30' : '') + '">' +
+            '<td class="px-3 py-3 font-mono text-xs font-bold text-astra-700 truncate max-w-[150px]">' + escHtml(h.notransaksi) + '</td>' +
+            '<td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">' + tglBeliStr + '</td>' +
+            '<td class="px-3 py-3"><span class="font-semibold text-slate-800 text-sm">' + escHtml(h.nama_supplier) + '</span><br><span class="text-[10px] text-slate-400 font-mono">' + escHtml(h.kodesupel) + '</span></td>' +
+            '<td class="px-3 py-3 text-center">' + jenisBadge + '</td>' +
+            '<td class="px-3 py-3 text-right font-semibold text-slate-600 whitespace-nowrap">' + fmt(h.totalakhir) + '</td>' +
+            '<td class="px-3 py-3 text-right font-bold whitespace-nowrap ' + (h.sisa > 0 ? 'text-red-600' : 'text-green-600') + '">' + fmt(h.sisa) + '</td>' +
+            '<td class="px-3 py-3 text-center text-xs whitespace-nowrap text-slate-600">' + jtStr + '</td>' +
+            '<td class="px-3 py-3 text-center whitespace-nowrap">' + statusBadge + '</td>' +
+            '</tr>';
+    }).join('');
+
+    // Footer: grand total
+    const gf = res.grand_total_faktur || 0;
+    const gs = res.grand_total_sisa || 0;
+    document.getElementById('hutang-table-footer').innerHTML =
+        '<tr>' +
+            '<td colspan="4" class="px-3 py-3 text-right text-slate-700 text-sm">GRAND TOTAL</td>' +
+            '<td class="px-3 py-3 text-right font-bold text-slate-900 whitespace-nowrap">' + fmt(gf) + '</td>' +
+            '<td class="px-3 py-3 text-right font-bold text-red-700 whitespace-nowrap">' + fmt(gs) + '</td>' +
+            '<td colspan="2" class="px-3 py-3"></td>' +
+        '</tr>';
 }
 </script>
 </body>
