@@ -909,6 +909,31 @@ $heading = loadHeading();
             <p class="text-sm text-slate-500 mt-0.5">Nilai total aset barang dagangan berdasarkan stok yang tersedia.</p>
         </div>
 
+        <!-- DATE RANGE + MUTASI -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+            <div class="flex flex-wrap items-end gap-4 mb-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal Mulai</label>
+                    <input type="date" id="aset-tgl-mulai" class="bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tanggal Selesai</label>
+                    <input type="date" id="aset-tgl-selesai" class="bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="loadAsetMutasi()" id="btn-aset-mutasi" class="bg-astra-700 hover:bg-astra-800 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i> Cek Mutasi Aset
+                    </button>
+                    <button onclick="setAsetRange('7d')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold border border-slate-200">7 Hari</button>
+                    <button onclick="setAsetRange('30d')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold border border-slate-200">30 Hari</button>
+                    <button onclick="setAsetRange('this-month')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold border border-slate-200">Bulan Ini</button>
+                </div>
+            </div>
+            <div id="aset-mutasi-cards" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+            <div id="aset-mutasi-loading" class="hidden py-4 text-center text-sm text-slate-400"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Menghitung mutasi...</div>
+            <div id="aset-mutasi-empty" class="hidden py-4 text-center text-sm text-slate-500">Pilih rentang tanggal untuk melihat mutasi aset.</div>
+        </div>
+
         <!-- SUMMARY CARDS -->
         <div id="aset-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
 
@@ -2570,8 +2595,23 @@ function loadAsetData() {
             });
         }
 
-        // Load product detail
+        // Set default date range (last 30 days)
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const tglStr = y + '-' + m + '-' + day;
+        if (!el('aset-tgl-mulai').value) {
+            const w = new Date(today); w.setDate(w.getDate() - 29);
+            el('aset-tgl-mulai').value = w.getFullYear()+'-'+String(w.getMonth()+1).padStart(2,'0')+'-'+String(w.getDate()).padStart(2,'0');
+        }
+        if (!el('aset-tgl-selesai').value) {
+            el('aset-tgl-selesai').value = tglStr;
+        }
+
+        // Load product detail & mutation
         loadAsetProducts();
+        loadAsetMutasi();
     })
     .catch(() => {
         el('aset-loading').classList.add('hidden');
@@ -2708,6 +2748,92 @@ function renderAsetProducts(res) {
             '<td class="px-3 py-3 text-right font-bold text-astra-800 whitespace-nowrap">' + fmt(gj) + '</td>' +
             '<td class="px-3 py-3 text-right font-bold ' + (gl > 0 ? 'text-green-700' : 'text-red-700') + ' whitespace-nowrap">' + fmt(gl) + '</td>' +
         '</tr>';
+}
+
+// ───────────────────────────────────────────────────────────
+// ASET MUTASI (date range)
+// ───────────────────────────────────────────────────────────
+function setAsetRange(range) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const tglStr = y + '-' + m + '-' + d;
+    let mulai = tglStr;
+    if (range === '7d') {
+        const w = new Date(today); w.setDate(w.getDate() - 6);
+        mulai = w.getFullYear()+'-'+String(w.getMonth()+1).padStart(2,'0')+'-'+String(w.getDate()).padStart(2,'0');
+    } else if (range === '30d') {
+        const w = new Date(today); w.setDate(w.getDate() - 29);
+        mulai = w.getFullYear()+'-'+String(w.getMonth()+1).padStart(2,'0')+'-'+String(w.getDate()).padStart(2,'0');
+    } else if (range === 'this-month') {
+        mulai = y + '-' + m + '-01';
+    }
+    document.getElementById('aset-tgl-mulai').value = mulai;
+    document.getElementById('aset-tgl-selesai').value = tglStr;
+    loadAsetMutasi();
+}
+
+function loadAsetMutasi() {
+    const el = id => document.getElementById(id);
+    const mulai = el('aset-tgl-mulai').value;
+    const selesai = el('aset-tgl-selesai').value;
+    if (!mulai || !selesai) { showNotification('Pilih tanggal mulai dan selesai.', 'error'); return; }
+
+    el('aset-mutasi-loading').classList.remove('hidden');
+    el('aset-mutasi-cards').classList.add('hidden');
+    el('aset-mutasi-empty').classList.add('hidden');
+    const btn = el('btn-aset-mutasi');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Memuat...';
+
+    const fd = new FormData();
+    fd.append('action', 'get_mutasi');
+    fd.append('tgl_mulai', mulai);
+    fd.append('tgl_selesai', selesai);
+
+    fetch('api_aset.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            el('aset-mutasi-loading').classList.add('hidden');
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Cek Mutasi Aset';
+            if (!data.success) {
+                showNotification(data.message, 'error');
+                return;
+            }
+            renderAsetMutasi(data.data);
+            el('aset-mutasi-cards').classList.remove('hidden');
+        })
+        .catch(() => {
+            el('aset-mutasi-loading').classList.add('hidden');
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Cek Mutasi Aset';
+            showNotification('Gagal terhubung ke server.', 'error');
+        });
+}
+
+function renderAsetMutasi(d) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    const periode = new Date(d.tgl_mulai + 'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ' - ' + new Date(d.tgl_selesai + 'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    const mutasiClass = d.mutasi_bersih >= 0 ? 'text-green-600' : 'text-red-600';
+    const mutasiIcon = d.mutasi_bersih >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+    const cards = [
+        { icon: 'fa-cart-plus', color: 'text-blue-600 bg-blue-50 border-blue-200', label: 'Pembelian (' + periode + ')', value: fmt(d.total_pembelian) + ' <span class="text-xs text-slate-400 font-normal">(' + d.total_transaksi_beli + ' not a)</span>' },
+        { icon: 'fa-cart-shopping', color: 'text-purple-600 bg-purple-50 border-purple-200', label: 'Penjualan (' + periode + ')', value: fmt(d.total_penjualan) + ' <span class="text-xs text-slate-400 font-normal">(' + d.total_transaksi_jual + ' not a)</span>' },
+    ];
+    if (d.punya_hpp) {
+        cards.push({ icon: 'fa-calculator', color: 'text-slate-600 bg-slate-50 border-slate-200', label: 'HPP Terjual (' + periode + ')', value: fmt(d.total_hpp_terjual) + ' <span class="text-xs text-slate-400 font-normal">(' + d.total_item_terjual + ' item)</span>' });
+    }
+    cards.push({ icon: 'fa-' + mutasiIcon + '-wide', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', label: 'Mutasi Bersih (' + periode + ')', value: '<span class="' + mutasiClass + '">' + fmt(d.mutasi_bersih) + '</span> <span class="text-xs text-slate-400 font-normal">(pembelian - HPP terjual)</span>' });
+
+    document.getElementById('aset-mutasi-cards').innerHTML = cards.map(c => {
+        const cls = c.color.split(' ');
+        return '<div class="bg-white rounded-xl border ' + cls[2] + ' shadow-sm p-4">' +
+            '<div class="flex items-center gap-2 mb-2">' +
+                '<div class="w-8 h-8 rounded-lg ' + cls.slice(1,3).join(' ') + ' flex items-center justify-center shrink-0"><i class="fa-solid ' + c.icon + ' ' + cls[0] + '"></i></div>' +
+                '<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">' + c.label + '</span>' +
+            '</div>' +
+            '<div class="text-base font-extrabold text-slate-900">' + c.value + '</div>' +
+        '</div>';
+    }).join('');
 }
 
 // HUTANG (OUTSTANDING DEBT REPORT)

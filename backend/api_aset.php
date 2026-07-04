@@ -133,6 +133,87 @@ if ($action === 'get_categories') {
 }
 
 // ─────────────────────────────────────────────────────────
+// GET MUTASI ASET (date range)
+// ─────────────────────────────────────────────────────────
+if ($action === 'get_mutasi') {
+    $tgl_mulai = $_POST['tgl_mulai'] ?? date('Y-m-d');
+    $tgl_selesai = $_POST['tgl_selesai'] ?? date('Y-m-d');
+    $mulai = pg_escape_string($db, $tgl_mulai);
+    $selesai = pg_escape_string($db, $tgl_selesai);
+
+    // Cek tabel detail
+    $cek_ikdt = @pg_query($db, "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'tbl_ikdt')");
+    $has_ikdt = $cek_ikdt && pg_fetch_result($cek_ikdt, 0, 0) === 't';
+
+    // 1. Total Pembelian (dari tbl_imhd)
+    $total_pembelian = 0;
+    $total_transaksi_beli = 0;
+    $r_beli = @pg_query($db, "SELECT COUNT(*)::integer AS cnt, COALESCE(SUM(totalakhir), 0) AS total
+        FROM tbl_imhd
+        WHERE tanggal::date >= '$mulai'::date AND tanggal::date <= '$selesai'::date
+        AND (notrsretur IS NULL) AND tipe != 'RKI'");
+    if ($r_beli) {
+        $row = pg_fetch_assoc($r_beli);
+        $total_transaksi_beli = (int)$row['cnt'];
+        $total_pembelian = (float)$row['total'];
+    }
+
+    // 2. Total Penjualan (dari tbl_ikhd)
+    $total_penjualan = 0;
+    $total_transaksi_jual = 0;
+    $r_jual = @pg_query($db, "SELECT COUNT(*)::integer AS cnt, COALESCE(SUM(totalakhir), 0) AS total
+        FROM tbl_ikhd
+        WHERE tanggal::date >= '$mulai'::date AND tanggal::date <= '$selesai'::date
+        AND notrsretur IS NULL");
+    if ($r_jual) {
+        $row = pg_fetch_assoc($r_jual);
+        $total_transaksi_jual = (int)$row['cnt'];
+        $total_penjualan = (float)$row['total'];
+    }
+
+    // 3. HPP Barang Terjual (dari tbl_ikdt)
+    $total_hpp_terjual = 0;
+    $total_item_terjual = 0;
+    if ($has_ikdt && $punya_hpp) {
+        $r_hpp = @pg_query($db, "SELECT
+            COALESCE(SUM(COALESCE(d.jumlah, 0) * COALESCE(i.hpp, 0)), 0) AS total_hpp,
+            COALESCE(SUM(COALESCE(d.jumlah, 0)), 0)::integer AS total_item
+        FROM tbl_ikdt d
+        JOIN tbl_ikhd h ON d.notransaksi = h.notransaksi
+        LEFT JOIN (
+            SELECT kodeitem, COALESCE(NULLIF(hargapokok, 0), NULLIF(tmphp, 0), 0) AS hpp FROM tbl_item
+        ) i ON d.kodeitem = i.kodeitem
+        WHERE h.tanggal::date >= '$mulai'::date AND h.tanggal::date <= '$selesai'::date
+        AND h.notrsretur IS NULL");
+        if ($r_hpp) {
+            $row = pg_fetch_assoc($r_hpp);
+            $total_hpp_terjual = (float)$row['total_hpp'];
+            $total_item_terjual = (int)$row['total_item'];
+        }
+    }
+
+    // 4. Mutasi Bersih
+    $mutasi_bersih = $total_pembelian - $total_hpp_terjual;
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'tgl_mulai' => $tgl_mulai,
+            'tgl_selesai' => $tgl_selesai,
+            'total_pembelian' => $total_pembelian,
+            'total_transaksi_beli' => $total_transaksi_beli,
+            'total_penjualan' => $total_penjualan,
+            'total_transaksi_jual' => $total_transaksi_jual,
+            'total_hpp_terjual' => $total_hpp_terjual,
+            'total_item_terjual' => $total_item_terjual,
+            'mutasi_bersih' => $mutasi_bersih,
+            'punya_hpp' => $punya_hpp && $has_ikdt,
+        ]
+    ]);
+    exit;
+}
+
+// ─────────────────────────────────────────────────────────
 // SUMMARY (default)
 // ─────────────────────────────────────────────────────────
 $sql_summary = "SELECT

@@ -317,3 +317,17 @@ PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `gi
 - `backend/admin.php` (`renderRevDaily`): Kolom **BONUS** (oranye) dan **RUSAK** (merah) beserta nilai nominal di tabel harian
 - Kolom **Bersih** dan **Margin %** di tabel harian menggunakan `pendapatan_bersih_ded` (setelah deduksi HPP)
 - Semua kolom deduksi tetap rapi walau kosong (menampilkan "-")
+
+## 2026-07-04 — Asset Panel: Date-Range Mutation Tracking
+
+### New Feature: Date Range Input + Mutation Cards
+- `backend/api_aset.php`: Added `get_mutasi` action — queries `tbl_imhd` (pembelian), `tbl_ikhd` (penjualan), `tbl_ikdt` (HPP terjual) filtered by `tgl_mulai`/`tgl_selesai`
+- Returns: `total_pembelian`, `total_penjualan`, `total_hpp_terjual` (conditional — only if `tbl_ikdt` exists and HPP column present), `mutasi_bersih = pembelian - HPP terjual`
+- `backend/admin.php`: Added date range inputs (Mulai/Selesai), preset buttons (7 Hari / 30 Hari / Bulan Ini), "Cek Mutasi Aset" button, and 5 mutation cards (Pembelian, Penjualan, HPP Terjual, Mutasi Bersih) in the Aset panel
+- Date range auto-fills to last 30 days on first Aset tab load
+- `loadAsetData()` now also calls `loadAsetMutasi()` automatically
+
+### Bug Fix: Duplicate `const d` Declaration
+- Fixed `SyntaxError: Identifier 'd' has already been declared` in `loadAsetData()` — `const d` was declared twice in the same `.then()` scope (line 2569 `d = summaryRes.data` and line 2602 `d = String(today.getDate())`)
+- Renamed the second declaration from `const d` to `const day`
+- Bug prevented the entire admin page script from executing (loading spinner never stopped)
