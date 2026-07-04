@@ -189,6 +189,9 @@ $heading = loadHeading();
         <button onclick="switchTab('hutang')" id="tab-hutang" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-hand-holding-dollar"></i> Hutang
         </button>
+        <button onclick="switchTab('aset')" id="tab-aset" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-chart-pie"></i> Aset
+        </button>
 
     </div>
 
@@ -897,6 +900,132 @@ $heading = loadHeading();
         </div>
     </div>
 
+    <!-- PANEL ASET -->
+    <div id="panel-aset" class="hidden">
+        <div class="mb-5">
+            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-astra-700"></i> Total Aset & Inventaris
+            </h3>
+            <p class="text-sm text-slate-500 mt-0.5">Nilai total aset barang dagangan berdasarkan stok yang tersedia.</p>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div id="aset-summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+
+        <!-- BREAKDOWN PER KATEGORI -->
+        <div id="aset-breakdown-section" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-layer-group text-astra-700"></i> Rincian per Kategori</h4>
+                <span id="aset-breakdown-count" class="text-xs text-slate-400"></span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-5 py-3">Kategori</th>
+                            <th class="px-5 py-3 text-center">Jumlah Item</th>
+                            <th class="px-5 py-3 text-center">Total Stok</th>
+                            <th class="px-5 py-3 text-right">Nilai Modal</th>
+                            <th class="px-5 py-3 text-right">Nilai Jual</th>
+                            <th class="px-5 py-3 text-right">Potensi Laba</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aset-breakdown-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PRODUCT DETAIL TABLE -->
+        <div id="aset-detail-section" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-table-list text-astra-700"></i> Rincian per Produk</h4>
+                <span id="aset-detail-count" class="text-xs text-slate-400"></span>
+            </div>
+            <div class="p-4 bg-slate-50 border-b border-slate-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Cari Produk</label>
+                        <div class="relative">
+                            <input type="text" id="aset-search" oninput="handleAsetSearch(this.value)" placeholder="Nama atau kode item..."
+                                class="w-full bg-white border border-slate-300 text-slate-800 placeholder-slate-400 rounded-lg px-3 py-2 pl-8 text-xs focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500">
+                            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kategori</label>
+                        <select id="aset-category" onchange="handleAsetFilter()"
+                            class="w-full bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 outline-none focus:border-astra-500 cursor-pointer">
+                            <option value="all">Semua Kategori</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Urutkan</label>
+                        <select id="aset-sort" onchange="handleAsetSort(this.value)"
+                            class="w-full bg-white border border-slate-300 text-slate-700 text-xs rounded-lg p-2 outline-none focus:border-astra-500 cursor-pointer">
+                            <option value="modal_desc">Nilai Modal (Terbesar)</option>
+                            <option value="modal_asc">Nilai Modal (Terkecil)</option>
+                            <option value="jual_desc">Nilai Jual (Terbesar)</option>
+                            <option value="jual_asc">Nilai Jual (Terkecil)</option>
+                            <option value="stok_desc">Stok Terbanyak</option>
+                            <option value="stok_asc">Stok Tersedikit</option>
+                            <option value="laba_desc">Potensi Laba (Terbesar)</option>
+                            <option value="laba_asc">Potensi Laba (Terkecil)</option>
+                            <option value="nama_asc">Nama (A-Z)</option>
+                            <option value="nama_desc">Nama (Z-A)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="loadAsetProducts()" id="btn-aset-refresh"
+                            class="bg-astra-700 hover:bg-astra-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 w-full justify-center">
+                            <i class="fa-solid fa-rotate"></i> Muat Ulang
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-3">Kode</th>
+                            <th class="px-3 py-3">Nama Produk</th>
+                            <th class="px-3 py-3 text-center">Kategori</th>
+                            <th class="px-3 py-3 text-center">Stok</th>
+                            <th class="px-3 py-3 text-right">HPP</th>
+                            <th class="px-3 py-3 text-right">Harga Jual</th>
+                            <th class="px-3 py-3 text-right">Total Modal</th>
+                            <th class="px-3 py-3 text-right">Total Jual</th>
+                            <th class="px-3 py-3 text-right">Potensi Laba</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aset-detail-body" class="divide-y divide-slate-100"></tbody>
+                    <tfoot id="aset-detail-footer" class="bg-slate-50 font-bold border-t-2 border-slate-200"></tfoot>
+                </table>
+            </div>
+            <div id="aset-detail-empty" class="hidden p-8 text-center">
+                <i class="fa-solid fa-search text-3xl text-slate-300 mb-2"></i>
+                <p class="text-slate-500 text-sm">Tidak ada produk yang cocok dengan filter.</p>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <div id="aset-loading" class="py-12 flex flex-col items-center justify-center gap-3">
+            <i class="fa-solid fa-circle-notch text-3xl text-astra-700 animate-spin"></i>
+            <p class="text-slate-500 text-sm font-medium">Menghitung aset...</p>
+        </div>
+
+        <!-- EMPTY -->
+        <div id="aset-empty" class="hidden py-12 text-center">
+            <i class="fa-solid fa-chart-pie text-4xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 text-sm font-medium">Tidak ada data aset tersedia.</p>
+        </div>
+
+        <!-- ERROR -->
+        <div id="aset-error" class="hidden py-12 text-center">
+            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-300 mb-3"></i>
+            <p id="aset-error-text" class="text-red-500 text-sm font-medium"></p>
+        </div>
+    </div>
+
         </main>
 
 <!-- MODAL KELOLA PRODUK -->
@@ -1076,7 +1205,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push','penghasilan','hutang'];
+    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push','penghasilan','hutang','aset'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -1094,6 +1223,7 @@ function showPanel(name){
     if (name === 'banner') loadPlaylists();
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
     if (name === 'hutang') loadHutangData();
+    if (name === 'aset') loadAsetData();
 }
 
 function switchTab(tab){ showPanel(tab); }
@@ -2383,6 +2513,203 @@ function renderRevTransactions(transaksi) {
 }
 
 // ============================================================
+// ASET (INVENTORY ASSET VALUATION)
+let _asetData = null;
+let _asetSort = 'modal_desc';
+let _asetSearch = '';
+let _asetCategory = 'all';
+
+function loadAsetData() {
+    const el = id => document.getElementById(id);
+    el('aset-loading').classList.remove('hidden');
+    el('aset-summary').classList.add('hidden');
+    el('aset-breakdown-section').classList.add('hidden');
+    el('aset-detail-section').classList.add('hidden');
+    el('aset-empty').classList.add('hidden');
+    el('aset-error').classList.add('hidden');
+
+    Promise.all([
+        fetch('api_aset.php').then(r => r.json()),
+        fetch('api_aset.php', { method:'POST', body:new URLSearchParams({action:'get_categories'}) }).then(r => r.json())
+    ])
+    .then(([summaryRes, catRes]) => {
+        el('aset-loading').classList.add('hidden');
+        if (!summaryRes.success) {
+            el('aset-error').classList.remove('hidden');
+            el('aset-error-text').textContent = summaryRes.message;
+            return;
+        }
+
+        _asetData = summaryRes.data;
+        const d = summaryRes.data;
+
+        if (d.total_items === 0) {
+            el('aset-empty').classList.remove('hidden');
+            return;
+        }
+
+        renderAsetSummary(d);
+        el('aset-summary').classList.remove('hidden');
+
+        if (d.breakdown && d.breakdown.length > 0) {
+            renderAsetBreakdown(d.breakdown);
+            el('aset-breakdown-count').textContent = d.breakdown.length + ' kategori';
+            el('aset-breakdown-section').classList.remove('hidden');
+        }
+
+        // Populate category filter
+        const catSelect = el('aset-category');
+        if (catRes.success && catRes.data) {
+            catSelect.innerHTML = '<option value="all">Semua Kategori</option>';
+            catRes.data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                if (c === _asetCategory) opt.selected = true;
+                catSelect.appendChild(opt);
+            });
+        }
+
+        // Load product detail
+        loadAsetProducts();
+    })
+    .catch(() => {
+        el('aset-loading').classList.add('hidden');
+        el('aset-error').classList.remove('hidden');
+        el('aset-error-text').textContent = 'Gagal terhubung ke server.';
+    });
+}
+
+function handleAsetSearch(val) { _asetSearch = val; loadAsetProducts(); }
+function handleAsetSort(val) { _asetSort = val; loadAsetProducts(); }
+function handleAsetFilter() {
+    _asetCategory = document.getElementById('aset-category').value;
+    loadAsetProducts();
+}
+
+function loadAsetProducts() {
+    const el = id => document.getElementById(id);
+    const btn = el('btn-aset-refresh');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Memuat...';
+
+    const fd = new FormData();
+    fd.append('action', 'get_products');
+    fd.append('sort_by', _asetSort || 'modal_desc');
+    fd.append('search', _asetSearch || '');
+    fd.append('category', _asetCategory || 'all');
+    fd.append('limit', '1000');
+
+    fetch('api_aset.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Muat Ulang';
+            if (!data.success) {
+                showNotification(data.message, 'error');
+                return;
+            }
+            el('aset-detail-section').classList.remove('hidden');
+            renderAsetProducts(data);
+            el('aset-detail-count').textContent = data.total + ' produk';
+        })
+        .catch(() => {
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Muat Ulang';
+            showNotification('Gagal terhubung ke server.', 'error');
+        });
+}
+
+function renderAsetSummary(d) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    const cards = [
+        { icon: 'fa-cube', color: 'text-blue-600 bg-blue-50 border-blue-200', label: 'Jenis Produk', value: d.total_items + ' item' },
+        { icon: 'fa-boxes-stacked', color: 'text-sky-600 bg-sky-50 border-sky-200', label: 'Total Stok', value: Number(d.total_stok).toLocaleString('id-ID') + ' unit' },
+        { icon: 'fa-sack-dollar', color: d.punya_hpp ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-slate-400 bg-slate-50 border-slate-200', label: 'Nilai Modal (HPP)', value: d.punya_hpp ? fmt(d.total_nilai_modal) : 'Tidak ada data HPP' },
+        { icon: 'fa-money-bill-trend-up', color: 'text-purple-600 bg-purple-50 border-purple-200', label: 'Nilai Jual', value: fmt(d.total_nilai_jual) },
+    ];
+    if (d.punya_hpp) {
+        cards.push({ icon: 'fa-chart-line', color: 'text-green-600 bg-green-50 border-green-200', label: 'Potensi Laba', value: fmt(d.total_potensi_laba) });
+        let marginPct = d.total_nilai_jual > 0 ? ((d.total_potensi_laba / d.total_nilai_jual) * 100).toFixed(1) : '0';
+        cards.push({ icon: 'fa-percent', color: 'text-amber-600 bg-amber-50 border-amber-200', label: 'Margin Rata-rata', value: marginPct + '%' });
+    }
+    document.getElementById('aset-summary').innerHTML = cards.map(c => {
+        const cls = c.color.split(' ');
+        return '<div class="bg-white rounded-xl border ' + cls[2] + ' shadow-sm p-5 flex flex-col gap-3">' +
+            '<div class="flex items-center gap-3">' +
+                '<div class="w-10 h-10 rounded-lg ' + cls.slice(1,3).join(' ') + ' flex items-center justify-center shrink-0"><i class="fa-solid ' + c.icon + ' ' + cls[0] + '"></i></div>' +
+                '<span class="text-xs font-bold text-slate-400 uppercase tracking-wider">' + c.label + '</span>' +
+            '</div>' +
+            '<div class="text-xl font-extrabold text-slate-900">' + c.value + '</div>' +
+        '</div>';
+    }).join('');
+
+    if (d.items_tanpa_hpp > 0) {
+        const info = document.createElement('div');
+        info.className = 'col-span-full bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded-xl p-4 flex items-center gap-3';
+        info.innerHTML = '<i class="fa-solid fa-circle-info text-lg"></i> ' + d.items_tanpa_hpp + ' item tidak memiliki data HPP (harga pokok). Nilai modal mungkin tidak akurat.';
+        document.getElementById('aset-summary').appendChild(info);
+    }
+}
+
+function renderAsetBreakdown(breakdown) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    document.getElementById('aset-breakdown-body').innerHTML = breakdown.map(b => {
+        const potensiLaba = b.total_nilai_jual - b.total_nilai_modal;
+        const margin = b.total_nilai_jual > 0 ? ((potensiLaba / b.total_nilai_jual) * 100).toFixed(1) : '0';
+        return '<tr class="hover:bg-slate-50 transition-colors">' +
+            '<td class="px-5 py-3 font-bold text-slate-800">' + escHtml(b.category) + '</td>' +
+            '<td class="px-5 py-3 text-center text-slate-600">' + b.total_items + '</td>' +
+            '<td class="px-5 py-3 text-center text-slate-600">' + Number(b.total_stok).toLocaleString('id-ID') + '</td>' +
+            '<td class="px-5 py-3 text-right font-semibold text-emerald-600">' + fmt(b.total_nilai_modal) + '</td>' +
+            '<td class="px-5 py-3 text-right font-semibold text-astra-700">' + fmt(b.total_nilai_jual) + '</td>' +
+            '<td class="px-5 py-3 text-right font-bold ' + (potensiLaba > 0 ? 'text-green-600' : 'text-red-600') + '">' + fmt(potensiLaba) + ' <span class="text-xs text-slate-400 font-normal">(' + margin + '%)</span></td>' +
+            '</tr>';
+    }).join('');
+}
+
+function renderAsetProducts(res) {
+    const fmt = v => 'Rp ' + Number(v).toLocaleString('id-ID');
+    const data = res.data;
+    const tbody = document.getElementById('aset-detail-body');
+    const empty = document.getElementById('aset-detail-empty');
+
+    tbody.innerHTML = '';
+    empty.classList.add('hidden');
+
+    if (data.length === 0) {
+        empty.classList.remove('hidden');
+        document.getElementById('aset-detail-footer').innerHTML = '';
+        return;
+    }
+
+    tbody.innerHTML = data.map(p => {
+        const potensi = p.potensi_laba;
+        const margin = p.total_nilai_jual > 0 ? ((potensi / p.total_nilai_jual) * 100).toFixed(1) : '0';
+        const stokClass = p.total_stok < 5 ? 'text-orange-500' : 'text-slate-700';
+        const labaClass = potensi > 0 ? 'text-green-600' : (potensi < 0 ? 'text-red-600' : 'text-slate-400');
+        return '<tr class="hover:bg-slate-50 transition-colors">' +
+            '<td class="px-3 py-2.5 font-mono text-xs text-slate-500">' + escHtml(p.kodeitem) + '</td>' +
+            '<td class="px-3 py-2.5 font-semibold text-slate-800 max-w-[250px] truncate" title="' + escAttr(p.namaitem) + '">' + escHtml(p.namaitem) + '</td>' +
+            '<td class="px-3 py-2.5 text-center"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">' + escHtml(p.kategori) + '</span></td>' +
+            '<td class="px-3 py-2.5 text-center font-bold ' + stokClass + '">' + p.total_stok + '</td>' +
+            '<td class="px-3 py-2.5 text-right text-slate-600">' + (p.hpp > 0 ? fmt(p.hpp) : '<span class="text-xs text-slate-400">-</span>') + '</td>' +
+            '<td class="px-3 py-2.5 text-right text-slate-600">' + fmt(p.hargajual1) + '</td>' +
+            '<td class="px-3 py-2.5 text-right font-semibold text-emerald-600">' + fmt(p.total_nilai_modal) + '</td>' +
+            '<td class="px-3 py-2.5 text-right font-semibold text-astra-700">' + fmt(p.total_nilai_jual) + '</td>' +
+            '<td class="px-3 py-2.5 text-right font-bold ' + labaClass + '">' + fmt(potensi) + ' <span class="text-xs font-normal text-slate-400">(' + margin + '%)</span></td>' +
+            '</tr>';
+    }).join('');
+
+    const gf = res.grand_total_modal || 0;
+    const gj = res.grand_total_jual || 0;
+    const gl = gj - gf;
+    document.getElementById('aset-detail-footer').innerHTML =
+        '<tr>' +
+            '<td colspan="6" class="px-3 py-3 text-right text-slate-700 text-sm">GRAND TOTAL</td>' +
+            '<td class="px-3 py-3 text-right font-bold text-emerald-700 whitespace-nowrap">' + fmt(gf) + '</td>' +
+            '<td class="px-3 py-3 text-right font-bold text-astra-800 whitespace-nowrap">' + fmt(gj) + '</td>' +
+            '<td class="px-3 py-3 text-right font-bold ' + (gl > 0 ? 'text-green-700' : 'text-red-700') + ' whitespace-nowrap">' + fmt(gl) + '</td>' +
+        '</tr>';
+}
+
 // HUTANG (OUTSTANDING DEBT REPORT)
 // ============================================================
 let _hutangSort = 'due_date_asc';
