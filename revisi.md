@@ -118,26 +118,25 @@ Pencarian / klik kategori
 
 ---
 
-## Phase 3 — Clean & Ringan (BELUM DIEKSEKUSI)
+## ✅ Phase 3 — Clean & Ringan (DONE — commit 79cc82f)
 
 ### 1. Pagination — Load More button
-- `state.pageSize = 12`, `state.currentPage = 0`
-- `renderProductGrid()` hanya render slice (0, pageSize)
-- Tombol "Muat Lainnya" di bawah grid — klik tambah 12
-- Filter/sort → reset ke halaman 1
+- `state.pageSize = 12`, `state.displayCount`
+- `renderProductGrid()` render slice(0, displayCount)
+- Tombol "Muat Lainnya (N)" di bawah grid
+- Filter/sort → reset displayCount = 12
 - Tombol hilang jika semua sudah tampil
 
 ### 2. Kurangi Elemen — 5 file berubah
 
 | File | Perubahan |
 |------|-----------|
-| `ProductGrid.js` | Info bar: teks panjang → `"{count} produk ditemukan"` |
+| `ProductGrid.js` | Info bar: `"Menampilkan {count} produk ditemukan."` |
 | `ProductCard.js` | Hapus badge kategori di pojok kanan gambar |
-| `Footer.js` | Sosial media: 6 link dg label → icon-only row compact |
+| `Footer.js` | Sosial media: 6 link label → icon-only row compact |
 | `Navbar.js` | Hapus teks "Ikuti Kami:" |
-| `Banner.js` | Hapus tombol prev/next, hanya dots |
+| `Banner.js` | Hapus tombol prev/next, hanya dots autoplay |
 
-### 3. Fresh & Clean
-- Border lebih tipis, padding proporsional
-- Hapus skeleton loading shimmer (produk langsung muncul setelah fetch)
-- Info bar lebih ringkas
+### 3. Build
+- JS: 55KB → 53KB (sebelum gzip)
+- Total gzip: ~23KB (CSS 8.8KB + JS 14KB + HTML 0.3KB)
