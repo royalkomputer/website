@@ -18,7 +18,7 @@ export function Navbar({ onSearch }) {
 
     <!-- Logo -->
     <a href="#" class="js-logo-reset flex items-center gap-2 flex-shrink-0">
-      <img src="${LOGO_URL}" alt="Logo" class="h-8 md:h-10 w-auto">
+      <img src="${LOGO_URL}" alt="Logo" class="h-8 md:h-10 w-auto rounded-lg shadow-sm">
       <span class="font-bold text-sm md:text-xl tracking-wider text-slate-800 dark:text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
     </a>
 
