@@ -5,7 +5,7 @@ import { ProductGrid, renderProductGrid, showSkeletonLoading, hideSkeletonLoadin
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
 import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
-import { fetchProductsPage, fetchStoreStatus, fetchBanners } from './lib/api.js'
+import { fetchProductsPage, fetchBanners } from './lib/api.js'
 
 const PAGE_SIZE = 12
 
@@ -19,7 +19,6 @@ const state = {
     condition: 'Semua',
   },
   viewMode: 'detail',
-  status: null,
   hasActivated: false,
   currentPage: 0,
   totalProducts: 0,
@@ -54,14 +53,7 @@ function renderApp() {
 }
 
 async function initApp() {
-  try {
-    state.status = await fetchStoreStatus()
-  } catch (err) {
-    console.error('Failed to load store status:', err)
-  }
-
-  await loadProductInfoText()
-  await loadBanners()
+  // Data API calls happen last — triggered after first product load
 }
 
 let bannerVisible = false
@@ -148,6 +140,10 @@ async function loadProducts(reset = true) {
     }
 
     renderProducts()
+
+    // Data API calls last
+    await loadProductInfoText()
+    await loadBanners()
   } catch (err) {
     console.error('Failed to load products:', err)
     const emptyState = document.querySelector('.js-empty-state')
