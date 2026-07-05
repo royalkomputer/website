@@ -25,7 +25,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <span class="js-filter-icon text-slate-400 transition-transform duration-300 lg:hidden">${icon('chevron-down')}</span>
   </button>
 
-  <!-- Filter content (visible on desktop, collapsible on mobile) -->
+  <!-- Filter content (hidden on mobile by default, visible on desktop) -->
   <div class="js-filter-content hidden lg:block p-3">
 
     <!-- Reset button -->
@@ -94,82 +94,97 @@ export function FilterSidebar(filters, categories, categoryCounts) {
 }
 
 /**
- * Bind FilterSidebar event listeners.
+ * Bind FilterSidebar event listeners using event delegation on the filter container.
+ * This prevents duplicate listeners when bindFilterEvents is called multiple times.
  *
  * @param {Object} filters — mutable filter state reference
  * @param {Function} onFilterChange — called when any filter changes
  */
 export function bindFilterEvents(filters, onFilterChange, canReset) {
-  const filterContent = document.querySelector('.js-filter-content')
-  const filterToggle = document.querySelector('.js-filter-toggle')
-  const filterIcon = document.querySelector('.js-filter-icon')
+  const aside = document.querySelector('.js-filter-container > aside')
+  if (!aside) return
 
-  // Mobile toggle
-  if (filterToggle && filterContent && filterIcon) {
-    filterToggle.addEventListener('click', () => {
-      if (window.innerWidth < 1024) {
-        filterContent.classList.toggle('hidden')
-        filterIcon.classList.toggle('rotate-180')
+  // Prevent double-binding: skip if already bound
+  if (aside.dataset.eventsBound) return
+  aside.dataset.eventsBound = 'true'
+
+  // Mobile toggle — event delegation on aside
+  aside.addEventListener('click', (e) => {
+    const toggle = e.target.closest('.js-filter-toggle')
+    if (!toggle) return
+
+    if (window.innerWidth < 1024) {
+      const content = aside.querySelector('.js-filter-content')
+      const icon = aside.querySelector('.js-filter-icon')
+      if (content && icon) {
+        content.classList.toggle('hidden')
+        icon.classList.toggle('rotate-180')
       }
-    })
-  }
+    }
+  })
 
   // Category toggle (collapse/expand)
-  const catToggle = document.querySelector('.js-category-toggle')
-  const catPanel = document.querySelector('.js-category-panel')
-  const catIcon = document.querySelector('.js-category-icon')
-  if (catToggle && catPanel && catIcon) {
-    catToggle.addEventListener('click', () => {
-      const isHidden = catPanel.style.display === 'none'
-      catPanel.style.display = isHidden ? '' : 'none'
-      catIcon.classList.toggle('rotate-180')
-    })
-  }
+  aside.addEventListener('click', (e) => {
+    const catToggle = e.target.closest('.js-category-toggle')
+    if (!catToggle) return
+
+    const panel = aside.querySelector('.js-category-panel')
+    const icon = aside.querySelector('.js-category-icon')
+    if (panel && icon) {
+      const isHidden = panel.style.display === 'none'
+      panel.style.display = isHidden ? '' : 'none'
+      icon.classList.toggle('rotate-180')
+    }
+  })
 
   // Category buttons
-  document.querySelectorAll('.js-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filters.category = btn.dataset.category
-      onFilterChange()
-    })
+  aside.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-cat-btn')
+    if (!btn) return
+
+    filters.category = btn.dataset.category
+    onFilterChange()
   })
 
   // Condition buttons
-  document.querySelectorAll('.js-cond-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filters.condition = btn.dataset.condition
-      onFilterChange()
-    })
+  aside.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-cond-btn')
+    if (!btn) return
+
+    filters.condition = btn.dataset.condition
+    onFilterChange()
   })
 
   // Sort buttons
-  document.querySelectorAll('.js-sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      filters.sortBy = btn.dataset.sort
-      onFilterChange()
-    })
+  aside.addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-sort-btn')
+    if (!btn) return
+
+    filters.sortBy = btn.dataset.sort
+    onFilterChange()
   })
 
   // Reset button
-  const resetBtn = document.querySelector('.js-reset-filters')
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (canReset && !canReset()) return
-      filters.category = 'Semua'
-      filters.search = ''
-      filters.sortBy = 'default'
-      filters.condition = 'Semua'
+  aside.addEventListener('click', (e) => {
+    const resetBtn = e.target.closest('.js-reset-filters')
+    if (!resetBtn) return
 
-      // Reset UI
-      document.querySelectorAll('.js-search-input, .js-search-input-mobile').forEach(el => { if (el) el.value = '' })
+    if (canReset && !canReset()) return
 
-      onFilterChange()
-    })
-  }
+    filters.category = 'Semua'
+    filters.search = ''
+    filters.sortBy = 'default'
+    filters.condition = 'Semua'
+
+    // Reset search inputs
+    document.querySelectorAll('.js-search-input, .js-search-input-mobile').forEach(el => { if (el) el.value = '' })
+
+    onFilterChange()
+  })
 }
 
 /**
- * Update visual selection state for category buttons.
+ * Update visual selection state for condition buttons.
  */
 export function updateConditionButtons(selected) {
   document.querySelectorAll('.js-cond-btn').forEach(btn => {
