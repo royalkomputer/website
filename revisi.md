@@ -174,3 +174,42 @@ Pencarian / klik kategori
 3. Klik "Muat Lainnya" → API call `?page=2&limit=12&category=Case` → append 12 produk
 4. Filter/sort berubah → reset ke page 1
 5. Jika `page * limit >= total` → tombol "Muat Lainnya" hilang
+
+---
+
+## ✅ Phase 5 — Cleanup & Pagination (DONE)
+
+### 1. Hapus Jam Operasional dari Footer & Admin
+- `Footer.js`: Hapus section "Jam Buka Toko" + parameter `hours` + kode `hoursRows`
+- `admin.php`: Hapus tab **Jam Operasional** + panel jadwal + notifikasi status toko + `submitJam()` + `toggleLibur()` + dead PHP variables
+- `main.js`: Hapus re-render footer dengan hours
+- Build: JS 55.11KB → 53.92KB
+
+### 2. Footer Single Column
+- `Footer.js`: Grid responsive (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`) → `flex-col items-center` di semua layar
+
+### 3. Hapus API Status Call
+- `main.js`: Hapus `fetchStoreStatus()` dari `initApp()`, hapus `state.status`, hapus import
+- Pindah `loadProductInfoText()` + `loadBanners()` ke akhir `loadProducts()`
+- Build: JS 53.92KB → 51.91KB
+
+### 4. Hapus Banner Sementara
+- `main.js`: Hapus banner container, `loadBanners()`, `hideBanner()`, `bannerVisible`, import Banner.js
+- `style.css`: Hapus `.banner-hiding` + `@keyframes slideRightFade`
+- Build: JS 51.91KB → 48.49KB, CSS 48.20KB → 48.04KB
+
+### 5. Pagination Pages (ganti "Muat Lainnya")
+- `main.js`: `loadProducts(page)` → fetch halaman tertentu. `goToPage(page)` untuk navigasi
+- `ProductGrid.js`: Render pagination buttons (prev, 1...N, next) dengan ellipsis
+- Hapus semua `append` logic — setiap ganti page = fetch + render ulang
+- State: `currentPage: 1`, `totalPages: Math.ceil(total / PAGE_SIZE)`
+- Build: JS 48.23KB → 49.10KB
+
+### 6. Page Size 12 → 50
+- `main.js:9`: `PAGE_SIZE = 12` → `PAGE_SIZE = 50`
+- Backend API support max `limit = 100` (already)
+
+### 7. Filter Sidebar Collapsed by Default
+- `FilterSidebar.js`: Hapus `lg:block`, `lg:cursor-default`, `lg:hidden`. Content starts `hidden` di semua layar
+- `bindFilterEvents()`: Toggle bekerja di semua ukuran (tidak terbatas `<1024px`)
+- Sidebar tetap `lg:col-span-1` saat visible, hanya konten yang collapse/expand via chevron rotate
