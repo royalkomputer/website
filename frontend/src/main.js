@@ -4,8 +4,7 @@ import { FilterSidebar, bindFilterEvents, updateCategoryButtons, updateCondition
 import { ProductGrid, renderProductGrid, showSkeletonLoading, hideSkeletonLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
-import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
-import { fetchProductsPage, fetchBanners } from './lib/api.js'
+import { fetchProductsPage } from './lib/api.js'
 
 const PAGE_SIZE = 12
 
@@ -31,7 +30,7 @@ function renderApp() {
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
 
-    <div class="js-banner-container px-4 md:px-8 lg:px-12 hidden mb-6 transition-all duration-500 ease-in-out"></div>
+    <!-- banner removed -->
     <main class="px-4 md:px-8 lg:px-12 pb-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div class="js-filter-container hidden"></div>
       ${ProductGrid({ viewMode: state.viewMode })}
@@ -56,42 +55,7 @@ async function initApp() {
   // Data API calls happen last — triggered after first product load
 }
 
-let bannerVisible = false
 
-async function loadBanners() {
-  try {
-    const playlists = await fetchBanners()
-    const container = document.querySelector('.js-banner-container')
-    if (!container) return
-    const active = playlists.filter(p => p.active !== false)
-    if (active.length === 0) { container.classList.add('hidden'); bannerVisible = false; return }
-
-    container.innerHTML = '<div class="js-banner-playlists flex flex-col gap-4"></div>'
-    const list = container.querySelector('.js-banner-playlists')
-
-    active.forEach((pl, idx) => {
-      const html = renderPlaylist(pl, idx)
-      if (html) list.innerHTML += html
-    })
-
-    container.classList.remove('hidden')
-    bannerVisible = true
-    if (active.length > 0) bindAllCarousels(active)
-  } catch {
-    bannerVisible = false
-  }
-}
-
-function hideBanner() {
-  const container = document.querySelector('.js-banner-container')
-  if (!container || container.classList.contains('hidden') || container.classList.contains('banner-hiding')) return
-  container.classList.add('banner-hiding')
-  setTimeout(() => {
-    container.classList.add('hidden')
-    container.classList.remove('banner-hiding')
-    bannerVisible = false
-  }, 400)
-}
 
 async function loadProducts(reset = true) {
   if (state.isLoading) return
@@ -134,7 +98,6 @@ async function loadProducts(reset = true) {
       filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua', ...Object.keys(state.categories)], counts)
       filterContainer.classList.remove('hidden')
       bindFilterEvents(state.filters, () => {
-        hideBanner()
         loadProducts(true)
       }, () => state.hasActivated)
     }
@@ -143,7 +106,6 @@ async function loadProducts(reset = true) {
 
     // Data API calls last
     await loadProductInfoText()
-    await loadBanners()
   } catch (err) {
     console.error('Failed to load products:', err)
     const emptyState = document.querySelector('.js-empty-state')
@@ -212,7 +174,6 @@ function renderProducts() {
 
 function handleSearch(query) {
   state.filters.search = query
-  hideBanner()
   loadProducts(true)
 }
 
@@ -261,12 +222,6 @@ function resetToInitial() {
 
   const filterContainer = document.querySelector('.js-filter-container')
   if (filterContainer) filterContainer.classList.add('hidden')
-
-  const banner = document.querySelector('.js-banner-container')
-  if (banner) {
-    banner.classList.remove('banner-hiding', 'hidden')
-    bannerVisible = true
-  }
 
   const section = document.querySelector('.js-product-section')
   if (section) {
