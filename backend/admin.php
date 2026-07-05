@@ -15,29 +15,6 @@ if (!$current_admin) {
 }
 
 $current_status = loadStatus();
-
-$jam_buka     = loadJamOperasional();
-$hari_inggris = date('l');
-$jam_sekarang = date('H:i');
-$hari_ini_jam = $jam_buka[$hari_inggris];
-$hari_libur = !empty($hari_ini_jam['libur']);
-$is_open_system = !$hari_libur && ($jam_sekarang >= $hari_ini_jam['buka'] && $jam_sekarang <= $hari_ini_jam['tutup']);
-
-if ($current_status === 'tutup') {
-    $notif_text  = "Pelanggan saat ini melihat: TOKO TUTUP SEMENTARA (Manual)";
-    $notif_class = "bg-red-100 text-red-700 border-red-200";
-    $notif_icon  = "fa-store-slash";
-} elseif ($is_open_system) {
-    $notif_text  = "Pelanggan saat ini melihat: TOKO BUKA (Sesuai Jam Operasional)";
-    $notif_class = "bg-green-100 text-green-700 border-green-200";
-    $notif_icon  = "fa-store";
-} else {
-    $notif_text  = "Pelanggan saat ini melihat: TOKO TUTUP (Luar Jam Operasional)";
-    $notif_class = "bg-slate-200 text-slate-700 border-slate-300";
-    $notif_icon  = "fa-moon";
-}
-
-$urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -156,10 +133,6 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
         <button onclick="switchTab('katalog')" id="tab-katalog" class="tab-btn active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold">
             <i class="fa-solid fa-boxes-stacked"></i> Katalog Produk
         </button>
-        <button onclick="switchTab('jam')" id="tab-jam" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-clock"></i> Jam Operasional
-        </button>
-
         <?php if ($is_super): ?>
         <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-users-gear"></i> Kelola Admin
@@ -257,73 +230,6 @@ $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','S
             </div>
         </div>
     </div>
-
-    <!-- PANEL JAM OPERASIONAL -->
-    <div id="panel-jam" class="hidden">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
-                <i class="fa-solid fa-clock text-astra-700"></i> Jadwal Jam Buka Toko
-            </h3>
-            <div class="mb-3">
-                <div class="<?php echo $notif_class; ?> text-xs font-bold px-3 py-1.5 rounded inline-flex items-center gap-2 border">
-                    <i class="fa-solid <?php echo $notif_icon; ?>"></i> <?php echo $notif_text; ?>
-                </div>
-            </div>
-            <p class="text-sm text-slate-500 mb-6">Atur jam buka dan tutup setiap hari. Perubahan langsung berlaku di halaman toko.</p>
-            <form id="form-jam" class="space-y-3">
-                <?php foreach ($urutan_hari as $hari):
-                    $d = $jam_buka[$hari];
-                    $today = ($hari === $hari_inggris);
-                    $is_libur = $d['libur'] ?? false;
-                ?>
-                <div class="grid grid-cols-[130px_auto_1fr_1fr] gap-3 items-center p-3 rounded-lg <?php echo $today ? 'bg-astra-50 border border-astra-200' : 'bg-slate-50 border border-slate-100'; ?>">
-                    <div class="font-semibold text-sm <?php echo $today ? 'text-astra-700' : 'text-slate-700'; ?> flex items-center gap-2">
-                        <?php if ($today): ?><span class="w-2 h-2 bg-astra-500 rounded-full"></span><?php endif; ?>
-                        <?php echo $d['indo']; ?>
-                        <?php if ($today): ?><span class="text-[10px] text-astra-500 font-bold">(Hari ini)</span><?php endif; ?>
-                    </div>
-                    <div>
-                        <label class="flex items-center gap-1.5 cursor-pointer select-none <?php echo $is_super ? '' : 'pointer-events-none opacity-60'; ?>">
-                            <input type="checkbox" name="libur_<?php echo $hari; ?>" value="1"
-                                <?php echo $is_libur ? 'checked' : ''; ?>
-                                <?php echo $is_super ? '' : 'disabled'; ?>
-                                onchange="toggleLibur(this, '<?php echo $hari; ?>')"
-                                class="w-4 h-4 text-red-500 border-slate-300 rounded focus:ring-red-500 cursor-pointer">
-                            <span class="text-xs font-bold text-red-500">Libur</span>
-                        </label>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Buka</label>
-                        <input type="time" name="buka_<?php echo $hari; ?>" value="<?php echo $d['buka']; ?>" <?php echo $is_super ? '' : 'disabled'; ?>
-                            id="buka-<?php echo $hari; ?>"
-                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 <?php echo $is_libur ? 'opacity-40' : ''; ?>"
-                            <?php echo $is_libur ? 'disabled' : ''; ?>>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Tutup</label>
-                        <input type="time" name="tutup_<?php echo $hari; ?>" value="<?php echo $d['tutup']; ?>" <?php echo $is_super ? '' : 'disabled'; ?>
-                            id="tutup-<?php echo $hari; ?>"
-                            class="w-full bg-white border border-slate-300 text-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 <?php echo $is_libur ? 'opacity-40' : ''; ?>"
-                            <?php echo $is_libur ? 'disabled' : ''; ?>>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-                <div class="pt-4 flex items-center gap-3">
-                                    <?php if ($is_super): ?>
-                                    <button type="button" onclick="submitJam()" id="btn-simpan-jam"
-                                        class="bg-astra-700 hover:bg-astra-800 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
-                                        <i class="fa-solid fa-floppy-disk"></i> Simpan Jam Operasional
-                                    </button>
-                                    <?php else: ?>
-                                    <button type="button" disabled class="bg-slate-200 text-slate-600 px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 border">Hanya Super Admin</button>
-                                    <?php endif; ?>
-                                    <span id="jam-feedback" class="text-sm font-semibold hidden"></span>
-                                </div>
-            </form>
-        </div>
-    </div>
-
-
 
     <!-- PANEL KELOLA ADMIN (super admin only) -->
     <?php if ($is_super): ?>
@@ -1104,7 +1010,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','admin','banner','profil','serial','push','penghasilan','hutang','aset'];
+    const panels = ['katalog','admin','banner','profil','serial','push','penghasilan','hutang','aset'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -1383,38 +1289,6 @@ function submitForm(event){
             else showNotification('Error: '+data.message, 'error');
         }).catch(()=>showNotification('Terjadi kesalahan jaringan.', 'error'))
         .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan';});
-}
-
-// JAM OPERASIONAL
-function toggleLibur(checkbox, day) {
-    const bukaInput = document.getElementById('buka-' + day);
-    const tutupInput = document.getElementById('tutup-' + day);
-    if (checkbox.checked) {
-        bukaInput.disabled = true;
-        bukaInput.classList.add('opacity-40');
-        tutupInput.disabled = true;
-        tutupInput.classList.add('opacity-40');
-    } else {
-        bukaInput.disabled = false;
-        bukaInput.classList.remove('opacity-40');
-        tutupInput.disabled = false;
-        tutupInput.classList.remove('opacity-40');
-    }
-}
-
-function submitJam(){
-    const btn=document.getElementById('btn-simpan-jam');
-    const fb=document.getElementById('jam-feedback');
-    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
-    fb.classList.add('hidden');
-    fetch('update_jam.php',{method:'POST',body:new FormData(document.getElementById('form-jam'))})
-        .then(r=>r.json()).then(data=>{
-            fb.classList.remove('hidden');
-            if(data.success){fb.className='text-sm font-semibold text-green-600';fb.innerHTML='<i class="fa-solid fa-check-circle mr-1"></i>'+data.message;}
-            else{fb.className='text-sm font-semibold text-red-600';fb.innerHTML='<i class="fa-solid fa-triangle-exclamation mr-1"></i>'+data.message;}
-            setTimeout(()=>fb.classList.add('hidden'),4000);
-        }).catch(()=>{fb.classList.remove('hidden');fb.className='text-sm font-semibold text-red-600';fb.textContent='Gagal. Cek koneksi.';})
-        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Jam Operasional';});
 }
 
 // KELOLA ADMIN

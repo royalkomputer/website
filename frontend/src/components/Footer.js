@@ -1,35 +1,14 @@
 /**
  * Footer Component
  *
- * Renders: logo + address, social media links, operating hours table,
- * version + copyright.
+ * Renders: logo + address, social media links, version + copyright.
  *
- * @param {Object} hours — operating hours object from jam_operasional.json
  * @returns {string} HTML string
  */
 import { LOGO_URL } from '../lib/env.js'
 import { icon } from '../lib/icons.js'
 
-export function Footer(hours) {
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const currentDay = dayNames[new Date().getDay()]
-
-  let hoursRows = ''
-  if (hours && typeof hours === 'object') {
-    hoursRows = dayNames.map(day => {
-      const h = hours[day]
-      if (!h) return ''
-      const isToday = day === currentDay
-      const highlight = isToday ? 'text-astra-400 font-bold bg-slate-200 dark:bg-slate-900 rounded border border-slate-300 dark:border-slate-800' : ''
-      const isLibur = h.libur === true
-      const times = isLibur ? '<span class="text-red-400 font-bold">Libur</span>' : `${h.buka.replace(':', '.')}–${h.tutup.replace(':', '.')}`
-      return `<div class="flex justify-between py-1 px-2 mb-1 ${highlight}">
-        <span>${h.indo || day}</span>
-        <span>${times}</span>
-      </div>`
-    }).join('')
-  }
-
+export function Footer() {
   return `
 <footer class="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 text-xs border-t border-slate-200 dark:border-slate-800 mt-12 py-12">
   <div class="px-4 md:px-8 lg:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
@@ -53,14 +32,6 @@ export function Footer(hours) {
         <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-white transition-colors" title="TikTok">${icon('tiktok')}</a>
         <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 hover:text-green-500 transition-colors" title="WhatsApp">${icon('whatsapp')}</a>
         <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-red-500 transition-colors" title="YouTube">${icon('youtube')}</a>
-      </div>
-    </div>
-
-    <!-- Operating Hours -->
-    <div class="flex flex-col gap-3 items-center md:items-start w-full">
-      <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide border-b border-slate-200 dark:border-slate-800 pb-1 w-full text-center md:text-left">JAM BUKA TOKO</p>
-      <div class="w-full text-[11px] text-slate-500 dark:text-slate-400 max-w-[200px] mx-auto md:mx-0">
-        ${hoursRows || '<p class="text-slate-500">Tidak tersedia</p>'}
       </div>
     </div>
 

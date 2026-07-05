@@ -56,10 +56,6 @@ function renderApp() {
 async function initApp() {
   try {
     state.status = await fetchStoreStatus()
-    const footerContainer = document.querySelector('.js-footer-container')
-    if (footerContainer && state.status?.hours) {
-      footerContainer.innerHTML = Footer(state.status.hours)
-    }
   } catch (err) {
     console.error('Failed to load store status:', err)
   }
