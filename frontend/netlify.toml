@@ -54,6 +54,11 @@
   status = 200
 
 [[redirects]]
+  from = "/logo/logo.webp"
+  to = "https://royal-backend-s3ir.onrender.com/logo/logo.webp"
+  status = 200
+
+[[redirects]]
   from = "/admin/*"
   to = "https://royal-backend-s3ir.onrender.com/:splat"
   status = 200
