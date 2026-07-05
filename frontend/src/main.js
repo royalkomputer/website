@@ -23,7 +23,7 @@ const state = {
   status: null,
   hasActivated: false,
   productsLoaded: false,
-  displayCount: PAGE_SIZE,
+  displayCount: 0,
 }
 
 function renderApp() {
@@ -129,7 +129,7 @@ async function ensureProductsLoaded() {
       filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
       filterContainer.classList.remove('hidden')
       bindFilterEvents(state.filters, function() {
-        state.displayCount = PAGE_SIZE
+        state.displayCount = 0
         hideBanner()
         if (!state.hasActivated) {
           state.hasActivated = true
