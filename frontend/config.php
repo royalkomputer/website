@@ -70,7 +70,7 @@ function saveSchedules(array $schedules): bool {
 // ============================================================
 
 function loadProductInfoText(): string {
-    $default = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.';
+    $default = 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.';
     if (!file_exists(PRODUCT_INFO_FILE)) {
         return $default;
     }

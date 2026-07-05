@@ -39,7 +39,7 @@ define('BANNER_FILE',       __DIR__ . '/data/banners.json');
 define('FE_DIR', __DIR__ . '/../frontend');
 
 define('TAGLINE_DEFAULT', 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.');
-define('PRODUCT_INFO_DEFAULT', 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.');
+define('PRODUCT_INFO_DEFAULT', 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.');
 define('HEADING_DEFAULT_PREFIX', 'Solusi Hardware di');
 define('HEADING_DEFAULT_BRAND', 'Royal Komputer');
 

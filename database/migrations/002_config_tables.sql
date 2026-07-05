@@ -79,10 +79,10 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_info (
     id INTEGER PRIMARY KEY DEFAULT 1,
-    text TEXT NOT NULL DEFAULT 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.'
+    text TEXT NOT NULL DEFAULT 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.'
 );
 
-INSERT INTO product_info (id, text) VALUES (1, 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.')
+INSERT INTO product_info (id, text) VALUES (1, 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================

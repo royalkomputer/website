@@ -3,7 +3,7 @@ import { ProductDetailRow } from './ProductDetailRow.js'
 import { DATA_BASE } from '../lib/env.js'
 import { icon } from '../lib/icons.js'
 
-const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk. Harga tidak selalu update, hubungi kami di WhatsApp.'
+const PRODUCT_INFO_DEFAULT = 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.'
 
 let _productInfoText = PRODUCT_INFO_DEFAULT
 

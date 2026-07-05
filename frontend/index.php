@@ -62,13 +62,13 @@ if (file_exists($heading_file)) {
 
 // Baca teks info produk
 $product_info_file = 'product_info.json';
-$product_info_text = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.';
+$product_info_text = 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.';
 if (file_exists($product_info_file)) {
     $info_data = json_decode(file_get_contents($product_info_file), true);
     if (!empty($info_data['text'])) $product_info_text = $info_data['text'];
 }
-// Ganti {count} dengan span yang akan diisi JavaScript
-$product_info_html = str_replace('{count}', '<span id="product-count" class="font-bold text-slate-900 dark:text-white">0</span>', $product_info_text);
+// Langsung gunakan teks (tanpa {count})
+$product_info_html = htmlspecialchars($product_info_text);
 
 // Menentukan jam buka selanjutnya jika sedang tutup
 $next_buka = '';
