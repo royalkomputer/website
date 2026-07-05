@@ -17,7 +17,7 @@ export function Navbar({ onSearch }) {
   <div class="px-4 md:px-8 lg:px-12 py-3 flex items-center justify-between gap-2">
 
     <!-- Logo -->
-    <a href="#" class="flex items-center gap-2 flex-shrink-0">
+    <a href="#" class="js-logo-reset flex items-center gap-2 flex-shrink-0">
       <img src="${LOGO_URL}" alt="Logo" class="h-8 md:h-10 w-auto">
       <span class="font-bold text-sm md:text-xl tracking-wider text-slate-800 dark:text-white">ROYAL<span class="text-astra-400"> KOMPUTER</span></span>
     </a>

@@ -257,6 +257,45 @@ function loadMoreProducts() {
   loadProducts(false)
 }
 
+function resetToInitial() {
+  state.hasActivated = false
+  state.filters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' }
+  state.products = []
+  state.currentPage = 0
+  state.totalProducts = 0
+  state.isLoading = false
+
+  document.querySelectorAll('.js-search-input, .js-search-input-mobile').forEach(el => { if (el) el.value = '' })
+
+  const filterContainer = document.querySelector('.js-filter-container')
+  if (filterContainer) filterContainer.classList.add('hidden')
+
+  const banner = document.querySelector('.js-banner-container')
+  if (banner) {
+    banner.classList.remove('banner-hiding', 'hidden')
+    bannerVisible = true
+  }
+
+  const section = document.querySelector('.js-product-section')
+  if (section) {
+    section.classList.remove('lg:col-span-4')
+    section.classList.add('lg:col-span-5')
+  }
+
+  renderProducts()
+}
+
+function bindLogoReset() {
+  const logo = document.querySelector('.js-logo-reset')
+  if (logo) {
+    logo.addEventListener('click', (e) => {
+      e.preventDefault()
+      resetToInitial()
+    })
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   renderApp()
+  setTimeout(bindLogoReset, 0)
 })
