@@ -18,5 +18,25 @@
                 "alt": ""
             }
         ]
+    },
+    {
+        "id": "pl_6a4a5b609ab28",
+        "name": "Case",
+        "order": 2,
+        "active": true,
+        "interval": 5000,
+        "aspect": "16\/9",
+        "photos": [
+            {
+                "image": "pl_6a4a5b609ab28_0.webp",
+                "link": "https:\/\/www.fpmax.net\/product_20\/Wind-Shell-G2.html",
+                "alt": ""
+            },
+            {
+                "image": "pl_6a4a5b609ab28_1.webp",
+                "link": "https:\/\/www.fpmax.net\/Diamond\/Diamond-Z8.html",
+                "alt": ""
+            }
+        ]
     }
 ]
