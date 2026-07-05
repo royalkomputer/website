@@ -19,8 +19,9 @@ const state = {
   },
   viewMode: 'detail',
   hasActivated: false,
-  currentPage: 0,
+  currentPage: 1,
   totalProducts: 0,
+  totalPages: 0,
   isLoading: false,
 }
 
@@ -57,18 +58,11 @@ async function initApp() {
 
 
 
-async function loadProducts(reset = true) {
+async function loadProducts(page = 1) {
   if (state.isLoading) return
   state.isLoading = true
 
-  if (reset) {
-    state.currentPage = 0
-    state.products = []
-  }
-
   showSkeletonLoading(true)
-
-  const page = reset ? 1 : state.currentPage + 1
 
   try {
     const cat = state.filters.category === 'Semua' ? '' : state.filters.category
@@ -88,9 +82,10 @@ async function loadProducts(reset = true) {
       updateLayout()
     }
 
-    state.products = reset ? result.data : [...state.products, ...result.data]
+    state.products = result.data
     state.currentPage = result.page
     state.totalProducts = result.total
+    state.totalPages = Math.ceil(result.total / PAGE_SIZE)
 
     const filterContainer = document.querySelector('.js-filter-container')
     if (filterContainer && state.categories) {
@@ -98,11 +93,11 @@ async function loadProducts(reset = true) {
       filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua', ...Object.keys(state.categories)], counts)
       filterContainer.classList.remove('hidden')
       bindFilterEvents(state.filters, () => {
-        loadProducts(true)
+        loadProducts(1)
       }, () => state.hasActivated)
     }
 
-    renderProducts(!reset)
+    renderProducts()
 
     // Data API calls last
     await loadProductInfoText()
@@ -124,14 +119,7 @@ function updateLayout() {
   }
 }
 
-function showInfoBar(el) {
-  if (!el) return
-  el.classList.remove('hidden', 'notif-enter')
-  void el.offsetHeight
-  el.classList.add('notif-enter')
-}
-
-function renderProducts(append = false) {
+function renderProducts() {
   const productGrid = document.querySelector('.js-product-grid')
   const infoBar = document.querySelector('.js-product-info-bar')
 
@@ -149,18 +137,15 @@ function renderProducts(append = false) {
 
   if (productGrid) productGrid.classList.remove('hidden')
 
-  if (infoBar && !append) {
+  if (infoBar) {
     infoBar.classList.remove('hidden')
   }
 
-  if (!append) {
-    updateCategoryButtons(state.filters.category)
-    updateConditionButtons(state.filters.condition)
-    updateSortButtons(state.filters.sortBy)
-  }
+  updateCategoryButtons(state.filters.category)
+  updateConditionButtons(state.filters.condition)
+  updateSortButtons(state.filters.sortBy)
 
-  const hasMore = state.currentPage * PAGE_SIZE < state.totalProducts
-  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts, state.totalProducts, append)
+  renderProductGrid(state.products, handleProductClick, state.viewMode, state.currentPage, state.totalPages, goToPage)
 
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {
@@ -171,7 +156,7 @@ function renderProducts(append = false) {
 
 function handleSearch(query) {
   state.filters.search = query
-  loadProducts(true)
+  loadProducts(1)
 }
 
 function handleProductClick(id) {
@@ -203,16 +188,18 @@ function updateViewToggleUI() {
   })
 }
 
-function loadMoreProducts() {
-  loadProducts(false)
+function goToPage(page) {
+  if (page < 1 || page > state.totalPages || page === state.currentPage) return
+  loadProducts(page)
 }
 
 function resetToInitial() {
   state.hasActivated = false
   state.filters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' }
   state.products = []
-  state.currentPage = 0
+  state.currentPage = 1
   state.totalProducts = 0
+  state.totalPages = 0
   state.isLoading = false
 
   document.querySelectorAll('.js-search-input, .js-search-input-mobile').forEach(el => { if (el) el.value = '' })

@@ -87,40 +87,32 @@ export function hideSkeletonLoading() {
   }
 }
 
-export function renderProductGrid(products, onDetailClick, viewMode = 'grid', hasMore = false, onLoadMore = null, total = 0, append = false) {
+export function renderProductGrid(products, onDetailClick, viewMode = 'grid', currentPage = 1, totalPages = 0, onPageChange = null) {
   const grid = document.querySelector('.js-product-grid')
   const emptyState = document.querySelector('.js-empty-state')
   const countEl = document.querySelector('.js-product-count')
 
   if (!grid) return
 
-  if (!append) {
-    if (viewMode === 'detail') {
-      grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
-      grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
-    } else {
-      grid.classList.remove('flex', 'flex-col', 'gap-3', 'sm:gap-4')
-      grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
-    }
-
-    grid.innerHTML = ''
-    if (countEl) countEl.textContent = products.length
-
-    if (products.length === 0) {
-      if (emptyState) emptyState.classList.remove('hidden')
-      return
-    }
-
-    if (emptyState) emptyState.classList.add('hidden')
+  if (viewMode === 'detail') {
+    grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
+    grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
   } else {
-    const oldBtn = grid.querySelector('.js-load-more-wrapper')
-    if (oldBtn) oldBtn.remove()
+    grid.classList.remove('flex', 'flex-col', 'gap-3', 'sm:gap-4')
+    grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
   }
 
-  // Determine which products to render
-  const items = append ? products.slice(grid.children.length) : products
+  grid.innerHTML = ''
+  if (countEl) countEl.textContent = products.length
 
-  items.forEach(product => {
+  if (products.length === 0) {
+    if (emptyState) emptyState.classList.remove('hidden')
+    return
+  }
+
+  if (emptyState) emptyState.classList.add('hidden')
+
+  products.forEach(product => {
     const div = document.createElement('div')
     if (viewMode === 'detail') {
       div.innerHTML = ProductDetailRow(product, { hideImage: true })
@@ -134,14 +126,65 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid', ha
     }
   })
 
-  if (countEl) countEl.textContent = total
+  if (countEl) countEl.textContent = products.length
 
-  if (hasMore && onLoadMore) {
-    const remaining = total - products.length
-    const wrapper = document.createElement('div')
-    wrapper.className = 'js-load-more-wrapper flex justify-center pt-4 pb-2'
-    wrapper.innerHTML = `<button class="js-load-more w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-semibold transition-all bg-astra-600 hover:bg-astra-700 text-white shadow-sm">Muat Lainnya (${remaining})</button>`
-    grid.appendChild(wrapper)
-    wrapper.querySelector('.js-load-more').addEventListener('click', onLoadMore)
+  // Pagination
+  if (totalPages > 1 && onPageChange) {
+    const nav = document.createElement('div')
+    nav.className = 'flex items-center justify-center gap-1 pt-6 pb-2'
+
+    // Prev
+    const prev = document.createElement('button')
+    prev.className = `px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${currentPage === 1 ? 'text-slate-600 cursor-default' : 'text-slate-300 hover:bg-slate-800'}`
+    prev.innerHTML = '<span class="inline-flex">' + icon('chevron-left') + '</span>'
+    if (currentPage > 1) prev.addEventListener('click', () => onPageChange(currentPage - 1))
+    nav.appendChild(prev)
+
+    // Page numbers
+    const maxVisible = 5
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+    let end = Math.min(totalPages, start + maxVisible - 1)
+    if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1)
+
+    if (start > 1) {
+      nav.appendChild(createPageBtn(1, currentPage === 1, onPageChange))
+      if (start > 2) {
+        const dots = document.createElement('span')
+        dots.className = 'px-1 text-slate-500 text-xs'
+        dots.textContent = '...'
+        nav.appendChild(dots)
+      }
+    }
+
+    for (let i = start; i <= end; i++) {
+      nav.appendChild(createPageBtn(i, i === currentPage, onPageChange))
+    }
+
+    if (end < totalPages) {
+      if (end < totalPages - 1) {
+        const dots = document.createElement('span')
+        dots.className = 'px-1 text-slate-500 text-xs'
+        dots.textContent = '...'
+        nav.appendChild(dots)
+      }
+      nav.appendChild(createPageBtn(totalPages, currentPage === totalPages, onPageChange))
+    }
+
+    // Next
+    const next = document.createElement('button')
+    next.className = `px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${currentPage === totalPages ? 'text-slate-600 cursor-default' : 'text-slate-300 hover:bg-slate-800'}`
+    next.innerHTML = '<span class="inline-flex">' + icon('chevron-right') + '</span>'
+    if (currentPage < totalPages) next.addEventListener('click', () => onPageChange(currentPage + 1))
+    nav.appendChild(next)
+
+    grid.appendChild(nav)
   }
+}
+
+function createPageBtn(page, isActive, onClick) {
+  const btn = document.createElement('button')
+  btn.className = `w-9 h-9 rounded-lg text-sm font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800'}`
+  btn.textContent = page
+  if (!isActive) btn.addEventListener('click', () => onClick(page))
+  return btn
 }
