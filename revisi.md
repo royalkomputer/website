@@ -205,11 +205,11 @@ Pencarian / klik kategori
 - State: `currentPage: 1`, `totalPages: Math.ceil(total / PAGE_SIZE)`
 - Build: JS 48.23KB → 49.10KB
 
-### 6. Page Size 12 → 50
-- `main.js:9`: `PAGE_SIZE = 12` → `PAGE_SIZE = 50`
-- Backend API support max `limit = 100` (already)
+### 6. Page Size 50 → 32
+- `main.js:9`: `PAGE_SIZE = 50` → `PAGE_SIZE = 32`
 
-### 7. Filter Sidebar Collapsed by Default
-- `FilterSidebar.js`: Hapus `lg:block`, `lg:cursor-default`, `lg:hidden`. Content starts `hidden` di semua layar
-- `bindFilterEvents()`: Toggle bekerja di semua ukuran (tidak terbatas `<1024px`)
-- Sidebar tetap `lg:col-span-1` saat visible, hanya konten yang collapse/expand via chevron rotate
+### 7. Filter Sidebar Default Terbuka (Desktop)
+- `FilterSidebar.js`: Content `hidden p-3` → `p-3 lg:block` (default visible di desktop)
+- Toggle button: tambah `lg:cursor-default` (non-clickable di desktop)
+- Chevron icon: tambah `lg:hidden`
+- `bindFilterEvents()`: restore `if (window.innerWidth < 1024)` — toggle hanya di mobile

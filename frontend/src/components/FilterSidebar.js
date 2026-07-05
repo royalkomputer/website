@@ -17,16 +17,16 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   return `
 <aside class="lg:col-span-1 bg-slate-800/80 rounded-xl border border-white/10 shadow-sm self-start overflow-hidden">
 
-  <!-- Toggle header -->
-  <button class="js-filter-toggle w-full p-4 flex items-center justify-between focus:outline-none bg-slate-800/80 border-b border-white/10">
+  <!-- Toggle header (desktop: no toggle, mobile: collapsible) -->
+  <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-800/80 border-b border-white/10">
     <h3 class="font-bold text-white flex items-center gap-2">
       ${icon('sliders')} Filter & Urutkan
     </h3>
-    <span class="js-filter-icon text-slate-400 transition-transform duration-300">${icon('chevron-down')}</span>
+    <span class="js-filter-icon text-slate-400 transition-transform duration-300 lg:hidden">${icon('chevron-down')}</span>
   </button>
 
-  <!-- Filter content (collapsed by default) -->
-  <div class="js-filter-content hidden p-3">
+  <!-- Filter content (visible on desktop, collapsible on mobile) -->
+  <div class="js-filter-content p-3 lg:block">
 
     <!-- Reset button -->
     <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
@@ -104,11 +104,13 @@ export function bindFilterEvents(filters, onFilterChange, canReset) {
   const filterToggle = document.querySelector('.js-filter-toggle')
   const filterIcon = document.querySelector('.js-filter-icon')
 
-  // Toggle filter panel
+  // Mobile toggle
   if (filterToggle && filterContent && filterIcon) {
     filterToggle.addEventListener('click', () => {
-      filterContent.classList.toggle('hidden')
-      filterIcon.classList.toggle('rotate-180')
+      if (window.innerWidth < 1024) {
+        filterContent.classList.toggle('hidden')
+        filterIcon.classList.toggle('rotate-180')
+      }
     })
   }
 

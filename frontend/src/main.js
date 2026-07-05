@@ -6,7 +6,7 @@ import { ProductModal, openModal, bindModalEvents } from './components/ProductMo
 import { Footer } from './components/Footer.js'
 import { fetchProductsPage } from './lib/api.js'
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 32
 
 const state = {
   products: [],
