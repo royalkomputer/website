@@ -147,7 +147,7 @@ function renderProducts(append = false) {
     return
   }
 
-  if (productGrid && !append) productGrid.classList.remove('hidden')
+  if (productGrid) productGrid.classList.remove('hidden')
 
   if (infoBar && !append) {
     infoBar.classList.remove('hidden')
