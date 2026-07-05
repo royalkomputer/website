@@ -213,3 +213,22 @@ Pencarian / klik kategori
 - Toggle button: tambah `lg:cursor-default` (non-clickable di desktop)
 - Chevron icon: tambah `lg:hidden`
 - `bindFilterEvents()`: restore `if (window.innerWidth < 1024)` — toggle hanya di mobile
+
+---
+
+## Revisi — Ubah Teks Info Produk
+
+Mengubah kalimat info produk dari berbagai variasi menjadi seragam: **"Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp."**
+
+| # | File | Perubahan |
+|---|------|-----------|
+| 1 | `frontend/src/components/ProductGrid.js:6` | `PRODUCT_INFO_DEFAULT` |
+| 2 | `frontend/config.php:73` | `$default` di `loadProductInfoText()` |
+| 3 | `frontend/index.php:65` | Fallback string inline |
+| 4 | `backend/config.php:42` | `define('PRODUCT_INFO_DEFAULT', ...)` |
+| 5 | `index.html:232` | Hardcoded HTML (hapus `<span id="product-count">`) |
+| 6 | `frontend/product_info.json` | Nilai `"text"` |
+| 7 | `backend/data/product_info.json` | Nilai `"text"` |
+| 8 | `database/migrations/002_config_tables.sql:82,85` | Default `CREATE TABLE` + `INSERT` |
+
+**Catatan:** `{count}` dihapus — jumlah produk tidak ditampilkan lagi di info bar.
