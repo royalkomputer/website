@@ -38,7 +38,7 @@ const imageHtml = hideImage ? '' : `
   </div>`
 
 return `
-<div class="js-product-card bg-black rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-row group cursor-pointer" data-id="${product.id}">
+<div class="js-product-card bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-row group cursor-pointer" data-id="${product.id}">
   ${imageHtml}
   <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 p-3 sm:p-4 min-w-0">
     <div class="flex flex-col gap-1 min-w-0 flex-1 w-full sm:w-auto">

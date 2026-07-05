@@ -9,7 +9,6 @@
 | `src/main.js` | Hapus `StoreStatus` + `loadHeadingText`; lazy load produk (`ensureProductsLoaded()`); default `viewMode:'detail'`; sidebar `hidden` di awal; layout dinamis `lg:col-span-5` → `lg:col-span-4` |
 | `src/components/ProductGrid.js` | Tambah skeleton loading (8 shimmer cards); class `js-product-section` + `lg:col-span-5`; fungsi `showSkeletonLoading()` / `hideSkeletonLoading()` |
 | `src/components/ProductDetailRow.js` | Opsional `{ hideImage: true }` — detail view text-only |
-| `src/lib/api.js` | Tidak berubah (fungsi `fetchStoreStatus` masih dipakai untuk footer hours) |
 | `src/components/StoreStatus.js` | Tidak diimpor lagi oleh file manapun (bisa dihapus nanti) |
 | Build | `npm run build` sukses — `dist/` 23KB gzipped (CSS 8.6KB + JS 14.2KB + HTML 0.3KB) |
 
@@ -27,86 +26,92 @@
 | `backend/config.php` | Fungsi `loadHeading/saveHeading` dll masih dipakai `api_status.php` |
 | `backend/api_status.php` | Masih return `heading`/`tagline` (frontend abaikan — harmless) |
 
----
+### Frontend — Dark Refined (5 file berubah)
 
-## 🔜 BELUM DIEKSEKUSI — Header Gradient Flow
+| File | Perubahan |
+|------|-----------|
+| `src/components/ProductGrid.js` | 3 baris: `bg-black` → `bg-slate-800/80`, `border-slate-700` → `border-white/10` |
+| `src/components/ProductCard.js` | 1 baris: card bg & border |
+| `src/components/ProductDetailRow.js` | 1 baris: row bg & border |
+| `src/components/FilterSidebar.js` | 4 baris: aside, toggle, 3 condition btns + JS class |
+| Build | `npm run build` sukses — total ~23KB gzipped (tidak berubah) |
 
-### 1. `frontend/src/style.css` — Tambah animasi
+### Frontend — Layout restruktur (4 file berubah)
 
-```css
-@keyframes gradient-flow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-.gradient-flow {
-  background: linear-gradient(270deg, #60a5fa, #a78bfa, #f472b6, #60a5fa);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-flow 5s ease infinite;
-}
-```
+| File | Perubahan |
+|------|-----------|
+| `src/style.css` | Tambah `@keyframes gradient-flow` + `.gradient-flow` class |
+| `src/main.js` | `renderApp()`: tambah header "ROYAL KOMPUTER" + banner di luar `<main>` |
+| `src/components/ProductGrid.js` | Hapus search prompt + banner container; `gap-6` → `gap-4` |
+| `src/components/Banner.js` | `bg-slate-100 shadow-sm rounded-2xl` → `bg-astra-950` |
+| Build | `npm run build` sukses — ~23KB gzipped (CSS 8.8KB, JS 14.2KB) |
 
-### 2. `frontend/src/main.js:29-31` — Tambah header
-
-**Sebelum:**
-```js
-  app.innerHTML = `
-    ${Navbar({ onSearch: handleSearch })}
-    <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
-```
-
-**Sesudah:**
-```js
-  app.innerHTML = `
-    ${Navbar({ onSearch: handleSearch })}
-    <header class="py-8 md:py-12 text-center">
-      <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight gradient-flow select-none">
-        ROYAL KOMPUTER
-      </h1>
-    </header>
-    <main class="px-4 md:px-8 lg:px-12 pb-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
-```
-
----
-
-## Hasil Akhir
+## Flow User
 
 ```
-┌──────────────────────────────────────┐
-│  ROYAL◄KOMPUTER  ← gradient flow    │  ← Navbar (sticky)
-├──────────────────────────────────────┤
-│                                      │
-│       ROYAL KOMPUTER                 │  ← Header animasi
-│    (blue → purple → pink → blue)    │     gradient flow 5s
-│                                      │
-├──────────────────────────────────────┤
-│  [Gunakan pencarian...]              │  ← search prompt
-│                                      │
-│  ┌─────────┐ ┌─────────┐            │
-│  │ skeleton │ │ skeleton │            │  ← lazy load
-│  └─────────┘ └─────────┘            │
-├──────────────────────────────────────┤
-│  Footer (logo, jam operasional,      │
-│   sosial media, copyright)            │
-└──────────────────────────────────────┘
+User buka page
+  │
+  ├─ Navbar (sticky, logo + search bar + sosmed)
+  │
+  ├─ Header:  "ROYAL KOMPUTER" (gradient flow animasi)
+  │
+  ├─ Banner:  auto-slide playlist (full-width, rounded)
+  │
+  ├─ Footer:  jam operasional, sosial media, copyright
+  │
+  └─ User search / klik kategori di Navbar
+       │
+       ├─ Banner → slideRightFade (400ms) → hidden
+       ├─ Skeleton loading (8 shimmer cards) muncul
+       ├─ Fetch produk dari API (lazy)
+       ├─ Sidebar kategori muncul (lg:col-span-5 → lg:col-span-4)
+       ├─ Produk di-render (default: detail view, text-only, no images)
+       ├─ Info bar "Menampilkan X produk tersedia..."
+       └─ Skeleton → hilang, produk terlihat
 ```
+
+## Image Behavior — Kapan Gambar Muncul
+
+```
+Pencarian / klik kategori
+  │
+  ├─ Detail (default) ─── text-only ─── tanpa gambar
+  │   └─ ProductDetailRow({ hideImage: true })
+  │      └─ Tidak ada tag <img>
+  │
+  └─ User klik tombol "Grid"
+       └─ Produk di-render ulang dengan gambar
+          └─ ProductCard + loading="lazy"
+```
+
+| Mode | Trigger | Gambar | Component |
+|------|---------|--------|-----------|
+| **Detail** | Default setelah search | ❌ Tidak ada | `ProductDetailRow` + `{ hideImage: true }` |
+| **Grid** | User klik tombol Grid | ✅ Muncul (lazy load) | `ProductCard` |
+
+**Alasan:** Detail view = cepat, ringan, tanpa download gambar. Grid view = opsional, user pilih sendiri saat ingin lihat foto.
 
 ---
 
 ## Yang TIDAK ADA di halaman user
 
-- ❌ Badge status toko (buka/tutup)
-- ❌ Tagline/deskripsi hero
+- ❌ Badge status toko (buka/tutup/sementara)
+- ❌ Tagline / deskripsi hero
 - ❌ Heading "Solusi Hardware di..."
+- ❌ Search prompt "Gunakan pencarian..." (banner sudah cukup)
 - ❌ Gambar produk di default view (detail = text-only)
 - ❌ Sidebar kategori sebelum user search
+- ❌ Font Awesome (diganti inline SVG)
+- ❌ Google Fonts (pakai system font stack)
 
 ## Yang TETAP ADA di halaman user
 
-- ✅ Jam operasional di Footer
-- ✅ Banner playlist (auto-slide)
+- ✅ Navbar sticky dengan logo + search
+- ✅ Header "ROYAL KOMPUTER" gradient flow animation
+- ✅ Banner playlist (auto-slide, full-width, nav buttons + dots)
 - ✅ Produk (muncul setelah user search/klik kategori)
 - ✅ Skeleton loading saat fetch produk
-- ✅ Tombol Grid/Detail view toggle
+- ✅ View toggle (Grid / Detail)
+- ✅ Modal detail produk (dengan carousel + WA order)
+- ✅ Jam operasional di Footer
+- ✅ Sosial media links di Navbar + Footer

@@ -32,7 +32,7 @@ export function ProductCard(product, onDetail) {
 const fallbackSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23f1f5f9' width='400' height='300'/%3E%3Ctext fill='%2394a3b8' font-family='sans-serif' font-size='14' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ETidak ada gambar%3C/text%3E%3C/svg%3E`
 
 return `
-<div class="js-product-card bg-black rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
+<div class="js-product-card bg-slate-800/80 rounded-xl border border-white/10 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
   <div class="relative overflow-hidden aspect-[4/3] bg-slate-800">
     <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'" width="400" height="300"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">

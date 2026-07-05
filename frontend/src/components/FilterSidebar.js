@@ -15,10 +15,10 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   categoryCounts = categoryCounts || {}
 
   return `
-<aside class="lg:col-span-1 bg-black rounded-xl border border-slate-700 shadow-sm self-start overflow-hidden">
+<aside class="lg:col-span-1 bg-slate-800/80 rounded-xl border border-white/10 shadow-sm self-start overflow-hidden">
 
   <!-- Toggle header (mobile) -->
-  <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-black lg:bg-black border-b border-slate-700 lg:border-none">
+  <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-800/80 lg:bg-slate-800/80 border-b border-white/10 lg:border-none">
     <h3 class="font-bold text-white flex items-center gap-2">
       ${icon('sliders')} Filter & Urutkan
     </h3>
@@ -60,13 +60,13 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <div class="mb-6 border-t border-slate-700 pt-5">
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
       <div class="flex gap-2">
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Semua">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-slate-800/80 border border-white/10 text-slate-300 hover:bg-slate-800" data-condition="Semua">
           <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Semua
         </button>
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Baru">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-slate-800/80 border border-white/10 text-slate-300 hover:bg-slate-800" data-condition="Baru">
           <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Baru
         </button>
-        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Bekas">
+        <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-slate-800/80 border border-white/10 text-slate-300 hover:bg-slate-800" data-condition="Bekas">
           <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Bekas
         </button>
       </div>
@@ -174,7 +174,7 @@ export function bindFilterEvents(filters, onFilterChange, canReset) {
 export function updateConditionButtons(selected) {
   document.querySelectorAll('.js-cond-btn').forEach(btn => {
     const isSelected = btn.dataset.condition === selected
-    btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-black border border-slate-600 text-slate-300 hover:bg-slate-800'} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
+    btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-slate-800/80 border border-white/10 text-slate-300 hover:bg-slate-800'} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
     const checkIcon = btn.querySelector('.js-cond-check')
     if (checkIcon) checkIcon.classList.toggle('hidden', !isSelected)
   })

@@ -28,7 +28,13 @@ function renderApp() {
 
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
-    <main class="px-4 md:px-8 lg:px-12 py-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <header class="py-8 md:py-12 text-center">
+      <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight gradient-flow select-none">
+        ROYAL KOMPUTER
+      </h1>
+    </header>
+    <div class="js-banner-container px-4 md:px-8 lg:px-12 hidden mb-6 transition-all duration-500 ease-in-out"></div>
+    <main class="px-4 md:px-8 lg:px-12 pb-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div class="js-filter-container hidden"></div>
       ${ProductGrid({ viewMode: state.viewMode })}
     </main>
