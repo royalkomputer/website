@@ -102,7 +102,7 @@ async function loadProducts(reset = true) {
       }, () => state.hasActivated)
     }
 
-    renderProducts()
+    renderProducts(!reset)
 
     // Data API calls last
     await loadProductInfoText()
@@ -131,7 +131,7 @@ function showInfoBar(el) {
   el.classList.add('notif-enter')
 }
 
-function renderProducts() {
+function renderProducts(append = false) {
   const productGrid = document.querySelector('.js-product-grid')
   const infoBar = document.querySelector('.js-product-info-bar')
 
@@ -147,23 +147,20 @@ function renderProducts() {
     return
   }
 
-  if (productGrid) productGrid.classList.remove('hidden')
+  if (productGrid && !append) productGrid.classList.remove('hidden')
 
-  if (infoBar) {
-    const banner = document.querySelector('.js-banner-container')
-    if (banner && banner.classList.contains('banner-hiding')) {
-      setTimeout(() => showInfoBar(infoBar), 400)
-    } else {
-      infoBar.classList.remove('hidden')
-    }
+  if (infoBar && !append) {
+    infoBar.classList.remove('hidden')
   }
 
-  updateCategoryButtons(state.filters.category)
-  updateConditionButtons(state.filters.condition)
-  updateSortButtons(state.filters.sortBy)
+  if (!append) {
+    updateCategoryButtons(state.filters.category)
+    updateConditionButtons(state.filters.condition)
+    updateSortButtons(state.filters.sortBy)
+  }
 
   const hasMore = state.currentPage * PAGE_SIZE < state.totalProducts
-  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts, state.totalProducts)
+  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts, state.totalProducts, append)
 
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {

@@ -87,32 +87,40 @@ export function hideSkeletonLoading() {
   }
 }
 
-export function renderProductGrid(products, onDetailClick, viewMode = 'grid', hasMore = false, onLoadMore = null, total = 0) {
+export function renderProductGrid(products, onDetailClick, viewMode = 'grid', hasMore = false, onLoadMore = null, total = 0, append = false) {
   const grid = document.querySelector('.js-product-grid')
   const emptyState = document.querySelector('.js-empty-state')
   const countEl = document.querySelector('.js-product-count')
 
   if (!grid) return
 
-  if (viewMode === 'detail') {
-    grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
-    grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
+  if (!append) {
+    if (viewMode === 'detail') {
+      grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
+      grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
+    } else {
+      grid.classList.remove('flex', 'flex-col', 'gap-3', 'sm:gap-4')
+      grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
+    }
+
+    grid.innerHTML = ''
+    if (countEl) countEl.textContent = products.length
+
+    if (products.length === 0) {
+      if (emptyState) emptyState.classList.remove('hidden')
+      return
+    }
+
+    if (emptyState) emptyState.classList.add('hidden')
   } else {
-    grid.classList.remove('flex', 'flex-col', 'gap-3', 'sm:gap-4')
-    grid.classList.add('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
+    const oldBtn = grid.querySelector('.js-load-more-wrapper')
+    if (oldBtn) oldBtn.remove()
   }
 
-  grid.innerHTML = ''
-  if (countEl) countEl.textContent = products.length
+  // Determine which products to render
+  const items = append ? products.slice(grid.children.length) : products
 
-  if (products.length === 0) {
-    if (emptyState) emptyState.classList.remove('hidden')
-    return
-  }
-
-  if (emptyState) emptyState.classList.add('hidden')
-
-  products.forEach(product => {
+  items.forEach(product => {
     const div = document.createElement('div')
     if (viewMode === 'detail') {
       div.innerHTML = ProductDetailRow(product, { hideImage: true })
@@ -126,10 +134,12 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid', ha
     }
   })
 
+  if (countEl) countEl.textContent = total
+
   if (hasMore && onLoadMore) {
     const remaining = total - products.length
     const wrapper = document.createElement('div')
-    wrapper.className = 'flex justify-center pt-4 pb-2'
+    wrapper.className = 'js-load-more-wrapper flex justify-center pt-4 pb-2'
     wrapper.innerHTML = `<button class="js-load-more w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-semibold transition-all bg-astra-600 hover:bg-astra-700 text-white shadow-sm">Muat Lainnya (${remaining})</button>`
     grid.appendChild(wrapper)
     wrapper.querySelector('.js-load-more').addEventListener('click', onLoadMore)
