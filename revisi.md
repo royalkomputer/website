@@ -140,3 +140,37 @@ Pencarian / klik kategori
 ### 3. Build
 - JS: 55KB → 53KB (sebelum gzip)
 - Total gzip: ~23KB (CSS 8.8KB + JS 14KB + HTML 0.3KB)
+
+---
+
+## ✅ Phase 4 — Pagination Server-Side + Lazy Load per Kategori (DONE)
+
+### Backend (`backend/api_produk.php`)
+- Accept `?page=N&limit=N&category=X&search=X&condition=X&sort=X`
+- Filter by category, search (case-insensitive), condition (baru/bekas)
+- Sort: low-high / high-low
+- Return `{ data: [...], total, page, limit, categories: { name: count } }`
+- DB fallback tetap (jika cache tidak ada)
+
+### Frontend (`frontend/src/lib/api.js`)
+- New `fetchProductsPage({ page, limit, category, search, condition, sort })`
+- Fallback: paginate cache_produk.json lokal jika API gagal
+- `fetchProducts()` kept as backward compat (calls fetchProductsPage with limit 9999)
+
+### Frontend (`frontend/src/main.js`)
+- State: `products[]`, `categories{}`, `currentPage`, `totalProducts`, `isLoading`
+- `loadProducts(reset=true)` — fetch page dari API
+  - reset=true: ganti filter/ganti kategori → page 1
+  - reset=false: "Muat Lainnya" → page+1, append
+- Sidebar categories di-populate dari response API (`result.categories`)
+
+### Frontend (`frontend/src/components/ProductGrid.js`)
+- `renderProductGrid(products, ..., hasMore, onLoadMore, total)`
+- `hasMore` flag + `total` untuk menghitung sisa di tombol
+
+### Flow
+1. User search → API call `?page=1&limit=12&search=...` → render 12 produk + sidebar categories
+2. Klik kategori → API call `?page=1&limit=12&category=Case` → render 12 produk Case
+3. Klik "Muat Lainnya" → API call `?page=2&limit=12&category=Case` → append 12 produk
+4. Filter/sort berubah → reset ke page 1
+5. Jika `page * limit >= total` → tombol "Muat Lainnya" hilang
