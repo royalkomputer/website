@@ -6,7 +6,6 @@ import { ProductModal, openModal, bindModalEvents } from './components/ProductMo
 import { Footer } from './components/Footer.js'
 import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
 import { fetchProductsPage, fetchStoreStatus, fetchBanners } from './lib/api.js'
-import { isBekas } from './lib/format.js'
 
 const PAGE_SIZE = 12
 
@@ -217,7 +216,7 @@ function renderProducts() {
   updateSortButtons(state.filters.sortBy)
 
   const hasMore = state.currentPage * PAGE_SIZE < state.totalProducts
-  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts)
+  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts, state.totalProducts)
 
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {
