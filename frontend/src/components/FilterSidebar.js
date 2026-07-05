@@ -26,7 +26,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   </button>
 
   <!-- Filter content (visible on desktop, collapsible on mobile) -->
-  <div class="js-filter-content p-3 lg:block">
+  <div class="js-filter-content hidden lg:block p-3">
 
     <!-- Reset button -->
     <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
