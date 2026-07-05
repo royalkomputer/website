@@ -31,8 +31,11 @@ function renderApp() {
 
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
-    <header class="py-8 md:py-12 text-center">
-      <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight gradient-flow select-none">
+    <header class="py-8 md:py-12 text-center relative overflow-hidden">
+      <div class="floating-blob blob-1" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      <div class="floating-blob blob-2" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      <div class="floating-blob blob-3" style="top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+      <h1 class="relative text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight gradient-flow select-none">
         ROYAL KOMPUTER
       </h1>
     </header>
