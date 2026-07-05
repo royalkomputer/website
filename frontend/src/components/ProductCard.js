@@ -37,9 +37,6 @@ return `
     <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'" width="400" height="300"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
     ${badgeKondisi}
-    <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-astra-700 text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2 md:py-1 rounded-md shadow-sm">
-      ${product.category}
-    </div>
   </div>
   <div class="p-3 md:p-4 flex flex-col flex-grow">
     <h3 class="font-bold text-white text-sm md:text-base leading-tight mb-1 line-clamp-2">${product.name}</h3>

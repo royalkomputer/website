@@ -35,12 +35,6 @@ export function renderPlaylist(playlist, index) {
         `).join('')}
       </div>
       ${hasMultiple ? `
-      <button class="pl-prev absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="${plId}">
-        ${icon('chevron-left')}
-      </button>
-      <button class="pl-next absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center transition-colors z-10 backdrop-blur-sm" data-pl="${plId}">
-        ${icon('chevron-right')}
-      </button>
       <div class="pl-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10" data-pl="${plId}">
         ${photos.map((_, i) => `<button class="pl-dot w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80'}" data-pl="${plId}" data-index="${i}"></button>`).join('')}
       </div>
@@ -75,10 +69,6 @@ export function bindAllCarousels(playlists) {
       })
     }
 
-    const nextBtn = carousel.querySelector('.pl-next')
-    const prevBtn = carousel.querySelector('.pl-prev')
-    if (nextBtn) nextBtn.addEventListener('click', () => goTo(current + 1))
-    if (prevBtn) prevBtn.addEventListener('click', () => goTo(current - 1))
     carousel.querySelectorAll('.pl-dot').forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.index) || 0)))
 
     let autoInterval = setInterval(() => goTo(current + 1), interval)

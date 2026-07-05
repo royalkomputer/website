@@ -38,7 +38,6 @@ export function Navbar({ onSearch }) {
 
     <!-- Social Links (desktop) -->
     <div class="hidden md:flex items-center gap-3 flex-shrink-0">
-      <span class="text-xs text-slate-500 font-semibold hidden lg:inline">Ikuti Kami:</span>
       <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
         ${icon('facebook')}
       </a>

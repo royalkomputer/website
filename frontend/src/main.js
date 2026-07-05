@@ -8,6 +8,8 @@ import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
 import { fetchProducts, fetchStoreStatus, fetchBanners } from './lib/api.js'
 import { isBekas } from './lib/format.js'
 
+const PAGE_SIZE = 12
+
 const state = {
   allProducts: [],
   filteredProducts: [],
@@ -21,6 +23,7 @@ const state = {
   status: null,
   hasActivated: false,
   productsLoaded: false,
+  displayCount: PAGE_SIZE,
 }
 
 function renderApp() {
@@ -123,6 +126,7 @@ async function ensureProductsLoaded() {
       filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
       filterContainer.classList.remove('hidden')
       bindFilterEvents(state.filters, function() {
+        state.displayCount = PAGE_SIZE
         hideBanner()
         if (!state.hasActivated) {
           state.hasActivated = true
@@ -218,7 +222,7 @@ function applyFiltersAndRender() {
   updateConditionButtons(condition)
   updateSortButtons(sortBy)
 
-  renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode)
+  renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode, state.displayCount, loadMoreProducts)
 
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {
@@ -266,6 +270,11 @@ function updateViewToggleUI() {
     const isActive = btn.dataset.view === state.viewMode
     btn.className = `js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-700 text-slate-400 hover:text-slate-200'}`
   })
+}
+
+function loadMoreProducts() {
+  state.displayCount += PAGE_SIZE
+  applyFiltersAndRender()
 }
 
 document.addEventListener('DOMContentLoaded', function() {

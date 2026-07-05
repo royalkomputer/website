@@ -115,3 +115,29 @@ Pencarian / klik kategori
 - ✅ Modal detail produk (dengan carousel + WA order)
 - ✅ Jam operasional di Footer
 - ✅ Sosial media links di Navbar + Footer
+
+---
+
+## Phase 3 — Clean & Ringan (BELUM DIEKSEKUSI)
+
+### 1. Pagination — Load More button
+- `state.pageSize = 12`, `state.currentPage = 0`
+- `renderProductGrid()` hanya render slice (0, pageSize)
+- Tombol "Muat Lainnya" di bawah grid — klik tambah 12
+- Filter/sort → reset ke halaman 1
+- Tombol hilang jika semua sudah tampil
+
+### 2. Kurangi Elemen — 5 file berubah
+
+| File | Perubahan |
+|------|-----------|
+| `ProductGrid.js` | Info bar: teks panjang → `"{count} produk ditemukan"` |
+| `ProductCard.js` | Hapus badge kategori di pojok kanan gambar |
+| `Footer.js` | Sosial media: 6 link dg label → icon-only row compact |
+| `Navbar.js` | Hapus teks "Ikuti Kami:" |
+| `Banner.js` | Hapus tombol prev/next, hanya dots |
+
+### 3. Fresh & Clean
+- Border lebih tipis, padding proporsional
+- Hapus skeleton loading shimmer (produk langsung muncul setelah fetch)
+- Info bar lebih ringkas

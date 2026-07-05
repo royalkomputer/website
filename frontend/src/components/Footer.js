@@ -47,25 +47,12 @@ export function Footer(hours) {
     <!-- Social Media -->
     <div class="flex flex-col gap-3 items-center md:items-start w-full">
       <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide border-b border-slate-200 dark:border-slate-800 pb-1 w-full text-center md:text-left">MEDIA SOSIAL</p>
-      <div class="flex flex-col gap-2.5 text-sm items-center md:items-start w-full">
-        <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-500 flex items-center gap-2 transition-colors text-xs">
-          <span class="text-blue-600 inline-flex">${icon('facebook')}</span> Facebook Resmi
-        </a>
-        <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 flex items-center gap-2 transition-colors text-xs">
-          <span class="text-sky-500 inline-flex">${icon('layer-group')}</span> Facebook Pages
-        </a>
-        <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-pink-500 flex items-center gap-2 transition-colors text-xs">
-          <span class="text-pink-500 inline-flex">${icon('instagram')}</span> Instagram
-        </a>
-        <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-white flex items-center gap-2 transition-colors text-xs">
-          <span class="inline-flex">${icon('tiktok')}</span> TikTok
-        </a>
-        <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-green-500 flex items-center gap-2 transition-colors text-xs">
-          <span class="text-green-500 inline-flex">${icon('whatsapp')}</span> WhatsApp Admin
-        </a>
-        <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-red-500 flex items-center gap-2 transition-colors text-xs">
-          <span class="text-red-500 inline-flex">${icon('youtube')}</span> YouTube
-        </a>
+      <div class="flex gap-3 items-center justify-center md:justify-start w-full text-lg">
+        <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 hover:text-blue-500 transition-colors" title="Facebook">${icon('facebook')}</a>
+        <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 hover:text-pink-500 transition-colors" title="Instagram">${icon('instagram')}</a>
+        <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-white transition-colors" title="TikTok">${icon('tiktok')}</a>
+        <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 hover:text-green-500 transition-colors" title="WhatsApp">${icon('whatsapp')}</a>
+        <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-red-500 transition-colors" title="YouTube">${icon('youtube')}</a>
       </div>
     </div>
 

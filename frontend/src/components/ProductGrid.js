@@ -3,7 +3,7 @@ import { ProductDetailRow } from './ProductDetailRow.js'
 import { DATA_BASE } from '../lib/env.js'
 import { icon } from '../lib/icons.js'
 
-const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.'
+const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk ditemukan.'
 
 let _productInfoText = PRODUCT_INFO_DEFAULT
 
@@ -87,7 +87,7 @@ export function hideSkeletonLoading() {
   }
 }
 
-export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
+export function renderProductGrid(products, onDetailClick, viewMode = 'grid', displayCount = 0, onLoadMore = null) {
   const grid = document.querySelector('.js-product-grid')
   const emptyState = document.querySelector('.js-empty-state')
   const countEl = document.querySelector('.js-product-count')
@@ -112,7 +112,9 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
 
   if (emptyState) emptyState.classList.add('hidden')
 
-  products.forEach(product => {
+  const effectiveDisplay = displayCount > 0 ? Math.min(displayCount, products.length) : products.length
+
+  products.slice(0, effectiveDisplay).forEach(product => {
     const div = document.createElement('div')
     if (viewMode === 'detail') {
       div.innerHTML = ProductDetailRow(product, { hideImage: true })
@@ -125,4 +127,13 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
       card.addEventListener('click', () => onDetailClick(product.id))
     }
   })
+
+  if (onLoadMore && effectiveDisplay < products.length) {
+    const remaining = products.length - effectiveDisplay
+    const wrapper = document.createElement('div')
+    wrapper.className = 'flex justify-center pt-4 pb-2'
+    wrapper.innerHTML = `<button class="js-load-more w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-semibold transition-all bg-astra-600 hover:bg-astra-700 text-white shadow-sm">Muat Lainnya (${remaining})</button>`
+    grid.appendChild(wrapper)
+    wrapper.querySelector('.js-load-more').addEventListener('click', onLoadMore)
+  }
 }
