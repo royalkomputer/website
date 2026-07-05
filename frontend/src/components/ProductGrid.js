@@ -87,7 +87,7 @@ export function hideSkeletonLoading() {
   }
 }
 
-export function renderProductGrid(products, onDetailClick, viewMode = 'grid', displayCount = 0, onLoadMore = null) {
+export function renderProductGrid(products, onDetailClick, viewMode = 'grid', hasMore = false, onLoadMore = null, total = 0) {
   const grid = document.querySelector('.js-product-grid')
   const emptyState = document.querySelector('.js-empty-state')
   const countEl = document.querySelector('.js-product-count')
@@ -112,9 +112,7 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid', di
 
   if (emptyState) emptyState.classList.add('hidden')
 
-  const effectiveDisplay = displayCount > 0 ? Math.min(displayCount, products.length) : products.length
-
-  products.slice(0, effectiveDisplay).forEach(product => {
+  products.forEach(product => {
     const div = document.createElement('div')
     if (viewMode === 'detail') {
       div.innerHTML = ProductDetailRow(product, { hideImage: true })
@@ -128,8 +126,8 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid', di
     }
   })
 
-  if (onLoadMore && effectiveDisplay < products.length) {
-    const remaining = products.length - effectiveDisplay
+  if (hasMore && onLoadMore) {
+    const remaining = total - products.length
     const wrapper = document.createElement('div')
     wrapper.className = 'flex justify-center pt-4 pb-2'
     wrapper.innerHTML = `<button class="js-load-more w-full sm:w-auto px-8 py-3 rounded-xl text-sm font-semibold transition-all bg-astra-600 hover:bg-astra-700 text-white shadow-sm">Muat Lainnya (${remaining})</button>`

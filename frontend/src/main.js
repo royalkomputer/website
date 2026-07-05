@@ -5,14 +5,14 @@ import { ProductGrid, renderProductGrid, showSkeletonLoading, hideSkeletonLoadin
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
 import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
-import { fetchProducts, fetchStoreStatus, fetchBanners } from './lib/api.js'
+import { fetchProductsPage, fetchStoreStatus, fetchBanners } from './lib/api.js'
 import { isBekas } from './lib/format.js'
 
 const PAGE_SIZE = 12
 
 const state = {
-  allProducts: [],
-  filteredProducts: [],
+  products: [],
+  categories: null,
   filters: {
     category: 'Semua',
     search: '',
@@ -22,8 +22,9 @@ const state = {
   viewMode: 'detail',
   status: null,
   hasActivated: false,
-  productsLoaded: false,
-  displayCount: 0,
+  currentPage: 0,
+  totalProducts: 0,
+  isLoading: false,
 }
 
 function renderApp() {
@@ -112,38 +113,60 @@ function hideBanner() {
   }, 400)
 }
 
-async function ensureProductsLoaded() {
-  if (state.productsLoaded) return
+async function loadProducts(reset = true) {
+  if (state.isLoading) return
+  state.isLoading = true
+
+  if (reset) {
+    state.currentPage = 0
+    state.products = []
+  }
 
   showSkeletonLoading(true)
 
-  try {
-    state.allProducts = await fetchProducts()
-    state.filteredProducts = [...state.allProducts]
-    state.productsLoaded = true
+  const page = reset ? 1 : state.currentPage + 1
 
-    const categories = getUniqueCategories()
-    const categoryCounts = getCategoryCounts()
+  try {
+    const cat = state.filters.category === 'Semua' ? '' : state.filters.category
+    const result = await fetchProductsPage({
+      page,
+      limit: PAGE_SIZE,
+      category: cat,
+      search: state.filters.search,
+      condition: state.filters.condition === 'Semua' ? '' : state.filters.condition,
+      sort: state.filters.sortBy,
+    })
+
+    state.categories = result.categories || null
+
+    if (!state.hasActivated) {
+      state.hasActivated = true
+      updateLayout()
+    }
+
+    state.products = reset ? result.data : [...state.products, ...result.data]
+    state.currentPage = result.page
+    state.totalProducts = result.total
+
     const filterContainer = document.querySelector('.js-filter-container')
-    if (filterContainer) {
-      filterContainer.innerHTML = FilterSidebar(state.filters, categories, categoryCounts)
+    if (filterContainer && state.categories) {
+      const counts = { 'Semua': state.totalProducts, ...state.categories }
+      filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua', ...Object.keys(state.categories)], counts)
       filterContainer.classList.remove('hidden')
-      bindFilterEvents(state.filters, function() {
-        state.displayCount = 0
+      bindFilterEvents(state.filters, () => {
         hideBanner()
-        if (!state.hasActivated) {
-          state.hasActivated = true
-          updateLayout()
-        }
-        applyFiltersAndRender()
+        loadProducts(true)
       }, () => state.hasActivated)
     }
+
+    renderProducts()
   } catch (err) {
     console.error('Failed to load products:', err)
     const emptyState = document.querySelector('.js-empty-state')
     if (emptyState) emptyState.classList.remove('hidden')
   } finally {
     hideSkeletonLoading()
+    state.isLoading = false
   }
 }
 
@@ -162,22 +185,7 @@ function showInfoBar(el) {
   el.classList.add('notif-enter')
 }
 
-function getUniqueCategories() {
-  const cats = [...new Set(state.allProducts.map(p => p.category))]
-  return ['Semua', ...cats]
-}
-
-function getCategoryCounts() {
-  const counts = { 'Semua': state.allProducts.length }
-  state.allProducts.forEach(p => {
-    counts[p.category] = (counts[p.category] || 0) + 1
-  })
-  return counts
-}
-
-function applyFiltersAndRender() {
-  const { category, search, sortBy, condition } = state.filters
-
+function renderProducts() {
   const productGrid = document.querySelector('.js-product-grid')
   const infoBar = document.querySelector('.js-product-info-bar')
 
@@ -204,28 +212,12 @@ function applyFiltersAndRender() {
     }
   }
 
-  state.filteredProducts = state.allProducts.filter(p => {
-    const matchCategory = category === 'Semua' || p.category === category
-    const searchStr = (search || '').toLowerCase()
-    const matchSearch = (p.name || '').toLowerCase().includes(searchStr)
-    const bekas = isBekas(p)
-    let matchCondition = true
-    if (condition === 'Baru') matchCondition = !bekas
-    if (condition === 'Bekas') matchCondition = bekas
-    return matchCategory && matchSearch && matchCondition
-  })
+  updateCategoryButtons(state.filters.category)
+  updateConditionButtons(state.filters.condition)
+  updateSortButtons(state.filters.sortBy)
 
-  if (sortBy === 'low-high') {
-    state.filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0))
-  } else if (sortBy === 'high-low') {
-    state.filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0))
-  }
-
-  updateCategoryButtons(category)
-  updateConditionButtons(condition)
-  updateSortButtons(sortBy)
-
-  renderProductGrid(state.filteredProducts, handleProductClick, state.viewMode, state.displayCount, loadMoreProducts)
+  const hasMore = state.currentPage * PAGE_SIZE < state.totalProducts
+  renderProductGrid(state.products, handleProductClick, state.viewMode, hasMore, loadMoreProducts)
 
   const resetBtn = document.querySelector('.js-reset-filters')
   if (resetBtn) {
@@ -237,17 +229,11 @@ function applyFiltersAndRender() {
 function handleSearch(query) {
   state.filters.search = query
   hideBanner()
-  if (!state.hasActivated) {
-    state.hasActivated = true
-    updateLayout()
-  }
-  ensureProductsLoaded().then(() => {
-    applyFiltersAndRender()
-  })
+  loadProducts(true)
 }
 
 function handleProductClick(id) {
-  const product = state.allProducts.find(p => p.id === id)
+  const product = state.products.find(p => p.id === id)
   if (product) openModal(product)
 }
 
@@ -264,7 +250,7 @@ function bindViewToggleEvents() {
 
 function handleViewModeChange(mode) {
   state.viewMode = mode
-  applyFiltersAndRender()
+  renderProducts()
   updateViewToggleUI()
 }
 
@@ -276,8 +262,7 @@ function updateViewToggleUI() {
 }
 
 function loadMoreProducts() {
-  state.displayCount += PAGE_SIZE
-  applyFiltersAndRender()
+  loadProducts(false)
 }
 
 document.addEventListener('DOMContentLoaded', function() {
