@@ -1,1 +1,22 @@
-[]
+[
+    {
+        "id": "pl_6a4a57d642ab8",
+        "name": "Motherboard",
+        "order": 1,
+        "active": true,
+        "interval": 5000,
+        "aspect": "21\/9",
+        "photos": [
+            {
+                "image": "pl_6a4a57d642ab8_0.webp",
+                "link": "https:\/\/id.msi.com\/Motherboard\/PRO-B650M-A-WIFI",
+                "alt": ""
+            },
+            {
+                "image": "pl_6a4a57d642ab8_1.webp",
+                "link": "https:\/\/www.msi.com\/Motherboard\/PRO-B760M-P",
+                "alt": ""
+            }
+        ]
+    }
+]
