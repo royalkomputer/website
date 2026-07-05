@@ -1,4 +1,5 @@
 import { formatIDR, isBekas } from '../lib/format.js'
+import { icon } from '../lib/icons.js'
 
 const WA_NUMBER = '6281380686168'
 
@@ -33,7 +34,7 @@ const fallbackSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 return `
 <div class="js-product-card bg-black rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group cursor-pointer" ${clickAttr}>
   <div class="relative overflow-hidden aspect-[4/3] bg-slate-800">
-    <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'"
+    <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='${fallbackSvg}'" width="400" height="300"
          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
     ${badgeKondisi}
     <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-astra-700 text-[9px] md:text-[10px] font-bold px-2 py-0.5 md:px-2 md:py-1 rounded-md shadow-sm">
@@ -45,7 +46,7 @@ return `
     <div class="mt-auto pt-2 md:pt-3 border-t border-slate-700 flex items-center justify-between gap-2">
       <div class="text-sm md:text-base font-extrabold text-white truncate min-w-0">${formattedPrice}</div>
       <a href="${waUrl(product, formattedPrice)}" target="_blank" onclick="event.stopPropagation()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
-        <i class="fa-brands fa-whatsapp text-sm"></i>
+        ${icon('whatsapp')}
       </a>
     </div>
   </div>

@@ -8,6 +8,7 @@
  * @returns {string} HTML string
  */
 import { LOGO_URL } from '../lib/env.js'
+import { icon } from '../lib/icons.js'
 
 export function Footer(hours) {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -38,7 +39,7 @@ export function Footer(hours) {
       <img src="${LOGO_URL}" alt="Royal Komputer Logo" class="h-12 w-auto object-contain rounded mb-1">
       <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide">ROYAL KOMPUTER KEDIRI</p>
       <p class="text-slate-400 leading-relaxed text-center md:text-left text-xs">
-        <i class="fa-solid fa-location-dot text-red-500 mr-1"></i>
+        <span class="text-red-500 mr-1 inline-flex">${icon('location-dot')}</span>
         Gg. Masjid No.22A, Jamsaren, Kec. Pesantren, Kota Kediri, Jawa Timur 64132
       </p>
     </div>
@@ -48,22 +49,22 @@ export function Footer(hours) {
       <p class="font-bold text-slate-700 dark:text-slate-200 text-sm tracking-wide border-b border-slate-200 dark:border-slate-800 pb-1 w-full text-center md:text-left">MEDIA SOSIAL</p>
       <div class="flex flex-col gap-2.5 text-sm items-center md:items-start w-full">
         <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-500 flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-brands fa-facebook text-sm text-blue-600"></i> Facebook Resmi
+          <span class="text-blue-600 inline-flex">${icon('facebook')}</span> Facebook Resmi
         </a>
         <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-blue-400 flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-solid fa-layer-group text-sm text-sky-500"></i> Facebook Pages
+          <span class="text-sky-500 inline-flex">${icon('layer-group')}</span> Facebook Pages
         </a>
         <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-pink-500 flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-brands fa-instagram text-sm text-pink-500"></i> Instagram
+          <span class="text-pink-500 inline-flex">${icon('instagram')}</span> Instagram
         </a>
         <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-white flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-brands fa-tiktok text-sm text-white"></i> TikTok
+          <span class="inline-flex">${icon('tiktok')}</span> TikTok
         </a>
         <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-green-500 flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-brands fa-whatsapp text-sm text-green-500"></i> WhatsApp Admin
+          <span class="text-green-500 inline-flex">${icon('whatsapp')}</span> WhatsApp Admin
         </a>
         <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-400 hover:text-red-500 flex items-center gap-2 transition-colors text-xs">
-          <i class="fa-brands fa-youtube text-sm text-red-500"></i> YouTube
+          <span class="text-red-500 inline-flex">${icon('youtube')}</span> YouTube
         </a>
       </div>
     </div>

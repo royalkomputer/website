@@ -38,7 +38,6 @@ if ($current_status === 'tutup') {
 }
 
 $urutan_hari = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-$heading = loadHeading();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -160,17 +159,13 @@ $heading = loadHeading();
         <button onclick="switchTab('jam')" id="tab-jam" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-clock"></i> Jam Operasional
         </button>
-        <button onclick="switchTab('schedule')" id="tab-schedule" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-calendar-xmark"></i> Tutup Sementara
-        </button>
+
         <?php if ($is_super): ?>
         <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-users-gear"></i> Kelola Admin
         </button>
         <?php endif; ?>
-        <button onclick="switchTab('ui')" id="tab-ui" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-paintbrush"></i> UI Toko
-        </button>
+
         <button onclick="switchTab('banner')" id="tab-banner" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-images"></i> Playlist Banner
         </button>
@@ -328,55 +323,7 @@ $heading = loadHeading();
         </div>
     </div>
 
-    <!-- PANEL TUTUP SEMENTARA -->
-    <div id="panel-schedule" class="hidden">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-xmark text-astra-700"></i> Jadwal Tutup Sementara
-            </h3>
-            <p class="text-sm text-slate-500 mb-4">Buat jadwal kapan toko ditutup sementara. Pengunjung akan melihat informasi ini di halaman utama.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tanggal Mulai</label>
-                    <input type="date" id="sched-start-date" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Waktu Mulai</label>
-                    <input type="time" id="sched-start-time" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Tanggal Selesai</label>
-                    <input type="date" id="sched-end-date" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Waktu Selesai</label>
-                    <input type="time" id="sched-end-time" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm">
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Catatan (opsional)</label>
-                <input type="text" id="sched-note" placeholder="Contoh: Libur Lebaran" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm">
-            </div>
 
-            <!-- Manual override moved here -->
-            <div class="mb-4 p-3 bg-slate-50 border border-slate-100 rounded-lg">
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Override Manual Status Toko</label>
-                <div class="flex gap-3 items-center">
-                    <select id="manual-status" class="bg-white border border-slate-300 rounded-lg p-2 text-sm">
-                        <option value="buka" <?php echo $current_status==='buka'?'selected':''; ?>>Buka (Sesuai Jadwal)</option>
-                        <option value="tutup" <?php echo $current_status==='tutup'?'selected':''; ?>>Tutup Sementara (Dipaksa)</option>
-                    </select>
-                    <button type="button" onclick="setManualStatus()" id="btn-set-manual" class="bg-astra-600 hover:bg-astra-700 text-white px-4 py-2 rounded-lg text-sm font-bold">Simpan Status Manual</button>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3 mb-6">
-                <button id="btn-add-schedule" type="button" onclick="submitSchedule()" class="bg-astra-700 hover:bg-astra-800 text-white px-4 py-2 rounded-lg text-sm font-bold">Tambah Jadwal Tutup</button>
-                <span class="text-sm text-slate-500">Daftar jadwal aktif ditampilkan di bawah dan akan terlihat di halaman user.</span>
-            </div>
-            <div id="schedule-list"></div>
-        </div>
-    </div>
 
     <!-- PANEL KELOLA ADMIN (super admin only) -->
     <?php if ($is_super): ?>
@@ -412,80 +359,7 @@ $heading = loadHeading();
     </div>
     <?php endif; ?>
 
-    <!-- PANEL UI TOKO -->
-    <div id="panel-ui" class="hidden">
-        <div class="mb-5">
-            <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
-                <i class="fa-solid fa-paintbrush text-astra-700"></i> Tampilan Toko (UI)
-            </h3>
-            <p class="text-sm text-slate-500 mt-0.5">Sesuaikan teks yang muncul di halaman utama toko.</p>
-        </div>
 
-        <!-- HEADING EDITOR -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-heading text-astra-700"></i> Judul Header Toko</h4>
-            <p class="text-xs text-slate-500 mb-3">Judul besar di halaman utama. Bagian <strong>brand</strong> akan di-highlight dengan warna gradasi biru.</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Teks Awal</label>
-                    <input type="text" id="heading-prefix-input"
-                        value="<?php echo htmlspecialchars($heading['prefix']); ?>"
-                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                        placeholder="Contoh: Solusi Hardware di">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Brand <span class="text-slate-400 font-normal normal-case">(akan di-highlight)</span></label>
-                    <input type="text" id="heading-brand-input"
-                        value="<?php echo htmlspecialchars($heading['brand']); ?>"
-                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                        placeholder="Contoh: Royal Komputer">
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="saveHeading()" id="btn-simpan-heading"
-                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan Heading
-                </button>
-                <span id="heading-feedback" class="text-sm font-semibold hidden"></span>
-            </div>
-            <!-- Preview -->
-            <div class="mt-4 p-3 bg-gradient-to-r from-astra-950 via-slate-900 to-astra-900 rounded-lg text-center">
-                <p class="text-white text-lg font-bold" id="heading-preview"><?php echo htmlspecialchars($heading['prefix']); ?> <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300"><?php echo htmlspecialchars($heading['brand']); ?></span></p>
-            </div>
-        </div>
-
-        <!-- TAGLINE EDITOR -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-quote-right text-astra-700"></i> Tagline Toko</h4>
-            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di bawah judul header toko.</p>
-            <div class="flex gap-3 items-start">
-                <textarea id="tagline-input" rows="2"
-                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                    placeholder="Tulis tagline toko..."><?php echo htmlspecialchars(loadTagline()); ?></textarea>
-                <button type="button" onclick="saveTagline()" id="btn-simpan-tagline"
-                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan
-                </button>
-            </div>
-            <span id="tagline-feedback" class="text-sm font-semibold hidden mt-2"></span>
-        </div>
-
-        <!-- PRODUCT INFO TEXT EDITOR -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6 max-w-2xl">
-            <h4 class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i class="fa-solid fa-circle-info text-astra-700"></i> Teks Info Produk</h4>
-            <p class="text-xs text-slate-500 mb-3">Teks yang muncul di atas daftar produk, &quot;Menampilkan X produk tersedia...&quot;. Gunakan <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold">{count}</code> untuk menampilkan jumlah produk.</p>
-            <div class="flex gap-3 items-start">
-                <textarea id="product-info-input" rows="3"
-                    class="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm focus:outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500"
-                    placeholder="Tulis teks info produk..."><?php echo htmlspecialchars(loadProductInfoText()); ?></textarea>
-                <button type="button" onclick="saveProductInfo()" id="btn-simpan-produk-info"
-                    class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan
-                </button>
-            </div>
-            <span id="product-info-feedback" class="text-sm font-semibold hidden mt-2"></span>
-        </div>
-    </div>
 
         <!-- PANEL BANNER: PLAYLIST -->
     <div id="panel-banner" class="hidden">
@@ -703,7 +577,7 @@ $heading = loadHeading();
             <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-upload text-astra-700"></i> Push ke Git
             </h3>
-            <p class="text-sm text-slate-500 mb-4">Push perubahan data toko (jam operasional, jadwal tutup, heading, dll) dan foto produk ke repository GitHub. Perubahan akan otomatis terdeploy setelah push.</p>
+            <p class="text-sm text-slate-500 mb-4">Push perubahan data toko (jam operasional, dll) dan foto produk ke repository GitHub. Perubahan akan otomatis terdeploy setelah push.</p>
 
             <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-start gap-3">
                 <i class="fa-solid fa-circle-info text-lg mt-0.5"></i>
@@ -1230,7 +1104,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','jam','schedule','admin','ui','banner','profil','serial','push','penghasilan','hutang','aset'];
+    const panels = ['katalog','jam','admin','banner','profil','serial','push','penghasilan','hutang','aset'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -1244,7 +1118,6 @@ function showPanel(name){
         }
     });
     if (name === 'admin' && IS_SUPER) loadAdminList();
-    if (name === 'schedule') loadSchedules();
     if (name === 'banner') loadPlaylists();
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
     if (name === 'hutang') loadHutangData();
@@ -1257,7 +1130,7 @@ function switchTab(tab){ showPanel(tab); }
 let allProducts=[], filteredProducts=[];
 let adminFilters = {search:'',photoStatus:'all',sortBy:'name-asc',condition:'all'};
 
-window.addEventListener('DOMContentLoaded', () => { fetchProducts(); if (typeof loadSchedules === 'function') loadSchedules(); // ensure initial tab
+window.addEventListener('DOMContentLoaded', () => { fetchProducts();
     showPanel('katalog'); });
 
 function fetchProducts() {
@@ -1512,77 +1385,6 @@ function submitForm(event){
         .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan';});
 }
 
-// HEADING
-function saveHeading(){
-    const btn=document.getElementById('btn-simpan-heading');
-    const fb=document.getElementById('heading-feedback');
-    const prefix=document.getElementById('heading-prefix-input').value.trim();
-    const brand=document.getElementById('heading-brand-input').value.trim();
-    if(!prefix||!brand){ showNotification('Prefix dan brand heading tidak boleh kosong.', 'error'); return; }
-    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
-    fb.classList.add('hidden');
-    const fd=new FormData();
-    fd.append('action','save_heading');
-    fd.append('prefix',prefix);
-    fd.append('brand',brand);
-    fetch('update_admin.php',{method:'POST',body:fd})
-        .then(r=>r.json()).then(data=>{
-            showNotification(data.message, data.success ? 'success' : 'error');
-        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
-        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Heading';});
-}
-
-// Live preview heading
-function updateHeadingPreview(){
-    const prefix=document.getElementById('heading-prefix-input').value.trim();
-    const brand=document.getElementById('heading-brand-input').value.trim();
-    const preview=document.getElementById('heading-preview');
-    if(preview) preview.innerHTML=prefix+' <span class="text-transparent bg-clip-text bg-gradient-to-r from-astra-400 to-sky-300">'+escHtml(brand)+'</span>';
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-    const p=document.getElementById('heading-prefix-input');
-    const b=document.getElementById('heading-brand-input');
-    if(p) p.addEventListener('input', updateHeadingPreview);
-    if(b) b.addEventListener('input', updateHeadingPreview);
-});
-
-// PRODUCT INFO
-function saveProductInfo(){
-    const btn=document.getElementById('btn-simpan-produk-info');
-    const fb=document.getElementById('product-info-feedback');
-    const text=document.getElementById('product-info-input').value.trim();
-    if(!text){ showNotification('Teks info produk tidak boleh kosong.', 'error'); return; }
-    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
-    fb.classList.add('hidden');
-    const fd=new FormData();
-    fd.append('action','save_product_info');
-    fd.append('text',text);
-    fetch('update_admin.php',{method:'POST',body:fd})
-        .then(r=>r.json()).then(data=>{
-            showNotification(data.message, data.success ? 'success' : 'error');
-        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
-        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan';});
-}
-
-// TAGLINE
-function saveTagline(){
-    const btn=document.getElementById('btn-simpan-tagline');
-    const fb=document.getElementById('tagline-feedback');
-    const tagline=document.getElementById('tagline-input').value.trim();
-    if(!tagline){ showNotification('Tagline tidak boleh kosong.', 'error'); return; }
-    btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
-    fb.classList.add('hidden');
-    const fd=new FormData();
-    fd.append('action','save_tagline');
-    fd.append('tagline',tagline);
-    fetch('update_admin.php',{method:'POST',body:fd})
-        .then(r=>r.json()).then(data=>{
-            showNotification(data.message, data.success ? 'success' : 'error');
-        }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'))
-        .finally(()=>{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan';});
-}
-
 // JAM OPERASIONAL
 function toggleLibur(checkbox, day) {
     const bukaInput = document.getElementById('buka-' + day);
@@ -1722,86 +1524,6 @@ function submitProfil(){
         else{fb.className='text-sm font-semibold text-red-600';fb.innerHTML='<i class="fa-solid fa-triangle-exclamation mr-1"></i>'+data.message;}
         setTimeout(()=>fb.classList.add('hidden'),4000);
     }).catch(()=>{fb.classList.remove('hidden');fb.className='text-sm font-semibold text-red-600';fb.textContent='Gagal. Cek koneksi.';});
-}
-
-// SCHEDULE FUNCTIONS
-let _lastSchedules = [];
-let _editingScheduleId = null;
-function loadSchedules(){
-    fetch('update_admin.php',{method:'POST',body:new URLSearchParams({action:'get_schedules'})})
-    .then(r=>r.json()).then(data=>{
-        if(!data.success) return;
-        _lastSchedules = data.data || [];
-        const list=document.getElementById('schedule-list');
-        if(!list) return;
-        list.innerHTML='';
-        if(!data.data || data.data.length===0){ list.innerHTML='<div class="p-4 text-sm text-slate-500">Belum ada jadwal.</div>'; return; }
-        data.data.forEach(s=>{
-           const row=document.createElement('div');
-           row.className='p-3 border rounded mb-2 flex justify-between items-center';
-           const note = s.note?escHtml(s.note):'Tutup Sementara';
-           row.innerHTML=`<div><div class="text-sm font-bold">${note}</div><div class="text-xs text-slate-500">${escHtml(s.start)} → ${escHtml(s.end)}</div></div><div class="flex gap-2"><button onclick="editSchedule('${s.id}')" class="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded">Edit</button><button onclick="deleteSchedule('${s.id}')" class="text-xs bg-red-50 text-red-700 px-3 py-1 rounded">Hapus</button></div>`;
-           list.appendChild(row);
-        });
-    });
-}
-
-function editSchedule(id){
-    const s = _lastSchedules.find(x=>x.id===id);
-    if(!s) return showNotification('Jadwal tidak ditemukan. Muat ulang daftar.', 'error');
-    _editingScheduleId = id;
-    document.getElementById('sched-start-date').value = s.start.split(' ')[0];
-    document.getElementById('sched-start-time').value = s.start.split(' ')[1] || '00:00';
-    document.getElementById('sched-end-date').value = s.end.split(' ')[0];
-    document.getElementById('sched-end-time').value = s.end.split(' ')[1] || '00:00';
-    document.getElementById('sched-note').value = s.note || '';
-    const btn = document.getElementById('btn-add-schedule');
-    btn.textContent = 'Simpan Perubahan';
-}
-
-function submitSchedule(){
-  const sd=document.getElementById('sched-start-date').value;
-  const st=document.getElementById('sched-start-time').value;
-  const ed=document.getElementById('sched-end-date').value;
-  const et=document.getElementById('sched-end-time').value;
-  const note=document.getElementById('sched-note').value;
-  if(!sd||!st||!ed||!et){ showNotification('Isi tanggal dan waktu mulai serta selesai.', 'error'); return; }
-  const fd=new FormData();
-  const btn=document.getElementById('btn-add-schedule');
-  if(_editingScheduleId){
-    fd.append('action','edit_schedule'); fd.append('id',_editingScheduleId);
-  } else {
-    fd.append('action','add_schedule');
-  }
-  fd.append('start_date',sd); fd.append('start_time',st);
-  fd.append('end_date',ed); fd.append('end_time',et);
-  fd.append('note',note);
-  btn.disabled=true; btn.textContent='Menyimpan...';
-  fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
-    showNotification(data.message, data.success ? 'success' : 'error');
-    if(data.success){ document.getElementById('sched-start-date').value=''; document.getElementById('sched-start-time').value=''; document.getElementById('sched-end-date').value=''; document.getElementById('sched-end-time').value=''; document.getElementById('sched-note').value=''; _editingScheduleId=null; btn.textContent='Tambah Jadwal Tutup'; loadSchedules(); }
-  }).catch(()=>{showNotification('Gagal. Cek koneksi.', 'error');}).finally(()=>{btn.disabled=false; if(!_editingScheduleId) btn.textContent='Tambah Jadwal Tutup';});
-}
-
-function deleteSchedule(id){
-  showConfirmModal('Hapus jadwal ini?', function() {
-    const fd=new FormData(); fd.append('action','delete_schedule'); fd.append('id',id);
-    fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{ showNotification(data.message, data.success ? 'success' : 'error'); if(data.success) loadSchedules(); }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error'));
-  });
-}
-
-function setManualStatus(){
-    let status = 'buka';
-    const select = document.getElementById('manual-status');
-    if(select && select.value) status = select.value;
-
-    const btn = document.getElementById('btn-set-manual');
-    if(btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
-
-    const fd=new FormData(); fd.append('action','set_manual_status'); fd.append('status',status);
-    fetch('update_admin.php',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{
-        showNotification(data.message, data.success ? 'success' : 'error');
-    }).catch(()=>showNotification('Gagal. Cek koneksi.', 'error')).finally(()=>{ if(btn){btn.disabled=false;btn.textContent='Simpan Status Manual';} });
 }
 
 function pushToGit(){

@@ -1,3 +1,5 @@
+import { icon } from '../lib/icons.js'
+
 /**
  * FilterSidebar Component
  *
@@ -18,9 +20,9 @@ export function FilterSidebar(filters, categories, categoryCounts) {
   <!-- Toggle header (mobile) -->
   <button class="js-filter-toggle w-full p-4 flex items-center justify-between lg:cursor-default focus:outline-none bg-black lg:bg-black border-b border-slate-700 lg:border-none">
     <h3 class="font-bold text-white flex items-center gap-2">
-      <i class="fa-solid fa-sliders text-astra-400"></i> Filter & Urutkan
+      ${icon('sliders')} Filter & Urutkan
     </h3>
-    <i class="js-filter-icon fa-solid fa-chevron-down text-slate-400 transition-transform duration-300 lg:hidden"></i>
+    <span class="js-filter-icon text-slate-400 transition-transform duration-300 lg:hidden">${icon('chevron-down')}</span>
   </button>
 
   <!-- Filter content -->
@@ -29,7 +31,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <!-- Reset button -->
     <div class="flex justify-end mb-5 lg:pb-3 lg:border-b lg:border-slate-700">
       <button class="js-reset-filters text-xs text-astra-400 font-semibold bg-astra-900/30 hover:bg-astra-900/50 lg:bg-transparent lg:hover:bg-transparent lg:p-0 px-3 py-1.5 rounded-lg transition-colors">
-        <i class="fa-solid fa-arrow-rotate-right mr-1"></i> Reset Filter
+        <span class="mr-1 inline-flex">${icon('arrow-rotate-right')}</span> Reset Filter
       </button>
     </div>
 
@@ -37,7 +39,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
     <div class="mb-6">
       <button type="button" class="js-category-toggle w-full flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 focus:outline-none">
         <span>Kategori</span>
-        <i class="js-category-icon fa-solid fa-chevron-down text-slate-400 transition-transform duration-200"></i>
+        <span class="js-category-icon text-slate-400 transition-transform duration-200">${icon('chevron-down')}</span>
       </button>
       <div class="js-category-panel space-y-1">
         ${categories.map(cat => {
@@ -46,7 +48,7 @@ export function FilterSidebar(filters, categories, categoryCounts) {
           return `<button class="js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
             isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
           }" data-category="${cat}">
-            ${isSelected ? '<i class="fa-solid fa-check mr-1.5 text-white"></i>' : ''}
+            ${isSelected ? '<span class="mr-1.5 inline-flex">' + icon('check', 'text-white') + '</span>' : ''}
             <span>${cat}</span>
             <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>
           </button>`
@@ -59,13 +61,13 @@ export function FilterSidebar(filters, categories, categoryCounts) {
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kondisi</label>
       <div class="flex gap-2">
         <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Semua">
-          <i class="fa-solid fa-check hidden"></i> Semua
+          <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Semua
         </button>
         <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Baru">
-          <i class="fa-solid fa-check hidden"></i> Baru
+          <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Baru
         </button>
         <button class="js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center bg-black border border-slate-600 text-slate-300 hover:bg-slate-800" data-condition="Bekas">
-          <i class="fa-solid fa-check hidden"></i> Bekas
+          <span class="js-cond-check inline-flex hidden">${icon('check')}</span> Bekas
         </button>
       </div>
     </div>
@@ -75,13 +77,13 @@ export function FilterSidebar(filters, categories, categoryCounts) {
       <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Urutkan</label>
       <div class="space-y-1">
         <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="default">
-          <i class="fa-regular fa-star text-slate-400 w-4"></i> Rekomendasi Teratas
+          <span class="js-sort-icon text-slate-400">${icon('star')}</span> Rekomendasi Teratas
         </button>
         <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="low-high">
-          <i class="fa-solid fa-arrow-up-wide-short text-slate-400 w-4"></i> Harga: Rendah ke Tinggi
+          <span class="js-sort-icon text-slate-400">${icon('arrow-up-wide-short')}</span> Harga: Rendah ke Tinggi
         </button>
         <button class="js-sort-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800" data-sort="high-low">
-          <i class="fa-solid fa-arrow-down-wide-short text-slate-400 w-4"></i> Harga: Tinggi ke Rendah
+          <span class="js-sort-icon text-slate-400">${icon('arrow-down-wide-short')}</span> Harga: Tinggi ke Rendah
         </button>
       </div>
     </div>
@@ -173,8 +175,8 @@ export function updateConditionButtons(selected) {
   document.querySelectorAll('.js-cond-btn').forEach(btn => {
     const isSelected = btn.dataset.condition === selected
     btn.className = `${isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'bg-black border border-slate-600 text-slate-300 hover:bg-slate-800'} js-cond-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all text-center`
-    const icon = btn.querySelector('.fa-check')
-    if (icon) icon.classList.toggle('hidden', !isSelected)
+    const checkIcon = btn.querySelector('.js-cond-check')
+    if (checkIcon) checkIcon.classList.toggle('hidden', !isSelected)
   })
 }
 
@@ -185,13 +187,15 @@ export function updateSortButtons(selected) {
     btn.className = isSelected
       ? `${base} bg-astra-700 text-white font-semibold shadow-sm`
       : `${base} text-slate-300 hover:bg-slate-800`
-    const icon = btn.querySelector('i')
-    if (icon) {
+    const iconWrap = btn.querySelector('.js-sort-icon')
+    if (iconWrap) {
       if (isSelected) {
-        icon.className = 'fa-solid fa-check text-white w-4'
+        iconWrap.className = 'js-sort-icon'
+        iconWrap.innerHTML = icon('check')
       } else {
-        const iconClass = btn.dataset.sort === 'default' ? 'fa-regular fa-star' : btn.dataset.sort === 'low-high' ? 'fa-solid fa-arrow-up-wide-short' : 'fa-solid fa-arrow-down-wide-short'
-        icon.className = `${iconClass} text-slate-400 w-4`
+        const iconName = btn.dataset.sort === 'default' ? 'star' : btn.dataset.sort === 'low-high' ? 'arrow-up-wide-short' : 'arrow-down-wide-short'
+        iconWrap.className = 'js-sort-icon text-slate-400'
+        iconWrap.innerHTML = icon(iconName)
       }
     }
   })
@@ -204,18 +208,20 @@ export function updateCategoryButtons(selectedCategory) {
     const countBadge = btn.querySelectorAll('span')[1]
     if (isSelected) {
       btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between bg-astra-700 text-white font-semibold shadow-sm'
-      if (!btn.querySelector('.fa-check')) {
-        const icon = document.createElement('i')
-        icon.className = 'fa-solid fa-check mr-1.5 text-white'
-        btn.insertBefore(icon, name)
+      let checkIcon = btn.querySelector('.js-cat-check')
+      if (!checkIcon) {
+        checkIcon = document.createElement('span')
+        checkIcon.className = 'js-cat-check mr-1.5 inline-flex text-white'
+        checkIcon.innerHTML = icon('check')
+        btn.insertBefore(checkIcon, name)
       }
       if (countBadge) {
         countBadge.className = 'bg-white/20 text-white text-xs px-2 py-0.5 rounded-full'
       }
     } else {
       btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between text-slate-300 hover:bg-slate-800'
-      const icon = btn.querySelector('.fa-check')
-      if (icon) icon.remove()
+      const checkIcon = btn.querySelector('.js-cat-check')
+      if (checkIcon) checkIcon.remove()
       if (countBadge) {
         countBadge.className = 'bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full'
       }

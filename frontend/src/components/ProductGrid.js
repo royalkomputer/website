@@ -1,16 +1,12 @@
 import { ProductCard } from './ProductCard.js'
 import { ProductDetailRow } from './ProductDetailRow.js'
 import { DATA_BASE } from '../lib/env.js'
+import { icon } from '../lib/icons.js'
 
-/** Default fallback product info text */
 const PRODUCT_INFO_DEFAULT = 'Menampilkan {count} produk tersedia. Harga tidak selalu update, dan bisa berubah sewaktu-waktu. Hubungi kami di WhatsApp.'
 
 let _productInfoText = PRODUCT_INFO_DEFAULT
 
-/**
- * Fetch the product info text from product_info.json (synced from admin).
- * Falls back to the default if the file isn't available.
- */
 export async function loadProductInfoText() {
   try {
     const res = await fetch(`${DATA_BASE}product_info.json`)
@@ -19,83 +15,87 @@ export async function loadProductInfoText() {
       _productInfoText = data.text
     }
   } catch {
-    // Use default fallback
     _productInfoText = PRODUCT_INFO_DEFAULT
   }
 }
 
-/**
- * ProductGrid Component
- *
- * Manages the main product area: view toggle, count bar, loading spinner,
- * empty state, and product card grid/list.
- *
- * @param {Object} options
- * @param {'grid'|'detail'} [options.viewMode] — current view mode
- * @returns {string} HTML string for the product section
- */
 export function ProductGrid({ viewMode = 'grid' } = {}) {
   const infoHtml = _productInfoText.replace('{count}', '<span class="js-product-count font-bold text-slate-900 dark:text-white">0</span>')
 
   const isGrid = viewMode === 'grid'
 
   return `
-<section class="lg:col-span-4 flex flex-col gap-6">
+<section class="js-product-section lg:col-span-5 flex flex-col gap-6">
 
-  <!-- Search notification (shown when no filters active) -->
   <div class="js-search-prompt bg-gradient-to-r from-astra-950 to-slate-900 border border-astra-800 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm" role="status">
     <div class="flex-shrink-0 w-6 h-6 bg-astra-800 rounded-full flex items-center justify-center">
-      <i class="fa-solid fa-magnifying-glass text-xs text-astra-300"></i>
+      ${icon('search', 'text-xs text-astra-300')}
     </div>
     <p class="text-xs text-slate-300 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
   </div>
 
-  <!-- Banner -->
   <div class="js-banner-container hidden rounded-2xl mb-6 transition-all duration-500 ease-in-out"></div>
 
-  <!-- Product count info + View toggle -->
   <div class="js-product-info-bar hidden flex items-center justify-between bg-black p-4 rounded-xl border border-slate-700 shadow-sm">
     <div class="text-sm text-slate-300">
       ${infoHtml}
     </div>
     <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-1 border border-slate-700">
       <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-700 text-slate-400 hover:text-slate-200'}" data-view="grid">
-        <i class="fa-solid fa-th"></i>
+        ${icon('th')}
         <span class="hidden sm:inline">Grid</span>
       </button>
       <button class="js-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!isGrid ? 'bg-astra-700 text-white shadow-sm' : 'bg-slate-700 text-slate-400 hover:text-slate-200'}" data-view="detail">
-        <i class="fa-solid fa-list"></i>
+        ${icon('list')}
         <span class="hidden sm:inline">Detail</span>
       </button>
     </div>
   </div>
 
-  <!-- Loading spinner -->
-  <div class="js-loading-spinner py-20 flex flex-col items-center justify-center gap-3">
-    <i class="fa-solid fa-spinner text-4xl text-astra-700 animate-spin"></i>
-    <p class="text-slate-500 dark:text-slate-400 text-sm">Sedang memuat data produk...</p>
+  <div class="js-skeleton-loading hidden">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+      ${Array.from({ length: 8 }, () => `
+        <div class="bg-black rounded-xl border border-slate-700 overflow-hidden">
+          <div class="aspect-[4/3] shimmer"></div>
+          <div class="p-3 space-y-2">
+            <div class="h-3 shimmer rounded w-3/4"></div>
+            <div class="h-3 shimmer rounded w-1/2"></div>
+            <div class="h-4 shimmer rounded w-1/3 mt-2"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
   </div>
 
-  <!-- Empty state -->
   <div class="js-empty-state hidden bg-black rounded-xl border border-slate-700 p-12 text-center">
-    <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-4"></i>
+    <span class="text-5xl text-slate-600 mb-4 inline-flex">${icon('box-open')}</span>
     <h4 class="text-lg font-bold text-slate-100 mb-1">Produk Tidak Ditemukan</h4>
     <p class="text-slate-400 text-sm">Tidak ada produk yang sesuai dengan kriteria pencarian Anda.</p>
   </div>
 
-  <!-- Product cards grid/list -->
   <div class="js-product-grid hidden ${isGrid ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4' : 'flex flex-col gap-3 sm:gap-4'}"></div>
 
 </section>`
 }
 
-/**
- * Render products into the grid or list based on current view mode.
- *
- * @param {Object[]} products — filtered/sorted product array
- * @param {(id: string) => void} onDetailClick — callback when a card is clicked
- * @param {'grid'|'detail'} [viewMode] — rendering mode
- */
+export function showSkeletonLoading(visible) {
+  const el = document.querySelector('.js-skeleton-loading')
+  if (el) {
+    el.classList.toggle('hidden', !visible)
+  }
+  const grid = document.querySelector('.js-product-grid')
+  if (grid) {
+    grid.classList.toggle('hidden', visible)
+  }
+}
+
+export function hideSkeletonLoading() {
+  const el = document.querySelector('.js-skeleton-loading')
+  if (el) {
+    el.classList.add('hidden')
+  }
+}
+
 export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
   const grid = document.querySelector('.js-product-grid')
   const emptyState = document.querySelector('.js-empty-state')
@@ -103,7 +103,6 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
 
   if (!grid) return
 
-  // Ensure correct grid/list class
   if (viewMode === 'detail') {
     grid.classList.remove('grid', 'grid-cols-2', 'sm:grid-cols-3', 'lg:grid-cols-3', 'xl:grid-cols-4', 'gap-3', 'sm:gap-4')
     grid.classList.add('flex', 'flex-col', 'gap-3', 'sm:gap-4')
@@ -125,7 +124,7 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
   products.forEach(product => {
     const div = document.createElement('div')
     if (viewMode === 'detail') {
-      div.innerHTML = ProductDetailRow(product)
+      div.innerHTML = ProductDetailRow(product, { hideImage: true })
     } else {
       div.innerHTML = ProductCard(product, onDetailClick)
     }
@@ -135,14 +134,4 @@ export function renderProductGrid(products, onDetailClick, viewMode = 'grid') {
       card.addEventListener('click', () => onDetailClick(product.id))
     }
   })
-}
-
-/**
- * Show/hide the loading spinner.
- */
-export function showLoading(visible) {
-  const spinner = document.querySelector('.js-loading-spinner')
-  if (spinner) {
-    spinner.style.display = visible ? 'flex' : 'none'
-  }
 }

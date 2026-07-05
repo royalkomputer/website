@@ -9,6 +9,7 @@
  * @returns {string} HTML string
  */
 import { LOGO_URL } from '../lib/env.js'
+import { icon } from '../lib/icons.js'
 
 export function Navbar({ onSearch }) {
   return `
@@ -28,10 +29,10 @@ export function Navbar({ onSearch }) {
                class="search-input js-search-input w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
                placeholder="Cari hardware..."
                data-sync="search-input">
-        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        ${icon('search', 'absolute left-3 top-3 text-slate-400')}
       </div>
       <button class="js-search-btn ml-2 bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
-        <i class="fa-solid fa-magnifying-glass"></i> Cari
+        ${icon('search')} Cari
       </button>
     </div>
 
@@ -39,32 +40,32 @@ export function Navbar({ onSearch }) {
     <div class="hidden md:flex items-center gap-3 flex-shrink-0">
       <span class="text-xs text-slate-500 font-semibold hidden lg:inline">Ikuti Kami:</span>
       <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-blue-500 transition-colors" title="Facebook">
-        <i class="fa-brands fa-facebook text-lg"></i>
+        ${icon('facebook')}
       </a>
       <a href="https://www.facebook.com/royalkomputerkediri?locale=id_ID" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-sky-400 transition-colors" title="Facebook Pages">
-        <i class="fa-solid fa-flag text-lg"></i>
+        ${icon('flag')}
       </a>
       <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-pink-500 transition-colors" title="Instagram">
-        <i class="fa-brands fa-instagram text-lg"></i>
+        ${icon('instagram')}
       </a>
       <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors" title="TikTok">
-        <i class="fa-brands fa-tiktok text-lg"></i>
+        ${icon('tiktok')}
       </a>
       <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-green-500 transition-colors" title="WhatsApp">
-        <i class="fa-brands fa-whatsapp text-lg"></i>
+        ${icon('whatsapp')}
       </a>
       <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors" title="YouTube">
-        <i class="fa-brands fa-youtube text-lg"></i>
+        ${icon('youtube')}
       </a>
     </div>
 
     <!-- Mobile: Search toggle + Hamburger -->
     <div class="flex md:hidden items-center gap-2">
       <button class="js-search-toggle flex items-center justify-center text-slate-500 hover:text-slate-700 focus:outline-none h-9 w-9 bg-slate-100 border border-slate-300 rounded-lg flex-shrink-0">
-        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+        ${icon('search')}
       </button>
       <button class="js-nav-toggle flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white focus:outline-none h-9 w-9 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg flex-shrink-0">
-        <i class="fa-solid fa-bars text-lg"></i>
+        ${icon('bars')}
       </button>
     </div>
   </div>
@@ -76,10 +77,10 @@ export function Navbar({ onSearch }) {
         <input type="text"
                class="js-search-input-mobile w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-500 dark:placeholder-slate-400 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:border-astra-400 transition-all text-sm"
                placeholder="Cari hardware...">
-        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
+        ${icon('search', 'absolute left-3 top-3 text-slate-400')}
       </div>
       <button class="js-search-btn-mobile bg-astra-600 hover:bg-astra-700 text-white px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1 flex-shrink-0">
-        <i class="fa-solid fa-magnifying-glass"></i>
+        ${icon('search')}
       </button>
     </div>
   </div>
@@ -90,20 +91,20 @@ export function Navbar({ onSearch }) {
       <div class="flex items-center justify-between mb-1">
         <span class="text-xs text-slate-500 font-semibold">Ikuti Kami:</span>
       </div>
-      ${socialLink('https://www.facebook.com/royall.komp', 'fa-brands fa-facebook', 'text-blue-500', 'Facebook')}
-      ${socialLink('https://www.facebook.com/royalkomputerkediri?locale=id_ID', 'fa-solid fa-flag', 'text-sky-500', 'Facebook Pages')}
-      ${socialLink('https://www.instagram.com/royalkomputerkediri/', 'fa-brands fa-instagram', 'text-pink-500', 'Instagram')}
-      ${socialLink('https://www.tiktok.com/@royalkomputerkediri', 'fa-brands fa-tiktok', 'text-black dark:text-white', 'TikTok')}
-      ${socialLink('https://wa.me/6281380686168', 'fa-brands fa-whatsapp', 'text-green-500', 'WhatsApp Admin')}
-      ${socialLink('https://www.youtube.com/@royalkomputerkediri', 'fa-brands fa-youtube', 'text-red-500', 'YouTube')}
+      ${socialLink('https://www.facebook.com/royall.komp', 'facebook', 'text-blue-500', 'Facebook')}
+      ${socialLink('https://www.facebook.com/royalkomputerkediri?locale=id_ID', 'flag', 'text-sky-500', 'Facebook Pages')}
+      ${socialLink('https://www.instagram.com/royalkomputerkediri/', 'instagram', 'text-pink-500', 'Instagram')}
+      ${socialLink('https://www.tiktok.com/@royalkomputerkediri', 'tiktok', 'text-black dark:text-white', 'TikTok')}
+      ${socialLink('https://wa.me/6281380686168', 'whatsapp', 'text-green-500', 'WhatsApp Admin')}
+      ${socialLink('https://www.youtube.com/@royalkomputerkediri', 'youtube', 'text-red-500', 'YouTube')}
     </div>
   </div>
 </nav>`
 }
 
-function socialLink(url, icon, color, label) {
-  return `<a href="${url}" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:${color.replace('text-', 'text-')} transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-    <i class="${icon} text-lg w-5 ${color}"></i>
+function socialLink(url, iconName, color, label) {
+  return `<a href="${url}" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+    ${icon(iconName, color)}
     <span class="text-sm font-medium">${label}</span>
   </a>`
 }

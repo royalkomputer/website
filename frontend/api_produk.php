@@ -11,47 +11,23 @@ if (file_exists($cache_file)) {
     $cache_data = file_get_contents($cache_file);
     $produk = json_decode($cache_data, true);
 
-    // Refresh foto dari filesystem (update timestamp cachebuster)
+    // Cache sudah berisi URL gambar relatif + ?v=timestamp
+    // Cukup konversi ke URL absolut tanpa scan filesystem ulang
     if (is_array($produk)) {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
+        $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
         foreach ($produk as &$p) {
-            if (isset($p['id'])) {
-                $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $p['id']);
-                $upload_dir = __DIR__ . "/uploads/";
-                if (!is_dir($upload_dir)) {
-                    $backend_dir = __DIR__ . "/../backend/uploads/";
-                    if (is_dir($backend_dir)) $upload_dir = $backend_dir;
-                }
-                $images = [];
-                $matched_files = glob($upload_dir . $safe_kode . "_*.webp");
-                if (empty($matched_files)) {
-                    foreach (['jpg', 'jpeg', 'png', 'gif'] as $ext) {
-                        $matches = glob($upload_dir . $safe_kode . "_*." . $ext);
-                        if ($matches) $matched_files = array_merge($matched_files, $matches);
+            if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
+                $p['image'] = ($img_base ? $img_base . '/' : '') . $p['image'];
+            }
+            if (!empty($p['images']) && is_array($p['images'])) {
+                foreach ($p['images'] as &$img) {
+                    if (strpos($img, 'uploads/') === 0) {
+                        $img = ($img_base ? $img_base . '/' : '') . $img;
                     }
                 }
-                sort($matched_files);
-                foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $ext) {
-                    $legacy_file = $upload_dir . $safe_kode . "." . $ext;
-                    if (file_exists($legacy_file)) {
-                        array_unshift($matched_files, $legacy_file);
-                        break;
-                    }
-                }
-                if (!empty($matched_files)) {
-                    $images = [];
-                    $host = $_SERVER['HTTP_HOST'] ?? '';
-                    $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
-                    $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
-                    foreach ($matched_files as $file) {
-                        $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
-                    }
-                    $p['image'] = $images[0];
-                    $p['images'] = $images;
-                } elseif (empty($p['image']) || strpos($p['image'], 'unsplash') !== false) {
-                    $default_img = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500";
-                    $p['image'] = $default_img;
-                    $p['images'] = [$default_img];
-                }
+                unset($img);
             }
         }
         unset($p);

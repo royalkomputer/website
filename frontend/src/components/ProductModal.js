@@ -1,4 +1,5 @@
 import { formatIDR, isBekas } from '../lib/format.js'
+import { icon } from '../lib/icons.js'
 
 /**
  * ProductModal Component
@@ -16,23 +17,23 @@ export function ProductModal() {
 
     <!-- Close button -->
     <button class="js-modal-close absolute top-4 right-4 z-10 w-8 h-8 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition-colors">
-      <i class="fa-solid fa-xmark"></i>
+      ${icon('xmark')}
     </button>
 
     <!-- Left: Image gallery -->
     <div class="w-full md:w-1/2 bg-slate-100 dark:bg-slate-700 relative group min-h-[300px] flex items-center justify-center">
       <img class="js-modal-image w-full h-full object-contain max-h-[500px]" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Detail" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="js-modal-image-fallback hidden absolute inset-0 flex-col items-center justify-center text-slate-500 dark:text-slate-400">
-        <i class="fa-solid fa-image text-5xl mb-2"></i>
+        <span class="text-5xl mb-2 inline-flex">${icon('image')}</span>
         <span class="text-sm">Gambar tidak tersedia</span>
       </div>
 
       <!-- Carousel navigation -->
       <button class="js-prev-img absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden">
-        <i class="fa-solid fa-chevron-left"></i>
+        ${icon('chevron-left')}
       </button>
       <button class="js-next-img absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 dark:bg-slate-700/80 hover:bg-white dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-full flex items-center justify-center shadow-lg hidden">
-        <i class="fa-solid fa-chevron-right"></i>
+        ${icon('chevron-right')}
       </button>
 
       <!-- Dot indicators -->
@@ -52,7 +53,7 @@ export function ProductModal() {
 
       <div class="mt-auto pt-4 border-t border-slate-700">
         <a class="js-detail-wa-btn w-full flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-lg text-sm" href="#" target="_blank">
-          <i class="fa-brands fa-whatsapp text-xl"></i> Beli via WhatsApp
+          ${icon('whatsapp')} Beli via WhatsApp
         </a>
       </div>
     </div>

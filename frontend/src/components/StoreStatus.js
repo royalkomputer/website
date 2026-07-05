@@ -1,4 +1,5 @@
 import { DATA_BASE } from '../lib/env.js'
+import { icon } from '../lib/icons.js'
 
 /** Default heading text */
 const HEADING_DEFAULT_PREFIX = 'Solusi Hardware di'
@@ -50,13 +51,13 @@ export function StoreStatus(status) {
   let badgeHTML = ''
   if (isTemporarilyClosed) {
     badgeHTML = `<span class="bg-red-500/20 border border-red-500/50 text-red-600 dark:text-red-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2 shadow-lg">
-      <i class="fa-solid fa-store-slash"></i> Toko Tutup Sementara</span>`
+      ${icon('store-slash')} Toko Tutup Sementara</span>`
   } else if (isOpen) {
     badgeHTML = `<span class="bg-green-500/20 border border-green-500/50 text-green-600 dark:text-green-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2">
-      <i class="fa-solid fa-store"></i> Buka Sekarang (Tutup ${closeTime.replace(':', '.')} WIB)</span>`
+      ${icon('store')} Buka Sekarang (Tutup ${closeTime.replace(':', '.')} WIB)</span>`
   } else {
     badgeHTML = `<span class="bg-slate-200 dark:bg-slate-700 border border-slate-400 dark:border-slate-500 text-slate-600 dark:text-slate-300 text-xs px-3 py-1.5 rounded-full uppercase font-bold mb-4 inline-flex items-center gap-2">
-      <i class="fa-solid fa-moon"></i> Toko Tutup (Buka ${nextOpenDay || ''} ${nextOpenTime ? nextOpenTime.replace(':', '.') : ''} WIB)</span>`
+      ${icon('moon')} Toko Tutup (Buka ${nextOpenDay || ''} ${nextOpenTime ? nextOpenTime.replace(':', '.') : ''} WIB)</span>`
   }
 
   // Upcoming schedule warning
@@ -68,7 +69,7 @@ export function StoreStatus(status) {
     const fmtEnd = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     scheduleHTML = `<div class="mt-3">
       <span class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 text-xs px-3 py-1 rounded inline-flex items-center gap-2">
-        <i class="fa-solid fa-calendar-days"></i>
+        ${icon('calendar-days')}
         Jadwal: Tutup ${fmtStart} sampai ${fmtEnd} ${upcomingSchedule.note || ''}
       </span>
     </div>`
