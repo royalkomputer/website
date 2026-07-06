@@ -704,8 +704,7 @@ if (!$is_open) {
                 button.className = `w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
                     isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
                 }`;
-                const count = cat === 'Semua' ? allProducts.length : allProducts.filter(p => p.category === cat).length;
-                button.innerHTML = `<span>${cat}</span><span class="${isSelected ? 'bg-astra-900/40' : 'bg-slate-700 text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>`;
+                button.innerHTML = `<span>${cat}</span>`;
                 button.onclick = () => selectCategory(cat);
                 container.appendChild(button);
             });
@@ -768,7 +767,6 @@ if (!$is_open) {
             var prompt = document.getElementById('search-prompt');
             var grid = document.getElementById('product-grid');
             var emptyState = document.getElementById('empty-state');
-            var productCount = document.getElementById('product-count');
 
             if (!hasActivated) {
                 updateCondUI('Semua');
@@ -776,7 +774,6 @@ if (!$is_open) {
                 if (prompt) { prompt.classList.remove('hidden'); prompt.classList.remove('banner-hiding'); }
                 if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
                 if (emptyState) emptyState.classList.add('hidden');
-                if (productCount) productCount.innerText = '0';
                 var infoBar = document.getElementById('product-info-bar');
                 if (infoBar) { infoBar.classList.remove('notif-enter'); infoBar.classList.add('hidden'); }
                 var resetBtn = document.getElementById('reset-filter-btn');
@@ -822,12 +819,10 @@ if (!$is_open) {
         function renderProductGrid() {
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
-            const productCount = document.getElementById('product-count');
 
             if (!grid || grid.classList.contains('hidden')) return;
 
             grid.innerHTML = '';
-            if (productCount) productCount.innerText = filteredProducts.length;
 
             if (filteredProducts.length === 0) {
                 emptyState.classList.remove('hidden');
