@@ -848,7 +848,7 @@ if (!$is_open) {
 
         function createGridCard(product) {
             const card = document.createElement('div');
-            card.className = "bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
+            card.className = "bg-slate-50 dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group";
             const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
 
             const waNumber = "6281380686168";
@@ -869,9 +869,9 @@ if (!$is_open) {
                     </div>
                 </div>
                 <div class="p-2.5 sm:p-5 flex flex-col flex-grow">
-                    <h3 class="font-bold text-white text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
-                    <div class="mt-auto pt-2 sm:pt-4 border-t border-slate-700 flex items-center justify-between gap-1.5">
-                        <div class="text-sm sm:text-xl font-extrabold text-white truncate min-w-0">${formattedPrice}</div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-xs sm:text-lg leading-tight line-clamp-2 sm:mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
+                    <div class="mt-auto pt-2 sm:pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-1.5">
+                        <div class="text-sm sm:text-xl font-extrabold text-slate-900 dark:text-white truncate min-w-0">${formattedPrice}</div>
                         <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
                             <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i>
                         </a>
@@ -883,7 +883,7 @@ if (!$is_open) {
 
         function createDetailCard(product) {
             const card = document.createElement('div');
-            card.className = "bg-black rounded-lg sm:rounded-xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group";
+            card.className = "bg-slate-50 dark:bg-slate-900 rounded-lg sm:rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col sm:flex-row group";
             const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
 
             const waNumber = "6281380686168";
@@ -902,12 +902,12 @@ if (!$is_open) {
                 <div class="p-3 sm:p-4 md:p-5 flex flex-col flex-grow min-w-0">
                     <div class="flex items-center gap-1.5 sm:gap-2 mb-1">
                         ${badgeKondisi}
-                        <span class="text-[9px] sm:text-[10px] font-semibold text-white bg-slate-700 px-1.5 sm:px-2 py-0.5 rounded">${product.category}</span>
+                        <span class="text-[9px] sm:text-[10px] font-semibold text-slate-700 dark:text-white bg-slate-200 dark:bg-slate-700 px-1.5 sm:px-2 py-0.5 rounded">${product.category}</span>
                     </div>
-                    <h3 class="font-bold text-white text-sm sm:text-base md:text-lg leading-tight cursor-pointer line-clamp-2 sm:mb-1.5" onclick="openDetailModal('${product.id}')">${product.name}</h3>
-                    <p class="text-[11px] sm:text-xs text-slate-300 line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 hidden sm:block">${product.description || 'Tidak ada deskripsi rinci untuk produk ini.'}</p>
-                    <div class="mt-auto flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-700">
-                        <div class="text-sm sm:text-lg md:text-xl font-extrabold text-white">${formattedPrice}</div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base md:text-lg leading-tight cursor-pointer line-clamp-2 sm:mb-1.5" onclick="openDetailModal('${product.id}')">${product.name}</h3>
+                    <p class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 hidden sm:block">${product.description || 'Tidak ada deskripsi rinci untuk produk ini.'}</p>
+                    <div class="mt-auto flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div class="text-sm sm:text-lg md:text-xl font-extrabold text-slate-900 dark:text-white">${formattedPrice}</div>
                         <div class="flex items-center gap-1.5 sm:gap-2">
                             <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3.5 sm:py-2 rounded sm:rounded-lg transition-colors shadow-sm flex-shrink-0" title="Pesan via WhatsApp">
                                 <i class="fa-brands fa-whatsapp text-xs sm:text-sm"></i> <span class="hidden sm:inline">Pesan</span>
