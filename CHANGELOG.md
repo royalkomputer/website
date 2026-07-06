@@ -1,28 +1,30 @@
 # Changelog
 
-## 2026-06-29
+## 2026-07-06
 
-### Fixed
-- **Admin push-to-Git**: prioritize PHP `execGitPush()` when `GIT_TOKEN` is set in `.env` (more reliable on XAMPP/Apache than batch file)
-- **`execGitPush()` `git add` working directory**: use `findGitDir(__DIR__)` to run from correct git root
-- **`execGitPush()` push command**: changed `git push $escaped_branch` → `git push origin $branch` (Windows `escapeshellarg` wraps `main` in quotes, causing "not a git repository" error)
-- **`backupPhotosToGit()` token**: now reads `.env` for `GIT_TOKEN` (same pattern as `backupToGit()`)
-- **`push_admin.bat`**: simplified (no token logic, uses git config credential.helper)
-- **`execGitPush()` git add paths**: sekarang mencakup SEMUA file settings frontend: `cache_produk.json`, `heading.json`, `jadwal_tutup.json`, `jam_operasional.json`, `product_info.json`, `tagline.json`, `status_toko.txt`
-- **`backupPhotosToGit()` git add paths**: sekarang juga stage `data/` + `../frontend/*.json/*.txt` selain `uploads/`, sehingga perubahan foto + deskripsi dikomit bersamaan
-- **`tambah_admin` crash**: `$id_new` tidak pernah di-assign dari `generateAdminId()`, menyebabkan `TypeError` di `logAdminHistory(string $target_id)`. Admin tersimpan ke JSON tapi script crash sebelum mengirim response sukses. Diperbaiki dengan menyimpan `generateAdminId()` ke `$new_id` dan menggunakannya di history log. (`update_admin.php:33-43`)
-- **Deskripsi produk tidak tersimpan di cache**: `update_produk.php` hanya menyimpan deskripsi ke `cache_produk.json` ketika DB tidak tersedia (`if (!$db_available && $desc_provided)`). Karena `api_produk.php` membaca dari cache terlebih dahulu, deskripsi yang disimpan ke DB tidak pernah tampil kembali. Diperbaiki dengan menghapus guard `!$db_available` sehingga cache selalu diperbarui. (`update_produk.php:341-364`)
-- **Hari yang disorot di tabel jam buka geser 1 hari**: `Footer.js` `dayNames` array dimulai dari `'Monday'` bukan `'Sunday'`, sementara `Date.getDay()` return 0=Sunday, 1=Monday. Akibatnya hari Senin malah menyorot baris Tuesday. Diperbaiki dengan mengubah urutan array. (`Footer.js:13`)
+### Fixed: Admin UI database connection error
+- `backend/api_produk.php`: Added `?admin=1` parameter to return raw cache array (bypasses pagination & DB fallback)
+- `backend/admin.php`: Changed JS fetch from `api_produk.php` to `api_produk.php?admin=1`, removed `if(data.error)` check
+- **Root cause:** Admin JS called `.filter()` on paginated object `{data:[],total:...}` instead of array, causing `TypeError`
 
-### Added
-- **`backend/.env`**: menyimpan `GIT_TOKEN` untuk autentikasi git via HTTPS
-- **Auto-push settings**: `update_jam.php`, `update_admin.php` (status, jadwal, heading, tagline, product info) — semua perubahan settings di admin otomatis dikomit dan dipush ke GitHub
+### Removed: Playlist Banner feature
+- `backend/admin.php`: Removed banner tab button, panel HTML (~107 baris), and all JS functions (~400 baris)
+- `frontend/index.php`: Removed banner CSS (`.banner-hiding`), HTML container (`#banner-playlists`), JS functions (`loadBanners`, `hideBanner`, `escAttr`), and all banner references
+- `frontend/api_banner.php`: Deleted
+- `frontend/data/banners.json`: Deleted
+- `backend/update_banner.php`: Deleted (no longer used)
 
-### Changed
-- **Dark mode**: switched Tailwind dari `media` (mengikuti OS `prefers-color-scheme`) ke `class` strategy; `class="dark"` ditambahkan ke `<html>` sehingga tema selalu gelap di semua deployment tanpa peduli setelan sistem pengguna
-  - Vite app: `@custom-variant dark` di `style.css`, `class="dark"` di `index.html`
-  - PHP site: `darkMode: 'class'` di CDN tailwind.config, `class="dark"` di `index.php`
-- **AGENTS.md**: diperbarui dengan progress session, key decisions, dan file references
+### Removed: Category count badges from filter buttons
+- `frontend/index.php`: Removed category count from filter button labels and associated JS computation
 
-### In Progress
-- **Photo upload display bug**: user melaporkan foto "not found" di grid setelah upload, meskipun upload berhasil secara programmatic (file tersimpan, API return URL benar, HTTP 200). Perlu debugging browser-side.
+### Changed: Product card colors for light/dark mode
+- `frontend/index.php`: Card background changed from `bg-black` to `bg-slate-50 dark:bg-slate-900` (both grid and detail views)
+- Adjusted border and text colors for consistency across themes
+
+### Fixed: Remnant banner JS references
+- `frontend/index.php`: Removed `hideBanner()` call in `handleCondition()` (line 655) — caused `ReferenceError` on condition filter click
+- `frontend/index.php`: Simplified `hideSearchPrompt()` — removed `banner-hiding` class references
+- `frontend/index.php`: Removed `banner-hiding` class removal in reset function
+
+### Changed: Git config for local pc
+- Local git repo configured to commit as `royalkomputer <royalkomputer@royalkomputer.com>`
