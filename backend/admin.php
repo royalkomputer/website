@@ -1043,8 +1043,7 @@ function fetchProducts() {
     _savedScrollY = window.scrollY;
     document.getElementById('loading-spinner').style.display='flex';
     document.getElementById('table-container').classList.add('hidden');
-    fetch('api_produk.php').then(r=>r.json()).then(data => {
-        if(data.error) throw new Error(data.error);
+    fetch('api_produk.php?admin=1').then(r=>r.json()).then(data => {
         allProducts=data; applyAdminFilters();
         document.getElementById('loading-spinner').style.display='none';
         document.getElementById('table-container').classList.remove('hidden');

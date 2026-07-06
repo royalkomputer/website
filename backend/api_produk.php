@@ -23,6 +23,29 @@ if (file_exists($cache_file)) {
     $all_produk = [];
 }
 
+// Admin request: return raw cache as plain array for client-side filtering
+if (isset($_GET['admin'])) {
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
+    $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
+    foreach ($all_produk as &$p) {
+        if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
+            $p['image'] = ($img_base ? $img_base . '/' : '') . $p['image'];
+        }
+        if (!empty($p['images']) && is_array($p['images'])) {
+            foreach ($p['images'] as &$img) {
+                if (strpos($img, 'uploads/') === 0) {
+                    $img = ($img_base ? $img_base . '/' : '') . $img;
+                }
+            }
+            unset($img);
+        }
+    }
+    unset($p);
+    echo json_encode($all_produk);
+    exit;
+}
+
 // Filter
 $filtered = [];
 foreach ($all_produk as $p) {
