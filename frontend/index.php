@@ -652,7 +652,6 @@ if (!$is_open) {
         function handleCondition(val) {
             activeFilters.condition = val;
             updateCondUI(val);
-            hideBanner();
             hasActivated = true;
             applyFiltersAndSort();
         }
@@ -712,9 +711,8 @@ if (!$is_open) {
 
         function hideSearchPrompt() {
             var prompt = document.getElementById('search-prompt');
-            if (!prompt || prompt.classList.contains('hidden') || prompt.classList.contains('banner-hiding')) return;
-            prompt.classList.add('banner-hiding');
-            setTimeout(function() { prompt.classList.add('hidden'); prompt.classList.remove('banner-hiding'); }, 400);
+            if (!prompt || prompt.classList.contains('hidden')) return;
+            prompt.classList.add('hidden');
         }
 
         function selectCategory(cat) {
@@ -771,7 +769,7 @@ if (!$is_open) {
             if (!hasActivated) {
                 updateCondUI('Semua');
                 updateSortUI('default');
-                if (prompt) { prompt.classList.remove('hidden'); prompt.classList.remove('banner-hiding'); }
+                if (prompt) { prompt.classList.remove('hidden'); }
                 if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
                 if (emptyState) emptyState.classList.add('hidden');
                 var infoBar = document.getElementById('product-info-bar');
