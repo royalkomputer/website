@@ -89,8 +89,7 @@ async function loadProducts(page = 1) {
 
     const filterContainer = document.querySelector('.js-filter-container')
     if (filterContainer && state.categories) {
-      const counts = { 'Semua': state.totalProducts, ...state.categories }
-      filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua', ...Object.keys(state.categories)], counts)
+      filterContainer.innerHTML = FilterSidebar(state.filters, ['Semua', ...Object.keys(state.categories)])
       filterContainer.classList.remove('hidden')
       bindFilterEvents(state.filters, () => {
         loadProducts(1)

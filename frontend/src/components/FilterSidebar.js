@@ -8,11 +8,9 @@ import { icon } from '../lib/icons.js'
  *
  * @param {Object} filters — current filter state { category, search, sortBy, condition }
  * @param {string[]} categories — list of unique category names
- * @param {Object} categoryCounts — map of category → product count (e.g., { 'Semua': 50, 'Processor': 12 })
  * @returns {string} HTML string
  */
-export function FilterSidebar(filters, categories, categoryCounts) {
-  categoryCounts = categoryCounts || {}
+export function FilterSidebar(filters, categories) {
 
   return `
 <aside class="lg:col-span-1 bg-slate-800/80 rounded-xl border border-white/10 shadow-sm self-start overflow-hidden">
@@ -41,16 +39,14 @@ export function FilterSidebar(filters, categories, categoryCounts) {
         <span>Kategori</span>
         <span class="js-category-icon text-slate-400 transition-transform duration-200">${icon('chevron-down')}</span>
       </button>
-      <div class="js-category-panel space-y-1">
+      <div class="js-category-panel flex flex-col items-start gap-1">
         ${categories.map(cat => {
           const isSelected = filters.category === cat
-          const count = categoryCounts[cat] || 0
-          return `<button class="js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
+          return `<button class="js-cat-btn text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
             isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
           }" data-category="${cat}">
-            ${isSelected ? '<span class="mr-1.5 inline-flex">' + icon('check', 'text-white') + '</span>' : ''}
+            ${isSelected ? '<span class="inline-flex">' + icon('check', 'text-white') + '</span>' : ''}
             <span>${cat}</span>
-            <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-400'} text-xs px-2 py-0.5 rounded-full">${count}</span>
           </button>`
         }).join('')}
       </div>
@@ -220,26 +216,19 @@ export function updateCategoryButtons(selectedCategory) {
   document.querySelectorAll('.js-cat-btn').forEach(btn => {
     const isSelected = btn.dataset.category === selectedCategory
     const name = btn.querySelector('span')
-    const countBadge = btn.querySelectorAll('span')[1]
     if (isSelected) {
-      btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between bg-astra-700 text-white font-semibold shadow-sm'
+      btn.className = 'js-cat-btn text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 bg-astra-700 text-white font-semibold shadow-sm'
       let checkIcon = btn.querySelector('.js-cat-check')
       if (!checkIcon) {
         checkIcon = document.createElement('span')
-        checkIcon.className = 'js-cat-check mr-1.5 inline-flex text-white'
+        checkIcon.className = 'js-cat-check inline-flex text-white'
         checkIcon.innerHTML = icon('check')
         btn.insertBefore(checkIcon, name)
       }
-      if (countBadge) {
-        countBadge.className = 'bg-white/20 text-white text-xs px-2 py-0.5 rounded-full'
-      }
     } else {
-      btn.className = 'js-cat-btn w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between text-slate-300 hover:bg-slate-800'
+      btn.className = 'js-cat-btn text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 text-slate-300 hover:bg-slate-800'
       const checkIcon = btn.querySelector('.js-cat-check')
       if (checkIcon) checkIcon.remove()
-      if (countBadge) {
-        countBadge.className = 'bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full'
-      }
     }
   })
 }
