@@ -11,6 +11,7 @@ Hapus badge jumlah produk di samping nama kategori pada sidebar storefront, dan 
 - **Ubah lebar tombol**: hapus class `w-full` dan `justify-between`, tambah `gap-2` pada tombol kategori
 - **Ubah container kategori**: dari `space-y-1` jadi `flex flex-col items-start gap-1` agar tombol tidak memanjang penuh
 - **Fungsi `updateCategoryButtons()`**: hapus semua referensi `countBadge` (querySelectorAll('span')[1] dan 2 blok if)
+- **Hapus check icon ganda**: hapus inline `<span class="inline-flex">` + icon('check') dari template tombol kategori (line 48), karena `updateCategoryButtons()` sudah handle check icon via class `js-cat-check`
 
 ### 2. `frontend/src/main.js`
 - **Hapus komputasi `const counts`** yang menggabungkan `state.totalProducts` dengan `state.categories`
@@ -50,12 +51,13 @@ export function FilterSidebar(filters, categories) {
       return `<button class="js-cat-btn text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
         isSelected ? '...' : '...'
       }" data-category="${cat}">
-        ${isSelected ? '<span class="inline-flex">' + icon('check', 'text-white') + '</span>' : ''}
         <span>${cat}</span>
       </button>`
     }).join('')}
   </div>
 ```
+
+> **Catatan:** Check icon dihapus dari template karena `updateCategoryButtons()` sudah handle check icon via JS (`js-cat-check`). Tanpa ini akan muncul 2 checklist — satu dari template, satu dari JS.
 
 ### main.js
 

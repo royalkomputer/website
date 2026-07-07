@@ -45,7 +45,6 @@ export function FilterSidebar(filters, categories) {
           return `<button class="js-cat-btn text-left px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
             isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-300 hover:bg-slate-800'
           }" data-category="${cat}">
-            ${isSelected ? '<span class="inline-flex">' + icon('check', 'text-white') + '</span>' : ''}
             <span>${cat}</span>
           </button>`
         }).join('')}
