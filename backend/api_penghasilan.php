@@ -69,7 +69,7 @@ foreach ($deductions as $key => $names) {
 $all_deduction_where = "LOWER(COALESCE(sp.nama, '')) IN ('" . implode("','", $all_deduction_names) . "')";
 
 // Helper function to run deduction queries
-function getDeductionSummary($db, $where, $tgl_mulai_esc, $tgl_selesai_esc) {
+function getDeductionSummary($db, $where, $tgl_mulai_esc, $tgl_selesai_esc, $exclude_pesanan = '') {
     $sql = "SELECT
         COUNT(*)::integer AS total_transaksi,
         COALESCE(SUM(COALESCE(h.totalakhir, 0)), 0) AS total_penjualan
@@ -78,7 +78,8 @@ function getDeductionSummary($db, $where, $tgl_mulai_esc, $tgl_selesai_esc) {
     WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
       AND h.tanggal::date <= '$tgl_selesai_esc'::date
       AND h.notrsretur IS NULL
-      AND $where";
+      AND $where
+      $exclude_pesanan";
     $r = @pg_query($db, $sql);
     if (!$r) return ['total_transaksi' => 0, 'total_penjualan' => 0];
     $row = pg_fetch_assoc($r);
@@ -101,6 +102,15 @@ $check_hpp = @pg_query($db, "SELECT EXISTS (
 $has_hpp_column = $check_hpp && pg_fetch_result($check_hpp, 0, 0) === 't';
 $can_calc_profit = $has_detail_table && $has_hpp_column;
 
+// Build exclusion for transactions containing "pesanan" items
+$exclude_pesanan = '';
+$exclude_pesanan_sub = '';
+if ($has_detail_table) {
+    $pesanan_ids = "SELECT d2.notransaksi FROM tbl_ikdt d2 JOIN tbl_item i2 ON d2.kodeitem = i2.kodeitem WHERE LOWER(i2.namaitem) LIKE '%pesanan%'";
+    $exclude_pesanan = "AND h.notransaksi NOT IN ($pesanan_ids)";
+    $exclude_pesanan_sub = "WHERE d.notransaksi NOT IN ($pesanan_ids)";
+}
+
 // 1. Ringkasan penjualan (total)
 $sql_summary_total = "SELECT
     COUNT(*)::integer AS total_transaksi,
@@ -110,7 +120,8 @@ FROM tbl_ikhd h
 LEFT JOIN tbl_supel sp ON h.kodesupel = sp.kode
 WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
   AND h.tanggal::date <= '$tgl_selesai_esc'::date
-  AND h.notrsretur IS NULL";
+  AND h.notrsretur IS NULL
+  $exclude_pesanan";
 
 $r_summary_total = @pg_query($db, $sql_summary_total);
 if (!$r_summary_total) {
@@ -127,7 +138,7 @@ $total_deductions_hpp = 0;
 
 foreach ($deductions as $key => $names) {
     $where = $deduction_wheres[$key];
-    $d = getDeductionSummary($db, $where, $tgl_mulai_esc, $tgl_selesai_esc);
+      $d = getDeductionSummary($db, $where, $tgl_mulai_esc, $tgl_selesai_esc, $exclude_pesanan);
     $deduction_data[$key] = $d;
     $total_deductions_penjualan += $d['total_penjualan'];
     $deduction_data[$key]['total_hpp'] = 0;
@@ -155,7 +166,8 @@ if ($can_calc_profit) {
     ) i ON d.kodeitem = i.kodeitem
     WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
       AND h.tanggal::date <= '$tgl_selesai_esc'::date
-      AND h.notrsretur IS NULL";
+      AND h.notrsretur IS NULL
+      $exclude_pesanan";
 
     $r_hpp = @pg_query($db, $sql_hpp);
     if ($r_hpp) {
@@ -181,7 +193,8 @@ if ($can_calc_profit) {
         WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
           AND h.tanggal::date <= '$tgl_selesai_esc'::date
           AND h.notrsretur IS NULL
-          AND $where";
+          AND $where
+          $exclude_pesanan";
 
         $r_ded_hpp = @pg_query($db, $sql_ded_hpp);
         if ($r_ded_hpp) {
@@ -254,6 +267,7 @@ LEFT JOIN (
             COALESCE(NULLIF(hargapokok, 0), NULLIF(tmphp, 0), 0) AS hpp
         FROM tbl_item
     ) i ON d.kodeitem = i.kodeitem
+    $exclude_pesanan_sub
     GROUP BY d.notransaksi
 ) sub ON h.notransaksi = sub.notransaksi";
 }
@@ -308,6 +322,7 @@ LEFT JOIN tbl_supel sp ON h.kodesupel = sp.kode
 WHERE h.tanggal::date >= '$tgl_mulai_esc'::date
   AND h.tanggal::date <= '$tgl_selesai_esc'::date
   AND h.notrsretur IS NULL
+  $exclude_pesanan
 ORDER BY h.tanggal DESC
 LIMIT 50";
 

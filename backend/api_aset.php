@@ -38,7 +38,7 @@ if ($action === 'get_products') {
     $sort_by = $_POST['sort_by'] ?? 'modal_desc';
     $limit = min((int)($_POST['limit'] ?? 500), 2000);
 
-    $where = "1=1";
+    $where = "1=1 AND LOWER(i.namaitem) NOT LIKE '%pesanan%' AND LOWER(i.namaitem) NOT LIKE '%jasa%'";
     if ($search !== '') {
         $s = pg_escape_string($db, $search);
         $where .= " AND (LOWER(i.namaitem) LIKE LOWER('%$s%') OR LOWER(i.kodeitem) LIKE LOWER('%$s%'))";
@@ -123,7 +123,9 @@ if ($action === 'get_products') {
 // ─────────────────────────────────────────────────────────
 if ($action === 'get_categories') {
     $r = @pg_query($db, "SELECT DISTINCT COALESCE(NULLIF(TRIM(jenis), ''), 'Lainnya') AS category FROM tbl_item i
-        INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem ORDER BY category");
+        INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem
+        WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%' AND LOWER(i.namaitem) NOT LIKE '%jasa%'
+        ORDER BY category");
     $categories = [];
     while ($row = pg_fetch_assoc($r)) {
         $categories[] = $row['category'];
@@ -216,14 +218,16 @@ if ($action === 'get_mutasi') {
 // ─────────────────────────────────────────────────────────
 // SUMMARY (default)
 // ─────────────────────────────────────────────────────────
-$sql_summary = "SELECT
-    COUNT(*)::integer AS total_items,
-    COALESCE(SUM(s.total_stok), 0)::bigint AS total_stok,
-    COALESCE(SUM(s.total_stok * $hpp_expr), 0) AS total_nilai_modal,
-    COALESCE(SUM(s.total_stok * i.hargajual1), 0) AS total_nilai_jual,
-    COALESCE(SUM(s.total_stok * (i.hargajual1 - $hpp_expr)), 0) AS total_potensi_laba
-FROM tbl_item i
-INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem";
+    $sql_summary = "SELECT
+        COUNT(*)::integer AS total_items,
+        COALESCE(SUM(s.total_stok), 0)::bigint AS total_stok,
+        COALESCE(SUM(s.total_stok * $hpp_expr), 0) AS total_nilai_modal,
+        COALESCE(SUM(s.total_stok * i.hargajual1), 0) AS total_nilai_jual,
+        COALESCE(SUM(s.total_stok * (i.hargajual1 - $hpp_expr)), 0) AS total_potensi_laba
+    FROM tbl_item i
+    INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem
+    WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%'
+      AND LOWER(i.namaitem) NOT LIKE '%jasa%'";
 
 $r = @pg_query($db, $sql_summary);
 if (!$r) {
@@ -235,16 +239,18 @@ $summary = pg_fetch_assoc($r);
 // ─────────────────────────────────────────────────────────
 // BREAKDOWN PER KATEGORI
 // ─────────────────────────────────────────────────────────
-$sql_breakdown = "SELECT
-    COALESCE(NULLIF(TRIM(i.jenis), ''), 'Lainnya') AS category,
-    COUNT(*)::integer AS total_items,
-    COALESCE(SUM(s.total_stok), 0)::bigint AS total_stok,
-    COALESCE(SUM(s.total_stok * $hpp_expr), 0) AS total_nilai_modal,
-    COALESCE(SUM(s.total_stok * i.hargajual1), 0) AS total_nilai_jual
-FROM tbl_item i
-INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem
-GROUP BY i.jenis
-ORDER BY total_nilai_modal DESC";
+    $sql_breakdown = "SELECT
+        COALESCE(NULLIF(TRIM(i.jenis), ''), 'Lainnya') AS category,
+        COUNT(*)::integer AS total_items,
+        COALESCE(SUM(s.total_stok), 0)::bigint AS total_stok,
+        COALESCE(SUM(s.total_stok * $hpp_expr), 0) AS total_nilai_modal,
+        COALESCE(SUM(s.total_stok * i.hargajual1), 0) AS total_nilai_jual
+    FROM tbl_item i
+    INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem
+    WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%'
+      AND LOWER(i.namaitem) NOT LIKE '%jasa%'
+    GROUP BY i.jenis
+    ORDER BY total_nilai_modal DESC";
 
 $r2 = @pg_query($db, $sql_breakdown);
 $breakdown = [];
@@ -265,7 +271,9 @@ $items_tanpa_hpp = 0;
 if ($punya_hpp) {
     $r3 = @pg_query($db, "SELECT COUNT(*)::integer AS cnt FROM tbl_item i
         INNER JOIN $stok_sub s ON i.kodeitem = s.kodeitem
-        WHERE COALESCE(NULLIF(i.hargapokok, 0), NULLIF(i.tmphp, 0), 0) = 0");
+        WHERE COALESCE(NULLIF(i.hargapokok, 0), NULLIF(i.tmphp, 0), 0) = 0
+          AND LOWER(i.namaitem) NOT LIKE '%pesanan%'
+          AND LOWER(i.namaitem) NOT LIKE '%jasa%'");
     if ($r3) {
         $items_tanpa_hpp = (int)pg_fetch_result($r3, 0, 0);
     }
