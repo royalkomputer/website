@@ -19,6 +19,10 @@ $cache_file = __DIR__ . '/data/cache_produk.json';
 if (file_exists($cache_file)) {
     $all_produk = json_decode(file_get_contents($cache_file), true);
     if (!is_array($all_produk)) $all_produk = [];
+    $all_produk = array_values(array_filter($all_produk, fn($p) =>
+        stripos($p['name'] ?? '', 'pesanan') === false &&
+        stripos($p['name'] ?? '', 'jasa') === false
+    ));
 } else {
     $all_produk = [];
 }
@@ -145,7 +149,9 @@ $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.harg
             COALESCE(s.total_stok, 0) AS stock, COALESCE(w.deskripsi, '') AS description
         FROM tbl_item i
         INNER JOIN (SELECT kodeitem, SUM(stok) as total_stok FROM tbl_itemstok GROUP BY kodeitem HAVING SUM(stok) > 0) s ON i.kodeitem = s.kodeitem
-        LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem";
+        LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem
+        WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%'
+          AND LOWER(i.namaitem) NOT LIKE '%jasa%'";
 
 $result = @pg_query($conn, $sql);
 if (!$result) {

@@ -205,7 +205,9 @@ function runSync(): array {
                 GROUP BY kodeitem
                 HAVING SUM(stok) > 0
             ) s ON i.kodeitem = s.kodeitem
-            LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem";
+            LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem
+        WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%'
+          AND LOWER(i.namaitem) NOT LIKE '%jasa%'";
 
     log_and_echo("Menjalankan query produk...");
     $query_start = microtime(true);

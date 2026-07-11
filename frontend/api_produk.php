@@ -11,9 +11,11 @@ if (file_exists($cache_file)) {
     $cache_data = file_get_contents($cache_file);
     $produk = json_decode($cache_data, true);
 
-    // Cache sudah berisi URL gambar relatif + ?v=timestamp
-    // Cukup konversi ke URL absolut tanpa scan filesystem ulang
     if (is_array($produk)) {
+        $produk = array_values(array_filter($produk, fn($p) =>
+            stripos($p['name'] ?? '', 'pesanan') === false &&
+            stripos($p['name'] ?? '', 'jasa') === false
+        ));
         $host = $_SERVER['HTTP_HOST'] ?? '';
         $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
         $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
@@ -68,7 +70,9 @@ $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.harg
             GROUP BY kodeitem 
             HAVING SUM(stok) > 0
         ) s ON i.kodeitem = s.kodeitem
-        LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem";
+        LEFT JOIN tbl_web_deskripsi w ON i.kodeitem = w.kodeitem
+        WHERE LOWER(i.namaitem) NOT LIKE '%pesanan%'
+          AND LOWER(i.namaitem) NOT LIKE '%jasa%'";
 
 $result = @pg_query($conn, $sql);
 
