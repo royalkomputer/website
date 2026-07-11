@@ -37,7 +37,10 @@ export async function fetchProductsPage({ page = 1, limit = 12, category = '', s
 }
 
 function paginateLocally(allData, { category, search, condition, sort, page, limit }) {
-  let filtered = allData
+  let filtered = allData.filter(p =>
+    (p.name || '').toLowerCase().includes('pesanan') === false &&
+    (p.name || '').toLowerCase().includes('jasa') === false
+  )
   if (category) filtered = filtered.filter(p => p.category === category)
   if (search) filtered = filtered.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()))
   if (condition === 'baru') filtered = filtered.filter(p => !(p.name || '').toUpperCase().includes('2ND'))
@@ -46,7 +49,14 @@ function paginateLocally(allData, { category, search, condition, sort, page, lim
   if (sort === 'low-high') filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
   else if (sort === 'high-low') filtered.sort((a, b) => (b.price || 0) - (a.price || 0))
   const offset = (page - 1) * limit
-  return { data: filtered.slice(offset, offset + limit), total, page, limit }
+
+  const catMap = {}
+  for (const p of allData) {
+    const c = (p.category || '').trim() || 'Lainnya'
+    catMap[c] = (catMap[c] || 0) + 1
+  }
+
+  return { data: filtered.slice(offset, offset + limit), total, page, limit, categories: catMap }
 }
 
 // Kept for backward compatibility (used by other parts if needed)

@@ -53,7 +53,7 @@ function renderApp() {
 }
 
 async function initApp() {
-  // Data API calls happen last — triggered after first product load
+  loadProducts(1)
 }
 
 
