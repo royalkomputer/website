@@ -13,8 +13,7 @@
  * Allowed origins:
  *   - http://localhost:5173        (Vite dev server)
  *   - http://localhost:8080        (PHP fallback dev server)
- *   - https://tiny-druid-60182f.netlify.app  (Netlify production)
- *   - https://royal-backend-s3ir.onrender.com  (Render production)
+ *   - https://royalkomputer.com    (VPS production — ganti sesuai domain)
  */
 
 /**
@@ -25,10 +24,7 @@ function handleCORS(): void {
     $allowedOrigins = [
         'http://localhost:5173',
         'http://localhost:8080',
-        'https://royal-komputer.netlify.app',
-        'https://tiny-druid-60182f.netlify.app',
-        'https://royal-backend-s3ir.onrender.com',
-        'https://royalkomputer.github.io',
+        'https://royalkomputer.com',
     ];
 
     // Determine the origin to allow

@@ -72,10 +72,6 @@ function uploadPhotoFile(array $file, string $playlistId, int $photoIndex): stri
 
     @unlink($tmp);
 
-    // Copy to frontend
-    @mkdir(FE_DIR . '/uploads/banners/', 0777, true);
-    @copy($target_file, FE_DIR . '/uploads/banners/' . $safe_name);
-
     return $safe_name;
 }
 
@@ -86,8 +82,6 @@ function deletePhotoFiles(string $filename): void {
     $target_dir = __DIR__ . '/uploads/banners/';
     $backend_file = $target_dir . $filename;
     if (file_exists($backend_file)) @unlink($backend_file);
-    $fe_file = FE_DIR . '/uploads/banners/' . $filename;
-    if (file_exists($fe_file)) @unlink($fe_file);
 }
 
 // ============================================================
@@ -230,10 +224,6 @@ if ($action === 'delete_playlist_photo') {
             if (file_exists($target_dir . $oldName)) {
                 rename($target_dir . $oldName, $target_dir . $newName);
             }
-            $fe_dir = FE_DIR . '/uploads/banners/';
-            if (file_exists($fe_dir . $oldName)) {
-                rename($fe_dir . $oldName, $fe_dir . $newName);
-            }
             $photo['image'] = $newName;
         }
     }
@@ -277,7 +267,6 @@ if ($action === 'reorder_playlist_photos') {
 
     // Rename files to match new indices — two-pass to avoid collisions
     $target_dir = __DIR__ . '/uploads/banners/';
-    $fe_dir = FE_DIR . '/uploads/banners/';
     // Pass 1: rename all to temp names
     foreach ($reordered as $pi => &$photo) {
         $oldName = $photo['image'];
@@ -286,9 +275,6 @@ if ($action === 'reorder_playlist_photos') {
             $tmpName = $playlistId . '_' . $pi . '.reorder_tmp';
             if (file_exists($target_dir . $oldName)) {
                 rename($target_dir . $oldName, $target_dir . $tmpName);
-            }
-            if (file_exists($fe_dir . $oldName)) {
-                rename($fe_dir . $oldName, $fe_dir . $tmpName);
             }
             $photo['image'] = $tmpName;
         }
@@ -300,9 +286,6 @@ if ($action === 'reorder_playlist_photos') {
         if ($oldName !== $newName) {
             if (file_exists($target_dir . $oldName)) {
                 rename($target_dir . $oldName, $target_dir . $newName);
-            }
-            if (file_exists($fe_dir . $oldName)) {
-                rename($fe_dir . $oldName, $fe_dir . $newName);
             }
             $photo['image'] = $newName;
         }

@@ -1,0 +1,75 @@
+services:
+  # ── PostgreSQL Database ──
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_DB: royalkomputer
+      POSTGRES_USER: royal_owner
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-royalkomputer2026}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U royal_owner -d royalkomputer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - royal-network
+
+  # ── Backend: PHP 8.2-FPM + Nginx ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - backend_uploads:/opt/app/uploads
+      - backend_data:/opt/app/data
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: royalkomputer
+      DB_USER: royal_owner
+      DB_PASSWORD: ${DB_PASSWORD:-royalkomputer2026}
+      APP_ENV: production
+      GIT_TOKEN: ${GIT_TOKEN:-}
+      GIT_REPO_URL: ${GIT_REPO_URL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - royal-network
+
+  # ── Frontend: Nginx + Vite SPA ──
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ""
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - backend_uploads:/usr/share/nginx/html/uploads:ro
+    depends_on:
+      - backend
+    networks:
+      - royal-network
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  backend_data:
+
+networks:
+  royal-network:
+    driver: bridge

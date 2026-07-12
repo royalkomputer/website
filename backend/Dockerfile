@@ -1,21 +1,39 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
-RUN apt-get update && apt-get install -y libpq-dev git \
-    && docker-php-ext-install pgsql \
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libwebp-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    nginx \
+    supervisor \
+    curl \
+    git \
+    wget \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j$(nproc) pgsql gd \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/render/project/src
+WORKDIR /opt/app
 
 COPY . .
 
-# Backup ke git: butuh GIT_TOKEN + GIT_REPO_URL di env Render
-# Setup: buat Personal Access Token di GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-#        repo scope: Contents (write) + Metadata (read)
-#        Lalu set environment variable di Render:
-#        - GIT_TOKEN: token GitHub
-#        - GIT_REPO_URL: https://github.com/username/royalkomputer.git
-#        - GIT_BRANCH: main (opsional, default: main)
+# Nginx config
+RUN rm -f /etc/nginx/sites-enabled/default
+COPY nginx.conf /etc/nginx/sites-enabled/default
 
-EXPOSE 10000
+# Supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-CMD ["sh", "-c", "php -S 0.0.0.0:$PORT"]
+# Buat direktori yang diperlukan
+RUN mkdir -p /opt/app/uploads /opt/app/data && \
+    chmod -R 755 /opt/app/uploads /opt/app/data
+
+# PHP-FPM listen on TCP (bukan socket) untuk Nginx
+RUN sed -i 's/listen = \/run\/php\/php8.2-fpm.sock/listen = 9000/' /usr/local/etc/php-fpm.d/zz-docker.conf
+
+EXPOSE 80
+
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

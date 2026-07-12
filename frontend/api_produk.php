@@ -16,17 +16,15 @@ if (file_exists($cache_file)) {
             stripos($p['name'] ?? '', 'pesanan') === false &&
             stripos($p['name'] ?? '', 'jasa') === false
         ));
-        $host = $_SERVER['HTTP_HOST'] ?? '';
-        $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
-        $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
+        // Di VPS: cukup /uploads/ karena frontend & backend satu domain
         foreach ($produk as &$p) {
             if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
-                $p['image'] = ($img_base ? $img_base . '/' : '') . $p['image'];
+                $p['image'] = '/' . $p['image'];
             }
             if (!empty($p['images']) && is_array($p['images'])) {
                 foreach ($p['images'] as &$img) {
                     if (strpos($img, 'uploads/') === 0) {
-                        $img = ($img_base ? $img_base . '/' : '') . $img;
+                        $img = '/' . $img;
                     }
                 }
                 unset($img);
@@ -116,11 +114,8 @@ while($row = pg_fetch_assoc($result)) {
     }
 
     if (!empty($matched_files)) {
-        $host = $_SERVER['HTTP_HOST'] ?? '';
-        $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
-        $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
         foreach ($matched_files as $file) {
-            $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0];
         $row['images'] = $images;

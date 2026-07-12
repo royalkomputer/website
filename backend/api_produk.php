@@ -29,23 +29,17 @@ if (file_exists($cache_file)) {
 
 // Admin request: return raw cache as plain array for client-side filtering
 if (isset($_GET['admin'])) {
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    $is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
-    $img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
-    foreach ($all_produk as &$p) {
+    $all_produk = array_map(function ($p) {
         if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
-            $p['image'] = ($img_base ? $img_base . '/' : '') . $p['image'];
+            $p['image'] = '/' . $p['image'];
         }
         if (!empty($p['images']) && is_array($p['images'])) {
-            foreach ($p['images'] as &$img) {
-                if (strpos($img, 'uploads/') === 0) {
-                    $img = ($img_base ? $img_base . '/' : '') . $img;
-                }
-            }
-            unset($img);
+            $p['images'] = array_map(function ($img) {
+                return strpos($img, 'uploads/') === 0 ? '/' . $img : $img;
+            }, $p['images']);
         }
-    }
-    unset($p);
+        return $p;
+    }, $all_produk);
     echo json_encode($all_produk);
     exit;
 }
@@ -75,9 +69,7 @@ $offset = ($page - 1) * $limit;
 $page_produk = array_slice($filtered, $offset, $limit);
 
 // Process images for current page
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$is_local = preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
-$img_base = $is_local ? '' : 'https://royal-backend-s3ir.onrender.com';
+// Di VPS: frontend Nginx serve /uploads/ langsung dari volume bersama
 $upload_dir = __DIR__ . "/uploads/";
 
 foreach ($page_produk as &$p) {
@@ -100,7 +92,7 @@ foreach ($page_produk as &$p) {
     if (!empty($matched_files)) {
         $images = [];
         foreach ($matched_files as $file) {
-            $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $p['image'] = $images[0];
         $p['images'] = $images;
@@ -179,7 +171,7 @@ while ($row = pg_fetch_assoc($result)) {
     if (!empty($matched_files)) {
         $images = [];
         foreach ($matched_files as $file) {
-            $images[] = ($img_base ? $img_base . '/' : '') . "uploads/" . basename($file) . "?v=" . filemtime($file);
+            $images[] = "/uploads/" . basename($file) . "?v=" . filemtime($file);
         }
         $row['image'] = $images[0]; $row['images'] = $images;
     } else {

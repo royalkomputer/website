@@ -7,9 +7,8 @@ import { icon } from '../lib/icons.js'
  * @returns {string} HTML string
  */
 
-const BANNER_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? '/uploads/banners/'
-  : 'https://royal-backend-s3ir.onrender.com/uploads/banners/'
+// Di VPS: frontend & backend satu domain via Caddy — relative path langsung
+const BANNER_BASE_URL = '/uploads/banners/'
 
 export function renderPlaylist(playlist, index) {
   const photos = playlist.photos || []

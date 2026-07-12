@@ -19,7 +19,7 @@ class CorsTest extends TestCase
 
     public function test_allows_known_origin(): void
     {
-        $_SERVER['HTTP_ORIGIN'] = 'https://royal-komputer.netlify.app';
+        $_SERVER['HTTP_ORIGIN'] = 'https://royalkomputer.com';
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         // handleCORS should not crash or exit for GET requests
@@ -66,11 +66,11 @@ class CorsTest extends TestCase
     // Origin matching logic tests (unit tests without calling handleCORS)
     public function test_known_origin_in_list(): void
     {
-        $origin = 'https://royal-komputer.netlify.app';
+        $origin = 'https://royalkomputer.com';
         $allowedOrigins = [
             'http://localhost:5173',
             'http://localhost:8080',
-            'https://royal-komputer.netlify.app',
+            'https://royalkomputer.com',
         ];
         $this->assertContains($origin, $allowedOrigins);
     }
@@ -81,18 +81,18 @@ class CorsTest extends TestCase
         $allowedOrigins = [
             'http://localhost:5173',
             'http://localhost:8080',
-            'https://royal-komputer.netlify.app',
+            'https://royalkomputer.com',
         ];
         $this->assertNotContains($origin, $allowedOrigins);
     }
 
     public function test_origin_matching_is_exact(): void
     {
-        $origin = 'https://sub.royal-komputer.netlify.app';
+        $origin = 'https://sub.royalkomputer.com';
         $allowedOrigins = [
             'http://localhost:5173',
             'http://localhost:8080',
-            'https://royal-komputer.netlify.app',
+            'https://royalkomputer.com',
         ];
         $this->assertNotContains($origin, $allowedOrigins);
     }

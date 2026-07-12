@@ -19,11 +19,13 @@ define('ENV_GIT_TOKEN', $env_vars['GIT_TOKEN'] ?? getenv('GIT_TOKEN') ?: '');
 define('ENV_GIT_REPO_URL', $env_vars['GIT_REPO_URL'] ?? getenv('GIT_REPO_URL') ?: '');
 
 // --- KREDENSIAL DATABASE ---
-define('DB_HOST', getenv('PGHOST') ?: '192.168.18.189');
-define('DB_PORT', getenv('PGPORT') ?: '5444');
-define('DB_NAME', getenv('PGDATABASE') ?: 'i4_ROYAL');
-define('DB_USER', getenv('PGUSER') ?: 'admin');
-define('DB_PASS', getenv('PGPASSWORD') ?: '2356988');
+// Di VPS/Docker: DB_HOST mengarah ke service 'db' (docker-compose)
+// Di lokal: set env var sesuai environment masing-masing
+define('DB_HOST', getenv('DB_HOST') ?: getenv('PGHOST') ?: 'db');
+define('DB_PORT', getenv('DB_PORT') ?: getenv('PGPORT') ?: '5432');
+define('DB_NAME', getenv('DB_NAME') ?: getenv('PGDATABASE') ?: 'royalkomputer');
+define('DB_USER', getenv('DB_USER') ?: getenv('PGUSER') ?: 'royal_owner');
+define('DB_PASS', getenv('DB_PASSWORD') ?: getenv('PGPASSWORD') ?: 'royalkomputer2026');
 
 // --- PATH FILE (data/ subdirectory) ---
 define('ADMINS_FILE',  __DIR__ . '/data/admins.json');
@@ -35,8 +37,6 @@ define('PRODUCT_INFO_FILE', __DIR__ . '/data/product_info.json');
 define('HEADING_FILE',      __DIR__ . '/data/heading.json');
 define('BANNER_FILE',       __DIR__ . '/data/banners.json');
 
-// --- FRONTEND SYNC PATH ---
-define('FE_DIR', __DIR__ . '/../frontend');
 
 define('TAGLINE_DEFAULT', 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.');
 define('PRODUCT_INFO_DEFAULT', 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.');
@@ -296,9 +296,6 @@ function saveJamOperasional(array $jam): bool {
         }
     }
     $result = file_put_contents(JAM_FILE, json_encode($jam, JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/jam_operasional.json', json_encode($jam, JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
@@ -336,9 +333,6 @@ function saveSchedules(array $schedules): bool {
         }
     }
     $result = file_put_contents(SCHEDULE_FILE, json_encode($schedules, JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/jadwal_tutup.json', json_encode($schedules, JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
@@ -367,9 +361,6 @@ function saveStatus(string $status): bool {
         @pg_query($db, "INSERT INTO status_toko (id, status) VALUES (1, '$s') ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status");
     }
     $result = file_put_contents(STATUS_FILE, $status === 'tutup' ? 'tutup' : 'buka');
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/status_toko.txt', $status === 'tutup' ? 'tutup' : 'buka');
-    }
     return $result !== false;
 }
 
@@ -403,9 +394,6 @@ function saveTagline(string $tagline): bool {
         @pg_query($db, "INSERT INTO tagline (id, text) VALUES (1, '$t') ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text");
     }
     $result = file_put_contents(TAGLINE_FILE, json_encode(['tagline' => $tagline], JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/tagline.json', json_encode(['tagline' => $tagline], JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
@@ -436,9 +424,6 @@ function saveProductInfoText(string $text): bool {
         @pg_query($db, "INSERT INTO product_info (id, text) VALUES (1, '$t') ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text");
     }
     $result = file_put_contents(PRODUCT_INFO_FILE, json_encode(['text' => $text], JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/product_info.json', json_encode(['text' => $text], JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
@@ -477,9 +462,6 @@ function saveHeading(string $prefix, string $brand): bool {
         @pg_query($db, "INSERT INTO heading (id, prefix, brand) VALUES (1, '$p', '$b') ON CONFLICT (id) DO UPDATE SET prefix = EXCLUDED.prefix, brand = EXCLUDED.brand");
     }
     $result = file_put_contents(HEADING_FILE, json_encode($data, JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @file_put_contents(FE_DIR . '/heading.json', json_encode($data, JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
@@ -534,10 +516,6 @@ function loadBanners(): array {
 
 function saveBanners(array $playlists): bool {
     $result = file_put_contents(BANNER_FILE, json_encode($playlists, JSON_PRETTY_PRINT));
-    if ($result !== false) {
-        @mkdir(FE_DIR . '/data', 0777, true);
-        @file_put_contents(FE_DIR . '/data/banners.json', json_encode($playlists, JSON_PRETTY_PRINT));
-    }
     return $result !== false;
 }
 
