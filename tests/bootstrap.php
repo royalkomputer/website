@@ -30,7 +30,6 @@ if (is_dir($realDataDir)) {
 // Copy fixture files into the real data dir
 $fixtures = [
     'admins.json'       => __DIR__ . '/fixtures/admins.json',
-    'jam_operasional.json' => __DIR__ . '/fixtures/jam_operasional.json',
     'jadwal_tutup.json' => __DIR__ . '/fixtures/jadwal_tutup.json',
     'status_toko.txt'   => __DIR__ . '/fixtures/status_toko.txt',
 ];

@@ -77,55 +77,7 @@ $current_status = loadStatus();
 
     <div class="mb-6 border-b border-slate-200 pb-4">
         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard Admin</h2>
-        <p class="text-slate-500 text-sm mt-1">Kelola katalog produk, jam operasional, dan akun admin.</p>
-    </div>
-
-    <!-- SYNC STATUS -->
-    <?php
-    $sync_file = __DIR__ . '/data/last_sync.json';
-    $last_sync = null;
-    if (file_exists($sync_file)) {
-        $last_sync = json_decode(file_get_contents($sync_file), true);
-    }
-    ?>
-    <div class="bg-white border border-slate-200 rounded-xl shadow-sm px-5 py-3 mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3 text-sm">
-            <i class="fa-solid fa-rotate text-astra-700"></i>
-            <span class="text-slate-600">Sinkronisasi IPOS:</span>
-            <?php if ($last_sync): ?>
-                <span class="font-semibold text-slate-800"><?= date('d M Y H:i', strtotime($last_sync['last_sync'])) ?> WIB</span>
-                <span class="text-slate-400 hidden sm:inline">(&bull; <?= number_format($last_sync['products']) ?> produk, <?= $last_sync['duration'] ?>s)</span>
-            <?php else: ?>
-                <span class="text-red-600 font-semibold">Belum pernah sinkron</span>
-            <?php endif; ?>
-        </div>
-        <?php if ($last_sync): ?>
-        <?php
-        $sync_time = strtotime($last_sync['last_sync']);
-        $diff_hours = (time() - $sync_time) / 3600;
-        $badge_class = $diff_hours < 2 ? 'bg-green-100 text-green-700 border-green-200' : ($diff_hours < 6 ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : 'bg-red-100 text-red-700 border-red-200');
-        $badge_text = $diff_hours < 2 ? 'Terkini' : ($diff_hours < 6 ? $diff_hours < 2 ? 'Terkini' : round($diff_hours) . ' jam lalu' : '>' . round($diff_hours) . ' jam');
-        ?>
-        <span class="text-xs font-bold px-2.5 py-1 rounded-full border <?= $badge_class ?>">
-            <?= $diff_hours < 2 ? '<i class="fa-solid fa-circle-check mr-1"></i>Terkini' : '<i class="fa-solid fa-clock mr-1"></i>' . round($diff_hours) . ' jam lalu' ?>
-        </span>
-        <?php endif; ?>
-        <button onclick="triggerSync()" id="sync-btn" class="text-xs font-bold px-3 py-1.5 rounded-full border border-astra-700 bg-astra-700 text-white hover:bg-astra-800 transition-colors flex items-center gap-1.5">
-            <i class="fa-solid fa-rotate" id="sync-icon"></i> Sync Now
-        </button>
-    </div>
-
-    <!-- SYNC MODAL -->
-    <div id="sync-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-                <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-rotate text-astra-700"></i> Sinkronisasi IPOS
-                </h3>
-                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
-            </div>
-            <pre id="sync-output" class="p-6 overflow-auto text-sm font-mono bg-slate-900 text-green-300 leading-relaxed whitespace-pre-wrap flex-grow rounded-b-2xl">Memulai sinkronisasi...</pre>
-        </div>
+        <p class="text-slate-500 text-sm mt-1">Kelola katalog produk, jadwal, dan akun admin.</p>
     </div>
 
     <!-- TAB NAV -->
@@ -139,14 +91,15 @@ $current_status = loadStatus();
         </button>
         <?php endif; ?>
 
+        <button onclick="switchTab('banner')" id="tab-banner" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-images"></i> Banner
+        </button>
+
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya
         </button>
         <button onclick="switchTab('serial')" id="tab-serial" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-barcode"></i> Serial Number
-        </button>
-        <button onclick="switchTab('push')" id="tab-push" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
-            <i class="fa-solid fa-upload"></i> Push ke Git
         </button>
         <button onclick="switchTab('penghasilan')" id="tab-penghasilan" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-money-bill-trend-up"></i> Penghasilan
@@ -157,6 +110,7 @@ $current_status = loadStatus();
         <button onclick="switchTab('aset')" id="tab-aset" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-chart-pie"></i> Aset
         </button>
+
 
     </div>
 
@@ -262,7 +216,92 @@ $current_status = loadStatus();
     </div>
     <?php endif; ?>
 
+    <!-- PANEL BANNER -->
+    <div id="panel-banner" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-images text-astra-700"></i> Manajemen Banner
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-0.5">Kelola banner/slideshow untuk halaman toko. <span class="text-amber-600 font-semibold"><i class="fa-solid fa-triangle-exclamation text-xs"></i> Maks 6 foto/playlist.</span></p>
+                </div>
+                <button onclick="createNewPlaylist()" class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                    <i class="fa-solid fa-plus"></i> Playlist Baru
+                </button>
+            </div>
+            
+            <div id="banner-list" class="space-y-4">
+                <div class="text-center py-8 text-slate-400">
+                    <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
+                    <p class="text-sm">Memuat banner...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- MODAL MANAJEMEN FOTO BANNER -->
+    <div id="banner-photo-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl border border-slate-200 w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="bg-astra-950 text-white p-4 flex items-center justify-between rounded-t-xl flex-shrink-0">
+                <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-images text-astra-400"></i> <span id="bpm-title">Kelola Foto</span></h3>
+                <button onclick="closeBannerPhotoModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto flex-grow">
+                <!-- Settings -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 pb-4 border-b border-slate-200">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Interval (ms)</label>
+                        <input type="number" id="bpm-interval" min="2000" step="500" value="5000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-astra-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Aspek Rasio</label>
+                        <select id="bpm-aspect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-astra-500">
+                            <option value="16/9">16:9 (Lanscape)</option>
+                            <option value="4/3">4:3</option>
+                            <option value="1/1">1:1 (Square)</option>
+                            <option value="21/9">21:9 (Ultrawide)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status</label>
+                        <select id="bpm-active" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm outline-none focus:border-astra-500">
+                            <option value="1">Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="saveBannerSettings()" class="w-full bg-astra-700 hover:bg-astra-800 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Foto Baru</label>
+                    <div class="flex items-center gap-3">
+                        <label id="bpm-upload-label" class="flex-1 bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:border-astra-400 hover:bg-astra-50/30 transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-1"></i>
+                            <p class="text-xs text-slate-500 font-medium">Klik atau seret foto ke sini</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Maks 6 foto total. Format: JPG, PNG, WEBP</p>
+                            <input type="file" id="bpm-file-input" multiple accept="image/*" class="hidden" onchange="handleBannerPhotoUpload(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Photo Grid -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Foto Tersimpan <span id="bpm-count" class="text-slate-400 font-normal"></span></label>
+                    <div id="bpm-photos" class="grid grid-cols-3 sm:grid-cols-4 gap-3"></div>
+                    <div id="bpm-empty" class="hidden py-8 text-center text-slate-400">
+                        <i class="fa-solid fa-images text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-sm">Belum ada foto. Upload foto di atas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- PANEL PROFIL SAYA -->
     <div id="panel-profil" class="hidden">
@@ -365,39 +404,6 @@ $current_status = loadStatus();
                     <tbody id="serial-body"></tbody>
                 </table>
             </div>
-        </div>
-    </div>
-
-    <!-- PANEL PUSH KE GIT -->
-    <div id="panel-push" class="hidden">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-2xl">
-            <h3 class="font-extrabold text-slate-900 text-lg mb-1 flex items-center gap-2">
-                <i class="fa-solid fa-upload text-astra-700"></i> Push ke Git
-            </h3>
-            <p class="text-sm text-slate-500 mb-4">Push perubahan data toko (jam operasional, dll) dan foto produk ke repository GitHub. Perubahan akan otomatis terdeploy setelah push.</p>
-
-            <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-start gap-3">
-                <i class="fa-solid fa-circle-info text-lg mt-0.5"></i>
-                <div>
-                    <p class="font-semibold">Catatan:</p>
-                    <ul class="list-disc ml-5 mt-1 text-amber-700 space-y-0.5">
-                        <li>Hanya perubahan dari panel admin yang akan di-push (data/ + uploads/).</li>
-                        <li>Perubahan dari IPOS (sync) tetap dijalankan oleh Task Scheduler lokal setiap jam.</li>
-                        <li>Untuk push dari panel admin, buat GitHub token → simpan di <code class="bg-amber-100 px-1 rounded">backend/.env</code> sebagai <code class="bg-amber-100 px-1 rounded">GIT_TOKEN=token_anda</code></li>
-                        <li>Atau jalankan <code class="bg-amber-100 px-1 rounded">backend/setup_push_task.bat</code> sbg Administrator sekali saja (task scheduler jalan sebagai user login).</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="pushToGit()" id="btn-push-git"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Push Sekarang
-                </button>
-                <span id="push-feedback" class="text-sm font-semibold hidden"></span>
-            </div>
-
-            <div id="push-result" class="hidden mt-4 p-4 rounded-lg border text-sm"></div>
         </div>
     </div>
 
@@ -725,7 +731,7 @@ $current_status = loadStatus();
         </main>
 
 <!-- MODAL KELOLA PRODUK -->
-<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
         <div class="bg-astra-950 text-white p-4 flex items-center justify-between">
             <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-astra-400"></i> Kelola Item</h3>
@@ -762,7 +768,7 @@ $current_status = loadStatus();
 </div>
 
 <!-- KONFIRMASI MODAL -->
-<div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-4">
+<div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl border border-slate-200 w-full max-w-sm shadow-2xl flex flex-col overflow-hidden animate-fade-in" style="animation:fadeIn .2s ease-out">
         <div class="p-6 text-center">
             <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
@@ -787,7 +793,7 @@ $current_status = loadStatus();
 </div>
 
 <!-- MODAL KELOLA AKUN ADMIN -->
-<div id="modal-admin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+<div id="modal-admin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-xl border border-slate-200 w-full max-w-md shadow-2xl flex flex-col overflow-hidden">
         <div class="bg-astra-950 text-white p-4 flex items-center justify-between">
             <h3 id="modal-admin-title" class="font-bold text-base flex items-center gap-2">
@@ -836,7 +842,9 @@ $current_status = loadStatus();
 
 <script>
 const IS_SUPER = <?php echo $is_super ? 'true' : 'false'; ?>;
-const CURRENT_ADMIN_ID = "<?php echo $current_admin['id']; ?>";
+const CURRENT_ADMIN_ID = <?= json_encode((string)$current_admin['id']) ?>;
+
+function escHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 
 // SCROLL POSITION SAVER
 let _savedScrollY = 0;
@@ -901,7 +909,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','admin','banner','profil','serial','push','penghasilan','hutang','aset'];
+    const panels = ['katalog','admin','banner','profil','serial','penghasilan','hutang','aset'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -918,6 +926,340 @@ function showPanel(name){
     if (name === 'serial') document.getElementById('serial-search-input')?.focus();
     if (name === 'hutang') loadHutangData();
     if (name === 'aset') loadAsetData();
+    if (name === 'banner') loadBannerData();
+}
+
+// BANNER MANAGEMENT
+let bannerPlaylists = [];
+let bpmCurrentPl = null;
+
+async function loadBannerData() {
+    const container = document.getElementById('banner-list');
+    container.innerHTML = '<div class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i><p class="text-sm">Memuat banner...</p></div>';
+    
+    try {
+        const res = await fetch('api_data.php?file=banners.json&_t=' + Date.now());
+        const data = await res.json();
+        bannerPlaylists = Array.isArray(data) ? data : [];
+        renderBannerList();
+    } catch (e) {
+        container.innerHTML = '<div class="text-center py-8 text-red-400"><i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i><p class="text-sm">Gagal memuat data banner</p></div>';
+    }
+}
+
+function renderBannerList() {
+    const container = document.getElementById('banner-list');
+    if (bannerPlaylists.length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-slate-400"><i class="fa-solid fa-images text-4xl mb-3 text-slate-300"></i><p class="text-sm">Belum ada playlist banner</p><p class="text-xs text-slate-400 mt-1">Klik "Playlist Baru" untuk membuat banner pertama.</p></div>';
+        return;
+    }
+    
+    container.innerHTML = bannerPlaylists.map((pl, idx) => {
+        const photoCount = (pl.photos || []).length;
+        const photos = (pl.photos || []).slice(0, 4);
+        const thumbHtml = photos.length > 0
+            ? photos.map(p => `<img src="uploads/banners/${escAttr(p.image)}" class="w-20 h-14 object-cover rounded border border-slate-200" onerror="this.style.display='none'">`).join('')
+            : '<span class="text-xs text-slate-400 italic">Tidak ada foto</span>';
+        const moreCount = photoCount > 4 ? `<span class="text-xs text-slate-400 ml-1">+${photoCount - 4}</span>` : '';
+
+        return `
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-xs font-bold text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded">#${pl.order || idx + 1}</span>
+                    <span class="font-bold text-slate-800 truncate">${escHtml(pl.name || 'Untitled')}</span>
+                    ${pl.active !== false ? '<span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-200 flex-shrink-0">Aktif</span>' : '<span class="text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold border border-slate-300 flex-shrink-0">Off</span>'}
+                    <span class="text-xs text-slate-400 flex-shrink-0">${photoCount} foto</span>
+                    <span class="text-[10px] text-slate-400 flex-shrink-0">${pl.interval || 5000}ms</span>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button onclick="openBannerPhotoModal('${pl.id}')" class="text-xs bg-astra-50 border border-astra-300 text-astra-700 px-3 py-1.5 rounded-lg hover:bg-astra-100 transition-colors font-bold"><i class="fa-solid fa-images mr-1"></i> Kelola Foto</button>
+                    <button onclick="deletePlaylist('${pl.id}')" class="text-xs bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Hapus playlist"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+            <div class="flex gap-2 items-center">${thumbHtml}${moreCount}</div>
+        </div>`;
+    }).join('');
+}
+
+
+async function createNewPlaylist() {
+    const name = prompt('Nama playlist banner:');
+    if (!name || !name.trim()) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'save_playlist');
+    fd.append('name', name.trim());
+    fd.append('active', '1');
+    fd.append('interval', '5000');
+    fd.append('aspect', '16/9');
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Playlist berhasil dibuat! Klik "Kelola Foto" untuk menambah foto.', 'success');
+            loadBannerData();
+        } else {
+            showNotification(data.message || 'Gagal membuat playlist', 'error');
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
+}
+
+async function deletePlaylist(id) {
+    const pl = bannerPlaylists.find(p => p.id === id);
+    if (!confirm(`Yakin hapus playlist "${pl?.name || id}"? Semua foto akan dihapus permanen.`)) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'delete_playlist');
+    fd.append('id', id);
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Playlist berhasil dihapus.', 'success');
+            loadBannerData();
+        } else {
+            showNotification(data.message || 'Gagal menghapus playlist', 'error');
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
+}
+
+// ============================================================
+// BANNER PHOTO MANAGEMENT MODAL
+// ============================================================
+
+function openBannerPhotoModal(plId) {
+    bpmCurrentPl = bannerPlaylists.find(p => p.id === plId);
+    if (!bpmCurrentPl) return;
+    
+    document.getElementById('bpm-title').textContent = bpmCurrentPl.name || 'Kelola Foto';
+    document.getElementById('bpm-interval').value = bpmCurrentPl.interval || 5000;
+    document.getElementById('bpm-aspect').value = bpmCurrentPl.aspect || '16/9';
+    document.getElementById('bpm-active').value = bpmCurrentPl.active !== false ? '1' : '0';
+    document.getElementById('bpm-file-input').value = '';
+    
+    renderBpmPhotos();
+    document.getElementById('banner-photo-modal').classList.remove('hidden');
+    document.getElementById('banner-photo-modal').classList.add('flex');
+}
+
+function closeBannerPhotoModal() {
+    document.getElementById('banner-photo-modal').classList.add('hidden');
+    document.getElementById('banner-photo-modal').classList.remove('flex');
+    bpmCurrentPl = null;
+    loadBannerData();
+}
+
+function renderBpmPhotos() {
+    const container = document.getElementById('bpm-photos');
+    const empty = document.getElementById('bpm-empty');
+    const countEl = document.getElementById('bpm-count');
+    const photos = bpmCurrentPl.photos || [];
+    
+    countEl.textContent = `(${photos.length}/6)`;
+    
+    if (photos.length === 0) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+    
+    container.innerHTML = photos.map((p, idx) => `
+        <div class="relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-100 aspect-[4/3]">
+            <img src="uploads/banners/${escAttr(p.image)}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'120\\' height=\\'90\\'/>'">
+            <div class="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                <div class="flex justify-between">
+                    <span class="text-[10px] text-white font-bold bg-slate-800/70 px-1.5 py-0.5 rounded">#${idx + 1}</span>
+                    <button onclick="deleteBannerPhoto(${idx})" class="text-white hover:text-red-400 transition-colors" title="Hapus"><i class="fa-solid fa-trash text-sm"></i></button>
+                </div>
+                <div class="flex justify-between items-end">
+                    <button onclick="moveBannerPhoto(${idx},-1)" class="text-white hover:text-astra-400 transition-colors ${idx === 0 ? 'invisible' : ''}" title="Geser kiri"><i class="fa-solid fa-circle-chevron-left text-lg"></i></button>
+                    <button onclick="editBannerPhotoInfo(${idx})" class="text-white hover:text-yellow-400 transition-colors" title="Edit link/alt"><i class="fa-solid fa-pen text-sm"></i></button>
+                    <button onclick="moveBannerPhoto(${idx},1)" class="text-white hover:text-astra-400 transition-colors ${idx === photos.length - 1 ? 'invisible' : ''}" title="Geser kanan"><i class="fa-solid fa-circle-chevron-right text-lg"></i></button>
+                </div>
+            </div>
+            ${p.link ? '<span class="absolute bottom-1 right-1 bg-green-500 text-white text-[8px] font-bold px-1 py-0.5 rounded"><i class="fa-solid fa-link"></i></span>' : ''}
+        </div>
+    `).join('');
+}
+
+async function handleBannerPhotoUpload(event) {
+    if (!bpmCurrentPl) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    const remaining = 6 - (bpmCurrentPl.photos || []).length;
+    if (remaining <= 0) {
+        showNotification('Sudah mencapai batas maksimal 6 foto.', 'error');
+        return;
+    }
+    
+    const fd = new FormData();
+    fd.append('action', 'save_playlist');
+    fd.append('id', bpmCurrentPl.id);
+    fd.append('name', bpmCurrentPl.name);
+    fd.append('active', bpmCurrentPl.active !== false ? '1' : '0');
+    fd.append('interval', bpmCurrentPl.interval || 5000);
+    fd.append('aspect', bpmCurrentPl.aspect || '16/9');
+    
+    const count = Math.min(files.length, remaining);
+    for (let i = 0; i < count; i++) {
+        fd.append('photos[]', files[i]);
+    }
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            const uploaded = count;
+            const skipped = files.length - count;
+            let msg = `${uploaded} foto berhasil diupload.`;
+            if (skipped > 0) msg += ` ${skipped} foto ditolak (batas 6 foto).`;
+            showNotification(msg, 'success');
+            // Reload data
+            const r2 = await fetch('api_data.php?file=banners.json&_t=' + Date.now());
+            const d2 = await r2.json();
+            bannerPlaylists = Array.isArray(d2) ? d2 : [];
+            bpmCurrentPl = bannerPlaylists.find(p => p.id === bpmCurrentPl.id) || bpmCurrentPl;
+            renderBpmPhotos();
+        } else {
+            showNotification(data.message || 'Gagal upload foto', 'error');
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
+    event.target.value = '';
+}
+
+async function deleteBannerPhoto(idx) {
+    if (!bpmCurrentPl) return;
+    if (!confirm('Hapus foto ini?')) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'delete_playlist_photo');
+    fd.append('playlist_id', bpmCurrentPl.id);
+    fd.append('photo_index', idx);
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            showNotification('Foto dihapus.', 'success');
+            const r2 = await fetch('api_data.php?file=banners.json&_t=' + Date.now());
+            const d2 = await r2.json();
+            bannerPlaylists = Array.isArray(d2) ? d2 : [];
+            bpmCurrentPl = bannerPlaylists.find(p => p.id === bpmCurrentPl.id) || bpmCurrentPl;
+            renderBpmPhotos();
+        } else {
+            showNotification(data.message || 'Gagal menghapus foto', 'error');
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
+}
+
+async function moveBannerPhoto(idx, dir) {
+    if (!bpmCurrentPl) return;
+    const photos = bpmCurrentPl.photos || [];
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= photos.length) return;
+    
+    // Swap in array
+    const temp = photos[idx];
+    photos[idx] = photos[newIdx];
+    photos[newIdx] = temp;
+    
+    const order = photos.map((_, i) => i);
+    
+    const fd = new FormData();
+    fd.append('action', 'reorder_playlist_photos');
+    fd.append('playlist_id', bpmCurrentPl.id);
+    fd.append('order', JSON.stringify(order));
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            bpmCurrentPl.photos = photos;
+            renderBpmPhotos();
+        } else {
+            showNotification(data.message || 'Gagal mengubah urutan', 'error');
+            // Revert
+            const r2 = await fetch('api_data.php?file=banners.json&_t=' + Date.now());
+            const d2 = await r2.json();
+            bannerPlaylists = Array.isArray(d2) ? d2 : [];
+            bpmCurrentPl = bannerPlaylists.find(p => p.id === bpmCurrentPl.id) || bpmCurrentPl;
+            renderBpmPhotos();
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
+}
+
+function editBannerPhotoInfo(idx) {
+    if (!bpmCurrentPl) return;
+    const photo = (bpmCurrentPl.photos || [])[idx];
+    if (!photo) return;
+    
+    const newLink = prompt('Link URL (ketik "-" untuk hapus link):', photo.link || '');
+    if (newLink === null) return;
+    const newAlt = prompt('Alt text (keterangan foto):', photo.alt || '');
+    if (newAlt === null) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'update_photo_info');
+    fd.append('playlist_id', bpmCurrentPl.id);
+    fd.append('photo_index', idx);
+    fd.append('link', newLink === '-' ? '' : newLink);
+    fd.append('alt', newAlt);
+    
+    fetch('update_banner.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                photo.link = newLink === '-' ? '' : newLink;
+                photo.alt = newAlt;
+                renderBpmPhotos();
+                showNotification('Info foto diperbarui.', 'success');
+            } else {
+                showNotification(data.message || 'Gagal', 'error');
+            }
+        })
+        .catch(() => showNotification('Gagal menghubungi server', 'error'));
+}
+
+async function saveBannerSettings() {
+    if (!bpmCurrentPl) return;
+    
+    const fd = new FormData();
+    fd.append('action', 'save_playlist');
+    fd.append('id', bpmCurrentPl.id);
+    fd.append('name', bpmCurrentPl.name);
+    fd.append('active', document.getElementById('bpm-active').value);
+    fd.append('interval', document.getElementById('bpm-interval').value);
+    fd.append('aspect', document.getElementById('bpm-aspect').value);
+    
+    try {
+        const res = await fetch('update_banner.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            bpmCurrentPl.interval = parseInt(document.getElementById('bpm-interval').value);
+            bpmCurrentPl.aspect = document.getElementById('bpm-aspect').value;
+            bpmCurrentPl.active = document.getElementById('bpm-active').value === '1';
+            showNotification('Pengaturan banner disimpan.', 'success');
+        } else {
+            showNotification(data.message || 'Gagal menyimpan', 'error');
+        }
+    } catch (e) {
+        showNotification('Gagal menghubungi server', 'error');
+    }
 }
 
 function switchTab(tab){ showPanel(tab); }
@@ -992,10 +1334,10 @@ function renderAdminTable() {
         const safeDesc=(p.description||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.price || 0);
         tr.innerHTML=`
-            <td class="px-5 py-3"><img src="${p.image}" alt="" class="w-12 h-12 object-cover rounded shadow-sm border border-slate-200"></td>
-            <td class="px-5 py-3 font-mono text-xs text-slate-500">${p.id||'-'}</td>
-            <td class="px-5 py-3 font-bold text-slate-800">${p.name||''}</td>
-            <td class="px-5 py-3 text-xs"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-semibold">${p.category||'Lainnya'}</span></td>
+            <td class="px-5 py-3"><img src="${escHtml(p.image)}" alt="" class="w-12 h-12 object-cover rounded shadow-sm border border-slate-200"></td>
+            <td class="px-5 py-3 font-mono text-xs text-slate-500">${escHtml(p.id)||'-'}</td>
+            <td class="px-5 py-3 font-bold text-slate-800">${escHtml(p.name)||''}</td>
+            <td class="px-5 py-3 text-xs"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-semibold">${escHtml(p.category)||'Lainnya'}</span></td>
             <td class="px-5 py-3 text-right font-bold text-astra-700">${formattedPrice}</td>
             <td class="px-5 py-3 text-center font-bold ${(p.stock||0)<5?'text-orange-500':'text-slate-700'}">${p.stock||0}</td>
             <td class="px-5 py-3 text-center">${photoBadge}</td>
@@ -1018,6 +1360,7 @@ function openEditModal(id){
     
     renderSavedPhotos(id, p.images);
     document.getElementById('edit-modal').classList.remove('hidden');
+    document.getElementById('edit-modal').classList.add('flex');
 }
 
 let currentEditId = '';
@@ -1156,7 +1499,7 @@ function closePhotoPreview() {
     document.getElementById('preview-image').src = '';
 }
 
-function closeEditModal(){document.getElementById('edit-modal').classList.add('hidden');}
+function closeEditModal(){document.getElementById('edit-modal').classList.add('hidden');document.getElementById('edit-modal').classList.remove('flex');}
 
 function submitForm(event){
     event.preventDefault();
@@ -1220,6 +1563,7 @@ function loadAdminList(){
 
 function openModalAdmin(mode,id='',username='',nama='',role='admin'){
     document.getElementById('modal-admin').classList.remove('hidden');
+    document.getElementById('modal-admin').classList.add('flex');
     document.getElementById('modal-admin-feedback').classList.add('hidden');
     document.getElementById('modal-admin-action').value=mode==='tambah'?'tambah_admin':'edit_admin';
     document.getElementById('modal-admin-target-id').value=id;
@@ -1232,7 +1576,7 @@ function openModalAdmin(mode,id='',username='',nama='',role='admin'){
     if(mode==='tambah'){title.innerHTML='<i class="fa-solid fa-user-plus text-astra-400"></i> Tambah Admin Baru';hint.textContent='(wajib diisi)';}
     else{title.innerHTML='<i class="fa-solid fa-user-gear text-astra-400"></i> Edit Admin';hint.textContent='(kosongkan jika tidak diubah)';}
 }
-function closeModalAdmin(){document.getElementById('modal-admin').classList.add('hidden');}
+function closeModalAdmin(){document.getElementById('modal-admin').classList.add('hidden');document.getElementById('modal-admin').classList.remove('flex');}
 
 function submitAdmin(){
     const btn=document.getElementById('btn-admin-submit');
@@ -1289,71 +1633,14 @@ function submitProfil(){
     }).catch(()=>{fb.classList.remove('hidden');fb.className='text-sm font-semibold text-red-600';fb.textContent='Gagal. Cek koneksi.';});
 }
 
-function pushToGit(){
-    const btn = document.getElementById('btn-push-git');
-    const feedback = document.getElementById('push-feedback');
-    const result = document.getElementById('push-result');
-    if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Mempush...'; }
-    feedback.className = 'text-sm font-semibold hidden';
-    result.className = 'hidden';
-
-    const fd = new FormData(); fd.append('action', 'push_to_git');
-    fetch('update_admin.php', {method:'POST', body:fd}).then(r=>r.json()).then(data=>{
-        result.className = 'mt-4 p-4 rounded-lg border text-sm ' + (data.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800');
-        result.innerHTML = '<i class="fa-solid ' + (data.success ? 'fa-circle-check' : 'fa-circle-exclamation') + ' mr-1.5"></i> ' + escHtml(data.message);
-        result.classList.remove('hidden');
-        showNotification(data.message, data.success ? 'success' : 'error');
-    }).catch(()=>{
-        result.className = 'mt-4 p-4 rounded-lg border text-sm bg-red-50 border-red-200 text-red-800';
-        result.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1.5"></i> Gagal terhubung ke server.';
-        result.classList.remove('hidden');
-        showNotification('Gagal. Cek koneksi.', 'error');
-    }).finally(()=>{
-        if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Push Sekarang'; }
-    });
-}
-
-function escHtml(str){
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
 function escAttr(str){
     return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-// SERIAL NUMBER SEARCH — juga tersedia di global scope
-
-function triggerSync(){
-    const btn = document.getElementById('sync-btn');
-    const icon = document.getElementById('sync-icon');
-    btn.disabled = true;
-    icon.className = 'fa-solid fa-spinner animate-spin';
-    document.getElementById('sync-modal').classList.remove('hidden');
-    document.getElementById('sync-modal').classList.add('flex');
-    document.getElementById('sync-output').textContent = 'Memulai sinkronisasi...';
-    fetch('trigger_sync.php', {method:'POST'})
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('sync-output').textContent = data.output || '(tidak ada output)';
-            if(data.success){
-                showNotification('Sinkronisasi berhasil! ' + (data.output.match(/(\d+)\s*products?/i) ? data.output.match(/(\d+)\s*products?/i)[1] + ' produk' : ''), 'success');
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                showNotification('Sinkronisasi gagal (exit code: ' + data.exit_code + ')', 'error');
-            }
-        })
-        .catch(() => {
-            document.getElementById('sync-output').textContent = 'Gagal menghubungi server.';
-            showNotification('Gagal terhubung ke server.', 'error');
-        })
-        .finally(() => {
-            btn.disabled = false;
-            icon.className = 'fa-solid fa-rotate';
-        });
-}
-
-function closeSyncModal(){
-    document.getElementById('sync-modal').classList.add('hidden');
-    document.getElementById('sync-modal').classList.remove('flex');
+function formatDate(str){
+    if(!str) return '-';
+    const d=new Date(str+(str.includes('T')?'':'T00:00:00'));
+    if(isNaN(d)) return str;
+    return d.toLocaleDateString('id-ID',{year:'numeric',month:'short',day:'numeric'});
 }
 
 // ============================================================
@@ -2092,6 +2379,7 @@ function renderHutangTable(res) {
             '<td colspan="2" class="px-3 py-3"></td>' +
         '</tr>';
 }
+
 </script>
 </body>
 </html>

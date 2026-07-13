@@ -26,6 +26,8 @@ frontend/uploads/
 # Tests
 tests/.phpunit.cache/
 tests/coverage/
+tests/phpunit.phar
+tests/coverage.txt
 
 # Windows reserved device names
 nul
@@ -42,3 +44,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .git-credentials
+
+# One-off scripts (already applied)
+backend/_*.ps1
+backend/test_login_bypass.php
+
+# Deprecated configs
+*.deprecated

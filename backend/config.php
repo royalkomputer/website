@@ -1,4 +1,8 @@
 <?php
+// Persist sessions across container restarts (Docker named volume)
+if (is_dir('/var/lib/php/sessions')) {
+    session_save_path('/var/lib/php/sessions');
+}
 session_start();
 
 // Load .env file (local development)
@@ -15,9 +19,6 @@ if (file_exists(__DIR__ . '/.env')) {
         }
     }
 }
-define('ENV_GIT_TOKEN', $env_vars['GIT_TOKEN'] ?? getenv('GIT_TOKEN') ?: '');
-define('ENV_GIT_REPO_URL', $env_vars['GIT_REPO_URL'] ?? getenv('GIT_REPO_URL') ?: '');
-
 // --- KREDENSIAL DATABASE ---
 // Di VPS/Docker: DB_HOST mengarah ke service 'db' (docker-compose)
 // Di lokal: set env var sesuai environment masing-masing
@@ -29,7 +30,6 @@ define('DB_PASS', getenv('DB_PASSWORD') ?: getenv('PGPASSWORD') ?: 'royalkompute
 
 // --- PATH FILE (data/ subdirectory) ---
 define('ADMINS_FILE',  __DIR__ . '/data/admins.json');
-define('JAM_FILE',     __DIR__ . '/data/jam_operasional.json');
 define('SCHEDULE_FILE', __DIR__ . '/data/jadwal_tutup.json');
 define('STATUS_FILE',  __DIR__ . '/data/status_toko.txt');
 define('TAGLINE_FILE',    __DIR__ . '/data/tagline.json');
@@ -77,23 +77,6 @@ function migrateConfigTables($conn): void {
     INSERT INTO admins (id, username, password_hash, role, nama)
     SELECT 1, 'superadmin', '" . pg_escape_string($conn, password_hash('royal2026', PASSWORD_BCRYPT)) . "', 'super_admin', 'Super Admin'
     WHERE NOT EXISTS (SELECT 1 FROM admins);
-
-    CREATE TABLE IF NOT EXISTS jam_operasional (
-        day VARCHAR(20) PRIMARY KEY,
-        buka VARCHAR(5) DEFAULT '09:00',
-        tutup VARCHAR(5) DEFAULT '21:00',
-        indo VARCHAR(20) NOT NULL,
-        libur BOOLEAN DEFAULT FALSE
-    );
-    INSERT INTO jam_operasional (day, buka, tutup, indo, libur) VALUES
-        ('Monday', '09:00', '21:00', 'Senin', FALSE),
-        ('Tuesday', '09:00', '21:00', 'Selasa', FALSE),
-        ('Wednesday', '09:00', '21:00', 'Rabu', FALSE),
-        ('Thursday', '09:00', '21:00', 'Kamis', FALSE),
-        ('Friday', '13:30', '22:00', 'Jumat', FALSE),
-        ('Saturday', '09:00', '21:00', 'Sabtu', FALSE),
-        ('Sunday', '09:00', '21:00', 'Minggu', FALSE)
-    ON CONFLICT (day) DO NOTHING;
 
     CREATE TABLE IF NOT EXISTS jadwal_tutup (
         id VARCHAR(50) PRIMARY KEY,
@@ -181,16 +164,18 @@ function loadAdmins(): array {
 function saveAdmins(array $admins): bool {
     $db = getDB();
     if ($db) {
+        @pg_query($db, "BEGIN");
         @pg_query($db, "DELETE FROM admins");
         foreach ($admins as $a) {
             $id = (int)($a['id'] ?? 0);
-            $u = pg_escape_string($db, $a['username']);
-            $p = pg_escape_string($db, $a['password_hash']);
-            $r = pg_escape_string($db, $a['role'] ?? 'admin');
-            $n = pg_escape_string($db, $a['nama'] ?? $a['username']);
-            $c = pg_escape_string($db, $a['created_at'] ?? date('Y-m-d'));
-            @pg_query($db, "INSERT INTO admins (id, username, password_hash, role, nama, created_at) VALUES ($id, '$u', '$p', '$r', '$n', '$c'::date)");
+            $u = $a['username'];
+            $p = $a['password_hash'];
+            $r = $a['role'] ?? 'admin';
+            $n = $a['nama'] ?? $a['username'];
+            $c = $a['created_at'] ?? date('Y-m-d');
+            pg_query_params($db, "INSERT INTO admins (id, username, password_hash, role, nama, created_at) VALUES ($1, $2, $3, $4, $5, $6::date)", array($id, $u, $p, $r, $n, $c));
         }
+        @pg_query($db, "COMMIT");
     }
     return file_put_contents(ADMINS_FILE, json_encode(['admins' => $admins], JSON_PRETTY_PRINT)) !== false;
 }
@@ -198,12 +183,12 @@ function saveAdmins(array $admins): bool {
 function findAdminByUsername(string $username): ?array {
     $db = getDB();
     if ($db) {
-        $u = pg_escape_string($db, $username);
-        $r = @pg_query($db, "SELECT id::text, username, password_hash, role, nama, to_char(created_at, 'YYYY-MM-DD') AS created_at FROM admins WHERE username = '$u'");
+        $r = @pg_query_params($db, "SELECT id::text, username, password_hash, role, nama, to_char(created_at, 'YYYY-MM-DD') AS created_at FROM admins WHERE username = $1", array($username));
         if ($r && $row = pg_fetch_assoc($r)) {
             $row['id'] = (string)$row['id'];
             return $row;
         }
+        return null;
     }
     foreach (loadAdmins() as $admin) {
         if ($admin['username'] === $username) return $admin;
@@ -215,11 +200,12 @@ function findAdminById(string $id): ?array {
     $db = getDB();
     if ($db) {
         $id_int = (int)$id;
-        $r = @pg_query($db, "SELECT id::text, username, password_hash, role, nama, to_char(created_at, 'YYYY-MM-DD') AS created_at FROM admins WHERE id = $id_int");
+        $r = @pg_query_params($db, "SELECT id::text, username, password_hash, role, nama, to_char(created_at, 'YYYY-MM-DD') AS created_at FROM admins WHERE id = $1", array($id_int));
         if ($r && $row = pg_fetch_assoc($r)) {
             $row['id'] = (string)$row['id'];
             return $row;
         }
+        return null;
     }
     foreach (loadAdmins() as $admin) {
         if ($admin['id'] === $id) return $admin;
@@ -238,65 +224,6 @@ function generateAdminId(): string {
     $admins = loadAdmins();
     $ids = array_column($admins, 'id');
     return (string)(empty($ids) ? 1 : (max(array_map('intval', $ids)) + 1));
-}
-
-// ============================================================
-// HELPER: JAM OPERASIONAL (DB primary, file fallback)
-// ============================================================
-
-function loadJamOperasional(): array {
-    $default = [
-        'Monday'    => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Senin',    'libur' => false],
-        'Tuesday'   => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Selasa',   'libur' => false],
-        'Wednesday' => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Rabu',     'libur' => false],
-        'Thursday'  => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Kamis',    'libur' => false],
-        'Friday'    => ['buka' => '13:30', 'tutup' => '22:00', 'indo' => 'Jumat',    'libur' => false],
-        'Saturday'  => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Sabtu',    'libur' => false],
-        'Sunday'    => ['buka' => '09:00', 'tutup' => '21:00', 'indo' => 'Minggu',   'libur' => false],
-    ];
-
-    // Prioritaskan file (source of truth dari git sync). DB = fallback.
-    if (file_exists(JAM_FILE)) {
-        $data = json_decode(file_get_contents(JAM_FILE), true);
-        if ($data) return $data;
-    }
-
-    $db = getDB();
-    if ($db) {
-        $r = @pg_query($db, "SELECT day, buka, tutup, indo, libur FROM jam_operasional ORDER BY
-            CASE day WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 WHEN 'Friday' THEN 5 WHEN 'Saturday' THEN 6 WHEN 'Sunday' THEN 7 END");
-        if ($r && pg_num_rows($r) > 0) {
-            $result = [];
-            while ($row = pg_fetch_assoc($r)) {
-                $result[$row['day']] = [
-                    'buka'  => $row['buka'] ?? '',
-                    'tutup' => $row['tutup'] ?? '',
-                    'indo'  => $row['indo'],
-                    'libur' => $row['libur'] === 't',
-                ];
-            }
-            if ($result) return $result;
-        }
-    }
-
-    return $default;
-}
-
-function saveJamOperasional(array $jam): bool {
-    $db = getDB();
-    if ($db) {
-        @pg_query($db, "DELETE FROM jam_operasional");
-        foreach ($jam as $day => $d) {
-            $day_e = pg_escape_string($db, $day);
-            $buka = pg_escape_string($db, $d['buka'] ?? '');
-            $tutup = pg_escape_string($db, $d['tutup'] ?? '');
-            $indo = pg_escape_string($db, $d['indo'] ?? $day);
-            $libur = !empty($d['libur']) ? 'true' : 'false';
-            @pg_query($db, "INSERT INTO jam_operasional (day, buka, tutup, indo, libur) VALUES ('$day_e', '$buka', '$tutup', '$indo', $libur)");
-        }
-    }
-    $result = file_put_contents(JAM_FILE, json_encode($jam, JSON_PRETTY_PRINT));
-    return $result !== false;
 }
 
 // ============================================================
@@ -324,12 +251,12 @@ function saveSchedules(array $schedules): bool {
     if ($db) {
         @pg_query($db, "DELETE FROM jadwal_tutup");
         foreach ($schedules as $s) {
-            $id = pg_escape_string($db, $s['id'] ?? uniqid('s_'));
-            $start = pg_escape_string($db, $s['start']);
-            $end = pg_escape_string($db, $s['end']);
-            $note = pg_escape_string($db, $s['note'] ?? '');
-            $created = pg_escape_string($db, $s['created_at'] ?? date('Y-m-d H:i'));
-            @pg_query($db, "INSERT INTO jadwal_tutup (id, start_time, end_time, note, created_at) VALUES ('$id', '$start', '$end', '$note', '$created'::timestamp)");
+            $id = $s['id'] ?? uniqid('s_');
+            $start = $s['start'];
+            $end = $s['end'];
+            $note = $s['note'] ?? '';
+            $created = $s['created_at'] ?? date('Y-m-d H:i');
+            pg_query_params($db, "INSERT INTO jadwal_tutup (id, start_time, end_time, note, created_at) VALUES ($1, $2, $3, $4, $5::timestamp)", array($id, $start, $end, $note, $created));
         }
     }
     $result = file_put_contents(SCHEDULE_FILE, json_encode($schedules, JSON_PRETTY_PRINT));
@@ -357,8 +284,8 @@ function loadStatus(): string {
 function saveStatus(string $status): bool {
     $db = getDB();
     if ($db) {
-        $s = pg_escape_string($db, $status === 'tutup' ? 'tutup' : 'buka');
-        @pg_query($db, "INSERT INTO status_toko (id, status) VALUES (1, '$s') ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status");
+        $s = $status === 'tutup' ? 'tutup' : 'buka';
+        pg_query_params($db, "INSERT INTO status_toko (id, status) VALUES (1, $1) ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status", array($s));
     }
     $result = file_put_contents(STATUS_FILE, $status === 'tutup' ? 'tutup' : 'buka');
     return $result !== false;
@@ -376,7 +303,7 @@ function loadTagline(): string {
             return $data['tagline'];
         }
     }
-    // Fallback: database (for saves done directly on Render admin)
+    // Fallback: database
     $db = getDB();
     if ($db) {
         $r = @pg_query($db, "SELECT text FROM tagline WHERE id = 1");
@@ -390,8 +317,7 @@ function loadTagline(): string {
 function saveTagline(string $tagline): bool {
     $db = getDB();
     if ($db) {
-        $t = pg_escape_string($db, $tagline);
-        @pg_query($db, "INSERT INTO tagline (id, text) VALUES (1, '$t') ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text");
+        pg_query_params($db, "INSERT INTO tagline (id, text) VALUES (1, $1) ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text", array($tagline));
     }
     $result = file_put_contents(TAGLINE_FILE, json_encode(['tagline' => $tagline], JSON_PRETTY_PRINT));
     return $result !== false;
@@ -420,8 +346,7 @@ function loadProductInfoText(): string {
 function saveProductInfoText(string $text): bool {
     $db = getDB();
     if ($db) {
-        $t = pg_escape_string($db, $text);
-        @pg_query($db, "INSERT INTO product_info (id, text) VALUES (1, '$t') ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text");
+        pg_query_params($db, "INSERT INTO product_info (id, text) VALUES (1, $1) ON CONFLICT (id) DO UPDATE SET text = EXCLUDED.text", array($text));
     }
     $result = file_put_contents(PRODUCT_INFO_FILE, json_encode(['text' => $text], JSON_PRETTY_PRINT));
     return $result !== false;
@@ -457,9 +382,7 @@ function saveHeading(string $prefix, string $brand): bool {
     $data = ['prefix' => $prefix, 'brand' => $brand];
     $db = getDB();
     if ($db) {
-        $p = pg_escape_string($db, $prefix);
-        $b = pg_escape_string($db, $brand);
-        @pg_query($db, "INSERT INTO heading (id, prefix, brand) VALUES (1, '$p', '$b') ON CONFLICT (id) DO UPDATE SET prefix = EXCLUDED.prefix, brand = EXCLUDED.brand");
+        pg_query_params($db, "INSERT INTO heading (id, prefix, brand) VALUES (1, $1, $2) ON CONFLICT (id) DO UPDATE SET prefix = EXCLUDED.prefix, brand = EXCLUDED.brand", array($prefix, $brand));
     }
     $result = file_put_contents(HEADING_FILE, json_encode($data, JSON_PRETTY_PRINT));
     return $result !== false;
@@ -613,237 +536,9 @@ function logAdminHistory(string $action, string $target_type = '', string $targe
     $db = getDB();
     if (!$db) return;
     
-    $username = pg_escape_string($db, $admin['username']);
-    $nama = pg_escape_string($db, $admin['nama'] ?? $admin['username']);
-    $act = pg_escape_string($db, $action);
-    $tt = pg_escape_string($db, $target_type);
-    $ti = pg_escape_string($db, $target_id);
-    $det = pg_escape_string($db, $detail);
-    
-    @pg_query($db, "INSERT INTO admin_history (admin_id, admin_username, admin_nama, action, target_type, target_id, detail) VALUES ($admin_id, '$username', '$nama', '$act', '$tt', '$ti', '$det')");
+    pg_query_params($db, "INSERT INTO admin_history (admin_id, admin_username, admin_nama, action, target_type, target_id, detail) VALUES ($1, $2, $3, $4, $5, $6, $7)", array($admin_id, $admin['username'], $admin['nama'] ?? $admin['username'], $action, $target_type, $target_id, $detail));
 }
 
 // ============================================================
-// GIT BACKUP: Backend -> Git (untuk Render ephemeral storage)
+// END OF CONFIG
 // ============================================================
-
-function backupToGit(): array {
-    // Deteksi apakah ada .env dengan GIT_TOKEN
-    $env_token = '';
-    $env_file = __DIR__ . '/.env';
-    if (file_exists($env_file)) {
-        $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $parts = explode('=', $line, 2);
-            if (count($parts) === 2 && trim($parts[0]) === 'GIT_TOKEN') {
-                $env_token = trim($parts[1]);
-            }
-        }
-    }
-
-    $git_token = $env_token ?: (ENV_GIT_TOKEN ?: getenv('GIT_TOKEN'));
-    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
-    $branch    = getenv('GIT_BRANCH') ?: 'main';
-
-    // Kalau ada token, prioritaskan PHP exec (lebih reliable, tidak perlu string substitution batch)
-    if ($git_token) {
-        $git_dir = findGitDir(__DIR__);
-        if ($git_dir) {
-            $exec_ret = execGitPush($git_dir, $git_token, $repo_url, $branch);
-            if ($exec_ret['success']) return $exec_ret;
-        }
-        // PHP push gagal — fallback ke batch file
-    }
-
-    // Di lokal (Windows), coba push_admin.bat (jalan sebagai user login atau pakai credentials default)
-    $bat_path = __DIR__ . '/push_admin.bat';
-    if (PHP_OS_FAMILY === 'Windows' && file_exists($bat_path)) {
-        $output = [];
-        $ret = 0;
-        exec("\"$bat_path\" 2>&1", $output, $ret);
-        $msg = implode("\n", $output);
-        if ($ret === 0) {
-            return ['success' => true, 'message' => $msg ?: 'Push berhasil'];
-        }
-
-        // Bat gagal — coba trigger scheduled task (jalan sebagai user login)
-        if (triggerAdminPushTask()) {
-            return ['success' => true, 'message' => 'Push dijalankan melalui task scheduler sebagai user login. Periksa hasilnya beberapa saat lagi.'];
-        }
-
-        return ['success' => false, 'message' => $msg ?: 'Push gagal (exit code ' . $ret . '). Buat GitHub token dan tambahkan ke backend/.env, atau jalankan backend/setup_push_task.bat sebagai Administrator.'];
-    }
-
-    // Linux / Render — cari .git di repo root atau parent
-    if (!$git_token || !$repo_url) {
-        return ['success' => false, 'message' => 'GIT_TOKEN/GIT_REPO_URL belum diatur. Push ke git tidak bisa dilakukan.'];
-    }
-
-    $git_dir = findGitDir(__DIR__);
-    if (!$git_dir) {
-        return ['success' => false, 'message' => 'Folder .git tidak ditemukan. Push tidak bisa dilakukan di environment ini.'];
-    }
-
-    return execGitPush($git_dir, $git_token, $repo_url, $branch);
-}
-
-/**
- * Coba trigger scheduled task RoyalKomputer Admin Push.
- * Task ini harus dibuat dulu via setup_push_task.bat (sekali saja).
- */
-function triggerAdminPushTask(): bool {
-    $task = 'RoyalKomputer Admin Push';
-    exec("schtasks /Query /FO CSV /TN \"$task\" 2>&1", $out, $code);
-    if ($code !== 0) return false;
-
-    exec("schtasks /Run /TN \"$task\" 2>&1", $out2, $code2);
-    return $code2 === 0;
-}
-
-/**
- * Cari folder .git dari sebuah direktori ke atas.
- */
-function findGitDir(string $start): ?string {
-    $dir = $start;
-    while (true) {
-        if (is_dir($dir . '/.git')) {
-            return $dir;
-        }
-        $parent = dirname($dir);
-        if ($parent === $dir) return null; // sampai root
-        $dir = $parent;
-    }
-}
-
-/**
- * Eksekusi git add / commit / push dengan token auth.
- */
-function execGitPush(string $workdir, string $token, string $repo_url, string $branch): array {
-    $cwd = getcwd();
-    chdir($workdir);
-
-    exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
-    exec('git config user.name "Royal Auto Backup" 2>&1');
-
-    exec('git add -A backend/data/ backend/uploads/ frontend/data/ frontend/cache_produk.json frontend/heading.json frontend/jadwal_tutup.json frontend/jam_operasional.json frontend/product_info.json frontend/tagline.json frontend/status_toko.txt 2>&1', $add_out, $add_code);
-    if ($add_code !== 0) {
-        chdir($cwd);
-        return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
-    }
-
-    exec('git diff --cached --quiet 2>&1', $diff_out, $diff_code);
-    if ($diff_code === 0) {
-        chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-push'];
-    }
-
-    $msg = 'admin: update ' . date('Y-m-d H:i:s');
-    $escaped_msg = str_replace('"', '\\"', $msg);
-    exec("git commit -m \"$escaped_msg\" 2>&1", $commit_out, $commit_code);
-    if ($commit_code !== 0) {
-        chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan baru untuk di-commit'];
-    }
-
-    if (!$repo_url) {
-        exec('git remote get-url origin 2>&1', $url_out, $url_code);
-        $repo_url = $url_code === 0 ? trim(implode('', $url_out)) : '';
-        if (!$repo_url) {
-            chdir($cwd);
-            return ['success' => false, 'message' => 'Tidak bisa menentukan remote URL. Push dibatalkan.'];
-        }
-    }
-
-    $auth_url = str_replace('https://', "https://x-access-token:$token@", $repo_url);
-    exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
-
-    // Gunakan format lengkap git push origin main (tidak hanya 'main' karena dianggap remote name)
-    exec("git push origin $branch 2>&1", $push_out, $push_code);
-    $push_output = implode(', ', $push_out);
-
-    exec("git remote set-url origin \"$repo_url\" 2>&1");
-    chdir($cwd);
-
-    if ($push_code === 0) {
-        return ['success' => true, 'message' => 'Perubahan berhasil di-push ke git'];
-    }
-    return ['success' => false, 'message' => 'git push gagal: ' . $push_output];
-}
-
-function backupPhotosToGit(): array {
-    // Baca .env dulu (local XAMPP), fallback ke env var (Render)
-    $env_token = '';
-    $env_file = __DIR__ . '/.env';
-    if (file_exists($env_file)) {
-        $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $parts = explode('=', $line, 2);
-            if (count($parts) === 2 && trim($parts[0]) === 'GIT_TOKEN') {
-                $env_token = trim($parts[1]);
-            }
-        }
-    }
-    $git_token = $env_token ?: (ENV_GIT_TOKEN ?: getenv('GIT_TOKEN'));
-    $repo_url  = ENV_GIT_REPO_URL ?: getenv('GIT_REPO_URL');
-    $branch    = getenv('GIT_BRANCH') ?: 'main';
-
-    // Hanya jalan di production (Render) ketika env var sudah di-set
-    if (!$git_token || !$repo_url) {
-        return ['success' => false, 'message' => 'GIT_TOKEN/GIT_REPO_URL not set — skip backup'];
-    }
-
-    // Cek apakah git tersedia
-    exec('git --version 2>&1', $ver_out, $ver_code);
-    if ($ver_code !== 0) {
-        return ['success' => false, 'message' => 'Git tidak tersedia di container ini'];
-    }
-
-    $cwd = getcwd();
-    chdir(__DIR__);
-
-    // Konfigurasi git user
-    exec('git config user.email "royal-backup@royalkomputer.com" 2>&1');
-    exec('git config user.name "Royal Auto Backup" 2>&1');
-
-    // Stage file uploads + cache + data (git add akan mendeteksi sendiri apakah ada perubahan)
-    exec('git add -A uploads/ data/ ../frontend/cache_produk.json ../frontend/heading.json ../frontend/jadwal_tutup.json ../frontend/jam_operasional.json ../frontend/product_info.json ../frontend/tagline.json ../frontend/status_toko.txt ../frontend/data/ 2>&1', $add_out, $add_code);
-    if ($add_code !== 0) {
-        chdir($cwd);
-        return ['success' => false, 'message' => 'git add gagal: ' . implode(', ', $add_out)];
-    }
-
-    // Cek apakah ada yang perlu di-commit
-    exec('git diff --cached --quiet 2>&1', $diff_out, $diff_code);
-    if ($diff_code === 0) {
-        chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan untuk di-backup'];
-    }
-
-    // Commit
-    $msg = 'backup: update ' . date('Y-m-d H:i:s');
-    $escaped_msg = str_replace('"', '\\"', $msg);
-    exec("git commit -m \"$escaped_msg\" 2>&1", $commit_out, $commit_code);
-    if ($commit_code !== 0) {
-        chdir($cwd);
-        return ['success' => true, 'message' => 'Tidak ada perubahan baru untuk di-commit'];
-    }
-
-    // Set remote dengan token autentikasi
-    $auth_url = str_replace('https://', "https://x-access-token:$git_token@", $repo_url);
-    exec("git remote set-url origin \"$auth_url\" 2>&1", $remote_out, $remote_code);
-
-    // Push ke branch
-    exec("git push origin $branch 2>&1", $push_out, $push_code);
-    $push_output = implode(', ', $push_out);
-
-    // Reset remote URL ke semula (tetap dijalankan meskipun push gagal)
-    exec("git remote set-url origin \"$repo_url\" 2>&1");
-
-    chdir($cwd);
-
-    if ($push_code === 0) {
-        return ['success' => true, 'message' => 'Foto berhasil di-backup ke git'];
-    } else {
-        return ['success' => false, 'message' => 'git push gagal: ' . $push_output];
-    }
-}

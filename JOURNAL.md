@@ -331,3 +331,81 @@ PHP/Apache runs as `SYSTEM` user via XAMPP — no cached git credentials, so `gi
 - Fixed `SyntaxError: Identifier 'd' has already been declared` in `loadAsetData()` — `const d` was declared twice in the same `.then()` scope (line 2569 `d = summaryRes.data` and line 2602 `d = String(today.getDate())`)
 - Renamed the second declaration from `const d` to `const day`
 - Bug prevented the entire admin page script from executing (loading spinner never stopped)
+
+## 2026-07-12 — Docker Local Deployment & Cloud Cleanup
+
+### Docker Setup
+- Installed PHP 8.3 + extensions (`pgsql`, `gd`, `mbstring`, `curl`) for local development
+- Installed Docker 29.6.1 + Docker Compose 5.3.1
+- Created `.env` from `.env.example` with `DB_PASSWORD=royalkomputer2026`
+- Built and running all 3 Docker services: `db` (PostgreSQL 16), `backend` (PHP 8.2-FPM + Nginx), `frontend` (Vite SPA + Nginx)
+- `docker-compose.yml`: 3 named volumes (`postgres_data`, `backend_uploads`, `backend_data`, `backend_sessions`), single network (`royal-network`), port 80 exposed
+
+### Database Initialization
+- `database/init.sql`: Updated bcrypt hash for `superadmin` account to match password `royal2026` (`$2y$10$Q6I5JUyogQq8uJtOu/BrH.HhtKUL7l/b/UonmVcQexE9dNtl7bUhq`)
+- PostgreSQL auto-creates tables + seeds admin on first `docker compose up`
+
+### Bug Fixes
+- `frontend/src/lib/env.js`: Fixed `API_BASE` — was `RENDER_URL || BASE_URL` (produced protocol-relative `//api_produk.php`), now empty string for relative URLs
+- `backend/admin.php`: Fixed missing `formatDate()` function used in serial number search — added Indonesian locale date formatter
+- `backend/admin.php`: Removed duplicate `<?php` opening tag
+- `backend/config.php`: Added `session_save_path('/var/lib/php/sessions')` for Docker session persistence
+- `backend/Dockerfile`: Added `chmod 1733` + `chown www-data:www-data` on `/var/lib/php/sessions` to fix permission denied error
+
+### Admin Panel Fixes
+- `backend/admin.php`: Added Banner Management panel (`panel-banner`) with tab button, playlist CRUD UI, and JS functions (`loadBannerData`, `createNewPlaylist`, `editPlaylist`, `deletePlaylist`)
+- `backend/admin.php`: Sync Now button and Push ke Git panel removed entirely (not needed in Docker)
+- `backend/admin.php`: Removed `triggerSync()`, `closeSyncModal()`, `pushToGit()` JS functions
+- `backend/admin.php`: Removed `panels` array reference to `'push'`
+
+### Cloud Services Removal
+Removed all dependencies on Render, Netlify, and Neon — project now runs 100% locally via Docker.
+
+**Files cleaned:**
+| File | Removed |
+|------|---------|
+| `backend/config.php` | `backupToGit()`, `backupPhotosToGit()`, `findGitDir()`, `execGitPush()`, `triggerAdminPushTask()`, `ENV_GIT_TOKEN`, `ENV_GIT_REPO_URL` |
+| `backend/update_admin.php` | `push_to_git` action |
+| `backend/update_jam.php` | `backupToGit()` call |
+| `backend/update_produk.php` | `backupPhotosToGit()` call |
+| `backend/api_manage_photos.php` | 2× `backupPhotosToGit()` calls |
+| `backend/admin.php` | Push ke Git panel, Sync status bar + modal, 3 JS functions |
+| `docker-compose.yml` | `GIT_TOKEN`, `GIT_REPO_URL`, `VITE_API_BASE` env vars |
+| `frontend/Dockerfile` | `ARG VITE_API_BASE`, `ENV VITE_API_BASE` |
+| `frontend/src/lib/env.js` | `RENDER_URL` variable, Netlify comment |
+| `.env.example` | `GIT_TOKEN`, `GIT_REPO_URL`, `GIT_BRANCH` |
+| `.github/workflows/` | `deploy.yml` (entire directory deleted) |
+
+### File Deletions (from earlier cleanup)
+- `test_login_bypass.php`, `_fix_bonus_align.ps1`, `_update_bonus.ps1`, `_update_revenue.js.ps1`, `_update_revenue2.ps1`, `_update_rusak.ps1`
+- `convert_to_webp.bat`, `convert_to_webp.php`, `netlify.toml.deprecated`
+- `tests/phpunit.phar`, `tests/coverage.txt`, `tests/parse_coverage.php`
+- `revisi.md`, `CHANGELOG.md`, root `index.html`, `.nojekyll`
+- `database/migrations/001_initial.sql`, `backend/tests/`, `VPS/`
+
+### Documentation
+- Created `INSTALL.md` — comprehensive installation guide (Docker, manual, sync agent, troubleshooting)
+- Replaced `PLAN.md` — concise architecture doc (~130 lines, was 845 lines stale)
+- Updated `.gitignore` — added `tests/phpunit.phar`, `tests/coverage.txt`, `backend/_*.ps1`, `backend/test_login_bypass.php`, `*.deprecated`
+
+### Architecture After Cleanup
+```
+Docker (local/any VPS):
+  ├── db (PostgreSQL 16 Alpine)       → port 5432 (internal)
+  ├── backend (PHP 8.2-FPM + Nginx)   → port 9000 (internal)
+  └── frontend (Vite + Nginx)         → port 80 (exposed)
+
+Volumes:
+  ├── postgres_data    → database
+  ├── backend_uploads  → product photos
+  ├── backend_data     → config JSON files
+  └── backend_sessions → PHP sessions
+```
+
+### Verification
+- All 3 containers healthy
+- Frontend: `http://localhost` → Vite SPA loads correctly
+- Backend: `http://localhost/login.php` → login with `superadmin`/`royal2026` → redirects to `admin.php`
+- API: `http://localhost/api_produk.php` → returns 771 products
+- Admin panels: Katalog, Admin, Banner, Profil, Serial Number, Penghasilan, Hutang, Aset — all functional
+- Session persistence: survives container restart via named volume

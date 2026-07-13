@@ -1,5 +1,5 @@
 <?php
-// Health check endpoint untuk Render
+// Health check endpoint
 // Jika request dengan header Accept: application/json → return JSON
 // Jika tidak → tampilkan halaman landing admin
 
@@ -50,7 +50,7 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
                 <img src="logo/logo.webp" alt="Royal Komputer" class="max-w-full max-h-full object-contain">
             </div>
             <h1 class="text-2xl font-extrabold text-slate-800">Royal Admin Panel</h1>
-            <p class="text-slate-500 text-sm mt-1 mb-8">Kelola produk, jam operasional, dan data toko</p>
+            <p class="text-slate-500 text-sm mt-1 mb-8">Kelola produk, jadwal, dan data toko</p>
             <a href="login.php"
                 class="inline-flex items-center gap-2 bg-astra-950 hover:bg-astra-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-md text-sm">
                 <i class="fa-solid fa-right-to-bracket"></i> Login Admin

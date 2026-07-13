@@ -9,7 +9,7 @@ class ConfigTest extends TestCase
     {
         // Reset data dir to fixture state before each test
         $dataDir = __DIR__ . '/../../backend/data';
-        foreach (['admins.json', 'jam_operasional.json', 'jadwal_tutup.json', 'status_toko.txt'] as $f) {
+        foreach (['admins.json', 'jadwal_tutup.json', 'status_toko.txt'] as $f) {
             $path = $dataDir . '/' . $f;
             $src = __DIR__ . '/../fixtures/' . $f;
             if (file_exists($src)) {
@@ -124,36 +124,6 @@ class ConfigTest extends TestCase
         $this->assertEquals('3', $first);
         $second = generateAdminId();
         $this->assertEquals('3', $second);
-    }
-
-    // -------------------------------------------------------
-    // loadJamOperasional
-    // -------------------------------------------------------
-    public function test_loadJamOperasional_returns_default_when_file_missing(): void
-    {
-        @unlink(JAM_FILE);
-        $jam = loadJamOperasional();
-        $this->assertCount(7, $jam);
-        $this->assertEquals('09:00', $jam['Monday']['buka']);
-        $this->assertEquals('21:00', $jam['Monday']['tutup']);
-        $this->assertEquals('Senin', $jam['Monday']['indo']);
-        $this->assertEquals('13:30', $jam['Friday']['buka']);
-        $this->assertTrue(file_exists(JAM_FILE));
-    }
-
-    public function test_loadJamOperasional_from_file(): void
-    {
-        $jam = loadJamOperasional();
-        $this->assertEquals('09:00', $jam['Monday']['buka']);
-        $this->assertEquals('21:00', $jam['Saturday']['tutup']);
-    }
-
-    public function test_loadJamOperasional_returns_default_on_corrupt(): void
-    {
-        file_put_contents(JAM_FILE, '{invalid json');
-        $jam = loadJamOperasional();
-        $this->assertCount(7, $jam);
-        $this->assertEquals('09:00', $jam['Monday']['buka']);
     }
 
     // -------------------------------------------------------

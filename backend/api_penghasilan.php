@@ -2,6 +2,8 @@
 error_reporting(E_ERROR | E_PARSE);
 header('Content-Type: application/json');
 
+try {
+
 require_once __DIR__ . '/cors.php';
 handleCORS();
 
@@ -12,18 +14,39 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
+$cache_file = __DIR__ . '/data/cache_penghasilan.json';
+$cached_data = null;
+
+// Try to load from cache first
+if (file_exists($cache_file)) {
+    $cached = json_decode(file_get_contents($cache_file), true);
+    if ($cached && isset($cached['data'])) {
+        $cached_data = $cached;
+    }
+}
+
 $db = getDB();
+$load_from_cache = false;
+
 if (!$db) {
-    echo json_encode(["success" => false, "message" => "Database tidak tersedia."]);
-    exit;
+    if ($cached_data) {
+        $load_from_cache = true;
+    } else {
+        echo json_encode(["success" => false, "message" => "Database tidak tersedia dan cache penghasilan kosong."]);
+        exit;
+    }
 }
 
 $action = $_POST['action'] ?? 'summary';
 
-// ─────────────────────────────────────────────────────────
-// GET AVAILABLE DATE RANGE
-// ─────────────────────────────────────────────────────────
+// ─── GET DATE RANGE (always requires DB) ──────────────────────────────
 if ($action === 'get_date_range') {
+    if ($load_from_cache) {
+        $range = $cached_data['data']['available_date_range'] ?? [];
+        echo json_encode(['success' => true, 'data' => $range, 'from_cache' => true]);
+        exit;
+    }
+
     $r = @pg_query($db, "SELECT
         MIN(tanggal)::date AS min_date,
         MAX(tanggal)::date AS max_date
@@ -40,9 +63,17 @@ if ($action === 'get_date_range') {
     exit;
 }
 
-// ─────────────────────────────────────────────────────────
-// SUMMARY (default)
-// ─────────────────────────────────────────────────────────
+// ─── SUMMARY — with cache fallback ──────────────────────────────────
+if ($load_from_cache) {
+    echo json_encode([
+        'success' => true,
+        'data' => $cached_data['data'],
+        'from_cache' => true,
+        'synced_at' => $cached_data['synced_at'] ?? null,
+    ]);
+    exit;
+}
+
 $tgl_mulai = $_POST['tgl_mulai'] ?? date('Y-m-01');
 $tgl_selesai = $_POST['tgl_selesai'] ?? date('Y-m-d');
 
@@ -223,12 +254,10 @@ $pendapatan_bersih = $total_penjualan - $total_hpp;
 $margin_persen = $total_penjualan > 0 ? round(($pendapatan_bersih / $total_penjualan) * 100, 1) : 0;
 
 // Pendapatan bersih setelah dikurangi modal BONUS & RUSAK
-// Rumus: pendapatan_bersih dikurangi dengan HPP/Harga Pokok dari barang BONUS dan RUSAK
 $pendapatan_bersih_non_ded = $pendapatan_bersih - $total_deductions_hpp;
 $margin_non_ded = $total_penjualan > 0 ? round(($pendapatan_bersih_non_ded / $total_penjualan) * 100, 1) : 0;
 
 // 5. Transaksi per hari (dengan HPP & deduksi harian)
-// Note: Use CASE WHEN for count instead of FILTER(WHERE...) for broader PostgreSQL compatibility
 $sql_harian = "SELECT
     h.tanggal::date AS tgl,
     COUNT(*)::integer AS jumlah,
@@ -369,3 +398,7 @@ $response = [
 ];
 
 echo json_encode($response);
+
+} catch (Throwable $e) {
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+}

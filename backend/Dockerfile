@@ -28,8 +28,10 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Buat direktori yang diperlukan
-RUN mkdir -p /opt/app/uploads /opt/app/data && \
-    chmod -R 755 /opt/app/uploads /opt/app/data
+RUN mkdir -p /opt/app/uploads /opt/app/data /var/lib/php/sessions && \
+    chmod -R 755 /opt/app/uploads /opt/app/data && \
+    chmod 1733 /var/lib/php/sessions && \
+    chown www-data:www-data /var/lib/php/sessions
 
 # PHP-FPM listen on TCP (bukan socket) untuk Nginx
 RUN sed -i 's/listen = \/run\/php\/php8.2-fpm.sock/listen = 9000/' /usr/local/etc/php-fpm.d/zz-docker.conf

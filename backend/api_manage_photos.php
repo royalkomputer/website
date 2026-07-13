@@ -13,9 +13,6 @@ header('Content-Type: application/json');
 // Global try-catch: pastikan PHP error selalu dikembalikan sebagai JSON
 try {
 
-require_once __DIR__ . '/cors.php';
-handleCORS();
-
 require_once 'config.php';
 
 // Proteksi akses
@@ -126,8 +123,7 @@ if ($action === 'delete') {
             }
         }
 
-        // Backup perubahan ke git (Render ephemeral storage)
-        backupPhotosToGit();
+        // Backup perubahan ke git
 
         if ($file_exists) {
             echo json_encode(["success" => true, "message" => "Foto berhasil dihapus."]);
@@ -165,15 +161,12 @@ if ($action === 'delete') {
         if ($ext === 'webp') {
             rename($temp_name, $final_name);
             touch($final_name);
+        } elseif (!gdWebpAvailable()) {
+            rename($temp_name, $final_name);
+            touch($final_name);
         } else {
-            $ext = pathinfo($temp_name, PATHINFO_EXTENSION);
-            if ($ext === 'webp' || !gdWebpAvailable()) {
-                rename($temp_name, $final_name);
-                touch($final_name);
-            } else {
-                convertOrCopyImage($temp_name, $final_name);
-                unlink($temp_name);
-            }
+            convertOrCopyImage($temp_name, $final_name);
+            unlink($temp_name);
         }
         $index++;
     }
@@ -247,8 +240,7 @@ if ($action === 'delete') {
         }
     }
 
-    // Backup perubahan ke git (Render ephemeral storage)
-    backupPhotosToGit();
+    // Backup perubahan ke git
 
     echo json_encode(["success" => true, "message" => "Urutan foto berhasil disimpan."]);
     exit;

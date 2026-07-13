@@ -4,7 +4,7 @@
 
 Vanilla PHP e-commerce marketplace for **Royal Komputer Kediri**, a computer hardware store in Kediri, East Java, Indonesia.
 
-The system has a **hybrid local/cloud architecture**: a PC at the store runs `sync/` scripts to pull product data from the **IPOS** point-of-sale software and push changes to git. Cloud services (**Netlify** frontend, **Render** backend, **Neon** database) auto-deploy from the git repo.
+The system has a **hybrid local/cloud architecture**: a PC at the store runs `sync/` scripts to pull product data from the **IPOS** point-of-sale software and push changes to git. Cloud services (frontend, backend, database) auto-deploy from the git repo.
 
 **Language:** PHP 8.x, vanilla JavaScript (ES6+), Tailwind CSS via CDN, Font Awesome icons.
 **No frameworks, no build tools, no package manager.** Flat-file monolithic architecture.
@@ -41,10 +41,9 @@ The system has a **hybrid local/cloud architecture**: a PC at the store runs `sy
 │                            CLOUD (via git repo)                         │
 │                                                                          │
 │  ┌──────────────┐    ┌──────────────┐    ┌───────────────────────────┐  │
-│  │   Netlify    │    │   Render     │    │   Neon                    │  │
-│  │  (Frontend)  │    │  (Backend)   │    │   (Cloud PostgreSQL)      │  │
-│  │  Storefront  │    │  Admin/PHP   │    │   Serverless DB           │  │
-│  │  Static/CDN  │    │  API layer   │    │   Mirrors local DB schema │  │
+│  │   Frontend   │    │   Backend    │    │   Database                │  │
+│  │  (Storefront)│    │  (Admin/PHP) │    │   (Cloud PostgreSQL)      │  │
+│  │  Static/CDN  │    │  API layer   │    │   Serverless DB           │  │
 │  └──────────────┘    └──────────────┘    └───────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -54,33 +53,9 @@ The system has a **hybrid local/cloud architecture**: a PC at the store runs `sy
 1. **IPOS** writes product inventory to local PostgreSQL (`192.168.18.189:5444`, DB: `i4_ROYAL`)
 2. **Windows Task Scheduler** runs `php sync/update_produk.php` every 1 hour
 3. **sync agent** queries the local DB for products with `stock > 0`, generates `cache_produk.json`, commits & pushes to git via `sync/git_push.bat`
-4. **Netlify** auto-deploys the storefront from the git repo
-5. **Render** auto-deploys the PHP backend/admin panel from the git repo
-6. **Neon** serves as the cloud PostgreSQL database for deployed services
-
-### Cloud Service Roles
-
-| Service  | Role      | URL                                          |
-|----------|-----------|----------------------------------------------|
-| Netlify  | Frontend  | `https://tiny-druid-60182f.netlify.app`      |
-| Render   | Backend   | `https://royal-backend-s3ir.onrender.com`    |
-| Neon     | Database  | `postgresql://...@ep-dawn-shape-ao7h4edr.jp-tokyo-1.aws.neon.tech/royalkomputer?sslmode=require` |
-
-### Netlify Redirect Limitations
-
-Netlify **does not support** wildcard/redirect with `status = 200` to an external URL. The following approaches were tested and **failed**:
-- `_redirects`: `/uploads/* https://render.com/uploads/:splat 200`
-- `netlify.toml`: `from = "/uploads/*"`, `to = "...", status = 200`
-
-**What works:**
-- **Exact-path redirects** with `status = 200` to external URLs (e.g., `/logo/logo.webp`)
-- **Wildcard redirects with `force = true`** — only works for internal admin paths that hit Render directly (e.g., `/admin/*`, `/update_*`)
-- **Absolute image URLs** from the backend API (e.g., `https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp`)
-
-**Current strategy:**
-- Logo: served via exact-path redirect `/logo/logo.webp → Render URL`
-- Product photos: API returns absolute Render URLs (not relative paths)
-- Admin paths: wildcard redirects to Render with `force = true`
+4. **Frontend** auto-deploys from the git repo
+5. **Backend** auto-deploys from the git repo
+6. **Database** serves as the cloud PostgreSQL for deployed services
 
 ---
 
@@ -88,21 +63,21 @@ Netlify **does not support** wildcard/redirect with `status = 200` to an externa
 
 The project uses a 4-folder monorepo structure at the root level. Each folder maps to a deployment target.
 
-| Folder | Deploys To | Purpose |
-|--------|------------|---------|
-| `database/` | **Neon** | PostgreSQL schema + migrations |
-| `frontend/` | **Netlify** | Public storefront + product API |
-| `backend/` | **Render** | Admin dashboard + API layer |
-| `sync/` | **Local PC** | IPOS sync agent (Task Scheduler) |
+| Folder | Purpose |
+|--------|---------|
+| `database/` | PostgreSQL schema + migrations |
+| `frontend/` | Public storefront + product API |
+| `backend/` | Admin dashboard + API layer |
+| `sync/` | IPOS sync agent (Task Scheduler) |
 
-### `database/` — Neon
+### `database/`
 
 | File | Purpose |
 |------|---------|
 | `schema.sql` | Full PostgreSQL schema DDL |
 | `migrations/001_initial.sql` | Incremental schema migrations |
 
-### `frontend/` — Netlify
+### `frontend/`
 
 | File | Type | Auth |
 |------|------|------|
@@ -111,9 +86,8 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `cache_produk.json` | Product cache fallback | — |
 | `uploads/` | Product photos (WEBP) | — |
 | `logo/` | Brand assets | — |
-| `netlify.toml` | Netlify build configuration | — |
 
-### `backend/` — Render
+### `backend/`
 
 | File | Type | Auth |
 |------|------|------|
@@ -123,16 +97,12 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `config.php` | Core config & helpers | Varies |
 | `update_produk.php` | Product update + photo upload API | Session |
 | `update_admin.php` | Admin CRUD + schedules + status API | Session |
-| `update_jam.php` | Operating hours API | Super Admin |
 | `api_manage_photos.php` | Photo delete/reorder API | Session |
 | `api_hutang.php` | Outstanding debt report API | Session |
 | `data/admins.json` | Admin accounts (bcrypt) | — |
-| `data/jam_operasional.json` | Per-day operating hours | — |
-| `data/jadwal_tutup.json` | Closure schedules | — |
 | `data/status_toko.txt` | Manual store status override | — |
 | `data/cache_produk.json` | Product cache (written by admin) | — |
 | `uploads/` | Admin photo upload target | — |
-| `render.yaml` | Render blueprint config | — |
 
 ### `sync/` — Local PC
 
@@ -141,6 +111,9 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `update_produk.php` | IPOS data sync script |
 | `config.php` | DB config (local IPOS PostgreSQL) |
 | `cache_produk.json` | Generated product cache |
+| `cache_aset.json` | Generated asset data cache |
+| `cache_hutang.json` | Generated debt data cache |
+| `cache_penghasilan.json` | Generated revenue data cache |
 | `git_push.bat` | Git commit + push automation |
 
 ## API Reference
@@ -160,8 +133,8 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
     "price": 1850000,
     "stock": 12,
     "description": "Spesifikasi lengkap...",
-    "image": "https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=1234567890",
-    "images": ["https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=...", "https://royal-backend-s3ir.onrender.com/uploads/BRG001_2.webp?v=..."]
+    "image": "/uploads/BRG001_1.webp?v=1234567890",
+    "images": ["/uploads/BRG001_1.webp?v=...", "/uploads/BRG001_2.webp?v=..."]
   }
 ]
 ```
@@ -227,64 +200,6 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 - At least 1 super admin must exist at all times
 - Schedule dates must be valid, start ≤ end
 
-### 4. `update_jam.php` — Operating Hours
-
-**Method:** POST  
-**Auth:** Super admin only  
-**Parameters:** `buka_Monday`, `tutup_Monday`, `buka_Tuesday`, `tutup_Tuesday`, ... (HH:MM format)
-
-### 5. `api_manage_photos.php` — Photo Management
-
-**Method:** POST  
-**Auth:** Session (admin logged in)
-
-**Actions:**
-
-| Action | Parameters | Description |
-|--------|------------|-------------|
-| `delete` | `id`, `file` (URL) | Delete a single photo file |
-| `reorder` | `id`, `files` (JSON array of URLs) | Renumber all photos in order |
-
-**Security:** Validates file path via `realpath()` to prevent directory traversal. Only files starting with the product's `safe_kode` prefix in `uploads/` can be deleted.
-
-### 6. `api_hutang.php` — Outstanding Debt Report
-
-**Method:** POST  
-**Auth:** Session (admin logged in)
-
-**Actions:**
-
-| Action | Parameters | Description |
-|--------|------------|-------------|
-| `get_summary` | — | Aggregate totals: total hutang, total faktur, overdue amount, supplier count, breakdown per jenis nota (BL/KI/RKI) |
-| `get_list` | `sort_by`, `supplier_search`, `jenis_nota`, `overdue_only` | Detailed list of outstanding invoices with due dates, status, and days overdue |
-
-**`get_list` parameters:**
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `sort_by` | string | `due_date_asc` | `due_date_asc`, `due_date_desc`, `amount_desc`, `amount_asc`, `supplier_asc`, `supplier_desc` |
-| `supplier_search` | string | — | Filter by supplier name or kode (case-insensitive LIKE) |
-| `jenis_nota` | string | `all` | `all`, `BL`, `KI`, `RKI` |
-| `overdue_only` | string | — | Set to `1` to show only overdue invoices |
-
-**Response (`get_list`):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "notransaksi": "BL-2026-00001",
-      "tgl_beli": "2026-06-15",
-      "kodesupel": "SUP001",
-      "nama_supplier": "PT Supplier",
-      "totalakhir": 5000000,
-      "jmlkredit": 5000000,
-      "krd_jml_byr": 1000000,
-      "sisa": 4000000,
-      "byr_krd_jt": "2026-07-15",
-      "tipe": "BL",
-      "jenis_label": "Pembelian",
       "keterangan": "",
       "status": "terlambat",
       "hari_terlambat": 5
@@ -348,12 +263,6 @@ Only items with `SUM(stok) > 0` are exposed to the storefront.
 }
 ```
 
-#### `jam_operasional.json`
-```json
-{
-  "Monday":    { "buka": "09:00", "tutup": "21:00", "indo": "Senin" },
-  "Tuesday":   { "buka": "09:00", "tutup": "21:00", "indo": "Selasa" },
-  ...
 }
 ```
 
@@ -367,46 +276,11 @@ Only items with `SUM(stok) > 0` are exposed to the storefront.
     "note": "Libur Lebaran",
     "created_at": "2026-06-18 10:00"
   }
-]
-```
-
-### Photo Storage
-- Format: WEBP only
-- Naming: `{safe_kode}_{index}.webp` (index starts at 1)
-  - `safe_kode` = `preg_replace('/[^A-Za-z0-9]/', '_', $kodeitem)`
-  - Example: `BRG_001` → `BRG_001_1.webp`, `BRG_001_2.webp`
-- Legacy single-photo format: `{safe_kode}.webp` (supported, shown first)
-- Location: `uploads/` directory on Render (not served via Netlify proxy)
-- Image URLs in API response: **absolute Render URLs** (e.g., `https://royal-backend-s3ir.onrender.com/uploads/BRG001_1.webp?v=...`)
-- Netlify wildcard proxy to Render does not work — images must use absolute Render URLs
-- Cache busting: `?v=filemtime` appended to URLs
-
----
-
-## Authentication & Authorization
-
-### Login Flow
-1. User submits username + password via `login.php` POST form
-2. Script calls `findAdminByUsername()` which reads `admins.json`
-3. Verifies password with `password_verify()` against bcrypt hash
-4. On success: sets session variables (`admin_logged_in`, `admin_id`, `admin_username`, `admin_role`)
-5. Redirects to `admin.php`
-6. `config.php` starts session via `session_start()` for all pages
-
-### Session Guards
-```php
-// Require any logged-in admin
-requireLogin();  // Redirects to login.php if not authenticated
-
-// Check for super admin role
-isSuperAdmin()  // Returns bool, checks current admin's role === 'super_admin'
-```
-
 ### Role Hierarchy
 | Role | Permissions |
 |------|------------|
-| `super_admin` | Full access: product management, operating hours, closure schedules, admin CRUD, manual status override, profile edit |
-| `admin` | Product management, closure schedules (view/add/edit), manual status override, own profile edit. **Cannot:** manage other admins, change operating hours |
+| `super_admin` | Full access: product management, closure schedules, admin CRUD, manual status override, profile edit |
+| `admin` | Product management, closure schedules (view/add/edit), manual status override, own profile edit. **Cannot:** manage other admins, change |
 
 ### Default Credentials
 - Username: `superadmin`
@@ -423,7 +297,7 @@ The storefront in `index.php` evaluates status in this priority order:
    ↓ If not manually closed:
 2. Active closure schedule (jadwal_tutup.json, current time within any range)
    ↓ If no active schedule:
-3. Operating hours check (jam_operasional.json, current day & time)
+3. Schedule and manual status check
 ```
 
 **Implementation logic (in `index.php`):**
@@ -551,7 +425,7 @@ Photos are managed in the client-side `currentEditImages[]` array with mixed `{t
 |------|-----------|
 | Always use `htmlspecialchars()` on user output | All PHP templates |
 | Always call `requireLogin()` on admin pages | All admin files |
-| Use `isSuperAdmin()` guard for sensitive operations | Admin management, operating hours |
+| Use `isSuperAdmin()` guard for sensitive operations | Admin management, |
 | Validate file paths with `realpath()` | Photo delete API |
 | Never store plaintext passwords | Always bcrypt via `password_hash()` |
 
@@ -576,9 +450,8 @@ role: admin
 ```
 Requires super admin role.
 
-### Modifying operating hours
+### Modifying
 ```http
-POST update_jam.php
 buka_Monday: 08:00
 tutup_Monday: 22:00
 ```
@@ -586,7 +459,6 @@ Requires super admin role. HH:MM format, English day names.
 
 ### Checking store status
 - Manual override: read `status_toko.txt`
-- Operating hours: read `jam_operasional.json`
 - Schedules: read `jadwal_tutup.json`
 
 ### Running the sync agent manually
@@ -594,6 +466,39 @@ Requires super admin role. HH:MM format, English day names.
 cd sync
 php update_produk.php
 ```
+
+### Sync Agent — Admin Data (Aset, Hutang, Penghasilan)
+
+Selain produk, sync agent juga menyinkronkan 3 jenis data admin setiap jam:
+
+#### Data yang disinkronkan:
+
+| Cache File | Admin Menu | Sumber Tabel IPOS |
+|------------|------------|-------------------|
+| `cache_aset.json` | Aset | `tbl_item`, `tbl_itemstok` (nilai modal, nilai jual per item) |
+| `cache_hutang.json` | Hutang | `tbl_imhd`, `tbl_supel` (hutang beredar ke supplier) |
+| `cache_penghasilan.json` | Penghasilan | `tbl_ikhd`, `tbl_ikdt`, `tbl_item` (penjualan bulan berjalan) |
+
+#### Cache file locations:
+- `sync/cache_*.json` — cache source (sync agent)
+- `backend/data/cache_*.json` — digunakan oleh API backend sebagai fallback
+
+#### Cache fallback mechanism:
+```php
+// Pattern used in API files:
+$db = getDB();
+if (!$db) {
+    // Load from cache file
+    $cached = json_decode(file_get_contents('data/cache_aset.json'), true);
+    // Use cached data with filtering/sorting support
+}
+```
+
+Ketika database IPOS tidak tersedia, menu admin akan menggunakan cache yang tersimpan untuk:
+- **Aset:** Ringkasan, breakdown kategori, daftar produk dengan filter & sorting
+- **Hutang:** Ringkasan, daftar hutang dengan filter & sorting
+- **Penghasilan:** Data bulan berjalan (summary, transaksi terbaru)
+- **Mutasi Aset:** Tidak tersedia di cache (membutuhkan query DB langsung)
 
 ### Configuring Windows Task Scheduler
 

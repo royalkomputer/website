@@ -38,21 +38,9 @@ date_default_timezone_set('Asia/Jakarta');
 // ── 1. Manual override ──
 $tutup_sementara = loadStatus() === 'tutup';
 
-// ── 2. Operating hours check ──
+// ── 2. Schedule check ──
 $hari_inggris = date('l');
 $jam_sekarang = date('H:i');
-$jam_buka = loadJamOperasional();
-
-$is_open = false;
-$hari_ini = $jam_buka[$hari_inggris] ?? null;
-
-$is_libur = ($hari_ini['libur'] ?? false);
-
-if ($hari_ini && !$tutup_sementara && !$is_libur) {
-    $is_open = ($jam_sekarang >= $hari_ini['buka'] && $jam_sekarang <= $hari_ini['tutup']);
-}
-
-// ── 3. Schedule check ──
 $schedules = loadSchedules();
 $now_dt = date('Y-m-d H:i');
 $has_schedule_now = false;
@@ -71,6 +59,10 @@ if ($has_schedule_now) {
     $is_open = false;
 }
 
+// ── 3. Store is open unless manually/temporarily closed ──
+$is_open = !$tutup_sementara;
+$hari_ini = null;
+
 // ── 4. Upcoming schedule ──
 $upcoming_schedule = null;
 $future_schedules = array_filter($schedules, function ($s) use ($now_dt) {
@@ -83,75 +75,24 @@ if (!empty($future_schedules)) {
     $upcoming_schedule = $future_schedules[0];
 }
 
-// ── 5. Next opening time ──
-$next_buka = '';
-$next_hari = '';
-
-if (!$is_open && $hari_ini && !$tutup_sementara && !$is_libur) {
-    if ($jam_sekarang < $hari_ini['buka']) {
-        // Opens later today
-        $next_buka = $hari_ini['buka'];
-        $next_hari = $hari_ini['indo'];
-    }
-}
-
-if (empty($next_buka)) {
-    // Search forward for next open day
-    $day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    $day_indo  = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    $today_idx = array_search($hari_inggris, $day_names);
-
-    for ($i = 1; $i <= 7; $i++) {
-        $check_idx = ($today_idx + $i) % 7;
-        $check_day = $day_names[$check_idx];
-        $h = $jam_buka[$check_day] ?? null;
-
-        if ($h && !empty($h['buka']) && !($h['libur'] ?? false)) {
-            $next_buka = $h['buka'];
-            $next_hari = $h['indo'];
-            break;
-        }
-    }
-}
-
-// ── 6. Effective close time (adjusted for today's closure schedules) ──
-$effective_close = $hari_ini['tutup'] ?? '';
-$today_date = date('Y-m-d');
-
-if ($is_open && !empty($effective_close) && !$is_libur) {
-    foreach ($schedules as $s) {
-        if (!empty($s['start'])) {
-            $sched_date = substr($s['start'], 0, 10);
-            $sched_time = substr($s['start'], 11, 5);
-
-            if ($sched_date === $today_date && $sched_time > $jam_sekarang && $sched_time < $effective_close) {
-                $effective_close = $sched_time;
-            }
-        }
-    }
-} elseif ($is_libur) {
-    $effective_close = '';
-}
-
 // ── Tagline toko ──
 $tagline = loadTagline();
 
 // ── Heading toko ──
 $heading = loadHeading();
 
-// ── Build response ──
+// ── 5. Build response ──
 $response = [
     'isOpen'               => $is_open,
     'isTemporarilyClosed'  => $tutup_sementara,
     'hasActiveSchedule'    => $has_schedule_now,
     'upcomingSchedule'     => $upcoming_schedule,
-    'nextOpenDay'          => $next_hari,
-    'nextOpenTime'         => $next_buka,
-    'closeTime'            => $effective_close,
+    'nextOpenDay'          => '',
+    'nextOpenTime'         => '',
+    'closeTime'            => '',
     'currentDay'           => $hari_inggris,
-    'currentDayIndo'       => $hari_ini['indo'] ?? '',
+    'currentDayIndo'       => '',
     'currentTime'          => $jam_sekarang,
-    'hours'                => $jam_buka,
     'tagline'              => $tagline,
     'heading'              => $heading,
     'timestamp'            => date('c'),

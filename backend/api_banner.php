@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json');
+header('Cache-Control: public, max-age=300');
 require_once __DIR__ . '/cors.php';
 handleCORS();
 

@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin = findAdminByUsername($username);
 
     if ($admin && password_verify($password, $admin['password_hash'])) {
+        session_regenerate_id(true);
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['admin_id']        = $admin['id'];
         $_SESSION['admin_username']  = $admin['username'];

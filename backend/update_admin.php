@@ -1,6 +1,9 @@
 <?php
 error_reporting(E_ERROR | E_PARSE);
 header('Content-Type: application/json');
+
+try {
+
 require_once 'config.php';
 
 // Check auth: return JSON error instead of redirect (consistent with other API endpoints)
@@ -127,7 +130,7 @@ if ($action === 'edit_admin') {
         $_SESSION['admin_username'] = $new_username;
     }
 
-    logAdminHistory('edit_admin', 'admin', $_POST['id'] ?? '', 'Mengedit admin: ' . ($_POST['username'] ?? ''));
+    logAdminHistory('edit_admin', 'admin', $_POST['target_id'] ?? '', 'Mengedit admin: ' . ($_POST['username'] ?? ''));
 echo json_encode(['success'=>true,'message'=>'Data admin berhasil diperbarui.']);
     exit;
 }
@@ -149,6 +152,135 @@ if ($action === 'get_admins') {
 
 
 // ============================================================
+// SCHEDULE MANAGEMENT
+// ============================================================
+
+if ($action === 'get_schedules') {
+    $schedules = loadSchedules();
+    echo json_encode(['success' => true, 'data' => $schedules]);
+    exit;
+}
+
+if ($action === 'add_schedule') {
+    $start_date = trim($_POST['start_date'] ?? '');
+    $start_time = trim($_POST['start_time'] ?? '00:00');
+    $end_date   = trim($_POST['end_date'] ?? '');
+    $end_time   = trim($_POST['end_time'] ?? '23:59');
+    $note       = trim($_POST['note'] ?? '');
+
+    if (!$start_date || !$end_date) {
+        echo json_encode(['success' => false, 'message' => 'Tanggal harus diisi.']);
+        exit;
+    }
+
+    $start = $start_date . ' ' . $start_time;
+    $end   = $end_date . ' ' . $end_time;
+
+    if ($start > $end) {
+        echo json_encode(['success' => false, 'message' => 'Waktu mulai harus sebelum waktu selesai.']);
+        exit;
+    }
+
+    $schedules = loadSchedules();
+    $new_schedule = [
+        'id'         => 's_' . uniqid(),
+        'start'      => $start,
+        'end'        => $end,
+        'note'       => $note,
+        'created_at' => date('Y-m-d H:i'),
+    ];
+    $schedules[] = $new_schedule;
+    saveSchedules($schedules);
+
+    logAdminHistory('add_schedule', 'schedule', $new_schedule['id'], 'Menambahkan jadwal tutup: ' . $note);
+    echo json_encode(['success' => true, 'message' => 'Jadwal berhasil ditambahkan.']);
+    exit;
+}
+
+if ($action === 'edit_schedule') {
+    $id         = trim($_POST['id'] ?? '');
+    $start_date = trim($_POST['start_date'] ?? '');
+    $start_time = trim($_POST['start_time'] ?? '00:00');
+    $end_date   = trim($_POST['end_date'] ?? '');
+    $end_time   = trim($_POST['end_time'] ?? '23:59');
+    $note       = trim($_POST['note'] ?? '');
+
+    if (!$id || !$start_date || !$end_date) {
+        echo json_encode(['success' => false, 'message' => 'Parameter tidak valid.']);
+        exit;
+    }
+
+    $start = $start_date . ' ' . $start_time;
+    $end   = $end_date . ' ' . $end_time;
+
+    if ($start > $end) {
+        echo json_encode(['success' => false, 'message' => 'Waktu mulai harus sebelum waktu selesai.']);
+        exit;
+    }
+
+    $schedules = loadSchedules();
+    $found = false;
+    foreach ($schedules as &$s) {
+        if ($s['id'] === $id) {
+            $s['start'] = $start;
+            $s['end']   = $end;
+            $s['note']  = $note;
+            $found = true;
+            break;
+        }
+    }
+    unset($s);
+
+    if (!$found) {
+        echo json_encode(['success' => false, 'message' => 'Jadwal tidak ditemukan.']);
+        exit;
+    }
+
+    saveSchedules($schedules);
+    logAdminHistory('edit_schedule', 'schedule', $id, 'Mengedit jadwal tutup: ' . $note);
+    echo json_encode(['success' => true, 'message' => 'Jadwal berhasil diperbarui.']);
+    exit;
+}
+
+if ($action === 'delete_schedule') {
+    $id = trim($_POST['id'] ?? '');
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'ID jadwal diperlukan.']);
+        exit;
+    }
+
+    $schedules = loadSchedules();
+    $filtered = array_values(array_filter($schedules, fn($s) => $s['id'] !== $id));
+
+    if (count($filtered) === count($schedules)) {
+        echo json_encode(['success' => false, 'message' => 'Jadwal tidak ditemukan.']);
+        exit;
+    }
+
+    saveSchedules($filtered);
+    logAdminHistory('delete_schedule', 'schedule', $id, 'Menghapus jadwal tutup');
+    echo json_encode(['success' => true, 'message' => 'Jadwal berhasil dihapus.']);
+    exit;
+}
+
+// ============================================================
+// MANUAL STATUS TOGGLE
+// ============================================================
+
+if ($action === 'set_manual_status') {
+    $status = trim($_POST['status'] ?? '');
+    if (!in_array($status, ['buka', 'tutup'])) {
+        echo json_encode(['success' => false, 'message' => 'Status harus "buka" atau "tutup".']);
+        exit;
+    }
+
+    saveStatus($status);
+    logAdminHistory('set_manual_status', 'status', $status, 'Mengubah status toko manual: ' . $status);
+    echo json_encode(['success' => true, 'message' => 'Status toko berhasil diubah.', 'status' => $status]);
+    exit;
+}
+
+// ============================================================
 // SEARCH SERIAL NUMBER — Cari nota pembelian & penjualan via serial number
 // ============================================================
 if ($action === 'search_serial') {
@@ -164,7 +296,7 @@ if ($action === 'search_serial') {
         exit;
     }
 
-    $search = pg_escape_string($db, $query);
+    $like = '%' . $query . '%';
 
     $sql = "SELECT
                 s.noserial,
@@ -189,13 +321,13 @@ if ($action === 'search_serial') {
             LEFT JOIN tbl_ikhd ik ON s.notrsrk = ik.notransaksi
             LEFT JOIN tbl_supel sp_beli ON im.kodesupel = sp_beli.kode
             LEFT JOIN tbl_supel sp_jual ON ik.kodesupel = sp_jual.kode
-            WHERE s.noserial ILIKE '%$search%'
-               OR s.kodeitem ILIKE '%$search%'
-               OR i.namaitem ILIKE '%$search%'
+            WHERE s.noserial ILIKE $1
+               OR s.kodeitem ILIKE $1
+               OR i.namaitem ILIKE $1
             ORDER BY s.dateupd DESC
             LIMIT 100";
 
-    $result = @pg_query($db, $sql);
+    $result = @pg_query_params($db, $sql, array($like));
     if (!$result) {
         echo json_encode(['success' => false, 'message' => 'Query gagal: ' . pg_last_error($db)]);
         exit;
@@ -207,12 +339,11 @@ if ($action === 'search_serial') {
     }
 
     // Count total
-    $count_sql = "SELECT COUNT(*) AS total FROM tbl_itemserial s
+    $count_result = @pg_query_params($db, "SELECT COUNT(*) AS total FROM tbl_itemserial s
                   LEFT JOIN tbl_item i ON s.kodeitem = i.kodeitem
-                  WHERE s.noserial ILIKE '%$search%'
-                     OR s.kodeitem ILIKE '%$search%'
-                     OR i.namaitem ILIKE '%$search%'";
-    $count_result = @pg_query($db, $count_sql);
+                  WHERE s.noserial ILIKE $1
+                     OR s.kodeitem ILIKE $1
+                     OR i.namaitem ILIKE $1", array($like));
     $total = $count_result ? (int)pg_fetch_result($count_result, 0, 'total') : 0;
 
     echo json_encode(['success' => true, 'data' => $data, 'total' => $total]);
@@ -232,7 +363,7 @@ if ($action === 'get_history') {
     $limit = (int)($_POST['limit'] ?? 50);
     $offset = (int)($_POST['offset'] ?? 0);
     
-    $result = @pg_query($db, "SELECT id, admin_id, admin_username, admin_nama, action, target_type, target_id, detail, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM admin_history ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
+    $result = @pg_query_params($db, "SELECT id, admin_id, admin_username, admin_nama, action, target_type, target_id, detail, to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM admin_history ORDER BY created_at DESC LIMIT $1 OFFSET $2", array($limit, $offset));
     if (!$result) {
         echo json_encode(['success'=>false,'message'=>'Gagal mengambil history.']);
         exit;
@@ -250,14 +381,8 @@ if ($action === 'get_history') {
     exit;
 }
 
-// -------------------------------------------------------
-// ACTION: push_to_git
-// -------------------------------------------------------
-if ($action === 'push_to_git') {
-    requireLogin();
-    $result = backupToGit();
-    echo json_encode($result);
-    exit;
-}
-
 echo json_encode(['success'=>false,'message'=>'Action tidak dikenali.']);
+
+} catch (Throwable $e) {
+    echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+}

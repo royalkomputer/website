@@ -27,6 +27,7 @@ services:
     volumes:
       - backend_uploads:/opt/app/uploads
       - backend_data:/opt/app/data
+      - backend_sessions:/var/lib/php/sessions
     environment:
       DB_HOST: db
       DB_PORT: "5432"
@@ -34,8 +35,6 @@ services:
       DB_USER: royal_owner
       DB_PASSWORD: ${DB_PASSWORD:-royalkomputer2026}
       APP_ENV: production
-      GIT_TOKEN: ${GIT_TOKEN:-}
-      GIT_REPO_URL: ${GIT_REPO_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -53,8 +52,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_API_BASE: ""
     restart: unless-stopped
     ports:
       - "80:80"
@@ -69,6 +66,7 @@ volumes:
   postgres_data:
   backend_uploads:
   backend_data:
+  backend_sessions:
 
 networks:
   royal-network:

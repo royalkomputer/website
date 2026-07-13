@@ -87,11 +87,6 @@ export async function fetchStoreStatus() {
 /**
  * Fetch operating hours directly from the JSON file.
  */
-async function fetchJamOperasional() {
-  const res = await fetch(`${DATA_BASE}jam_operasional.json`)
-  return res.json()
-}
-
 /**
  * Fetch closure schedules from the JSON file.
  */
@@ -133,20 +128,8 @@ export async function fetchBanners() {
  */
 async function calculateStatusFromFiles() {
   const now = new Date()
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-
-  const currentDay = dayNames[now.getDay()]
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
   const nowISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${currentTime}`
-
-  // Load hours
-  let jamBuka = {}
-  try {
-    jamBuka = await fetchJamOperasional()
-  } catch {
-    return { isOpen: false, statusText: 'Tidak dapat memuat jadwal', statusClass: 'bg-gray-500' }
-  }
 
   // Load schedules
   let schedules = []
@@ -167,36 +150,7 @@ async function calculateStatusFromFiles() {
   }
 
   const isTemporarilyClosed = tutupSementara || hasActiveSchedule
-
-  // Check operating hours
-  const todayHours = jamBuka[currentDay]
-  let isOpen = false
-  const isLibur = todayHours?.libur === true
-  if (todayHours && !isTemporarilyClosed && !isLibur) {
-    isOpen = currentTime >= todayHours.buka && currentTime <= todayHours.tutup
-  }
-
-  // Find next opening
-  let nextOpenDay = ''
-  let nextOpenTime = ''
-  if (!isOpen || isTemporarilyClosed) {
-    if (!isTemporarilyClosed && todayHours && !isLibur && currentTime < todayHours.buka) {
-      // Opens later today
-      nextOpenDay = todayHours.indo
-      nextOpenTime = todayHours.buka
-    } else {
-      // Check tomorrow onwards, skip libur days
-      for (let i = 1; i <= 7; i++) {
-        const checkDay = dayNames[(now.getDay() + i) % 7]
-        const h = jamBuka[checkDay]
-        if (h && h.buka && !h.libur) {
-          nextOpenDay = h.indo
-          nextOpenTime = h.buka
-          break
-        }
-      }
-    }
-  }
+  const isOpen = !isTemporarilyClosed
 
   // Find upcoming schedule
   let upcomingSchedule = null
@@ -207,30 +161,14 @@ async function calculateStatusFromFiles() {
     upcomingSchedule = futureSchedules[0]
   }
 
-  // ── Effective close time (adjusted for today's closure schedules) ──
-  let effectiveClose = isLibur ? '' : (todayHours?.tutup || '')
-  if (isOpen && effectiveClose) {
-    const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    for (const s of schedules) {
-      if (s.start) {
-        const schedDate = s.start.substring(0, 10)
-        const schedTime = s.start.substring(11, 16)
-        // Schedule starts today, hasn't started yet, and is before normal closing
-        if (schedDate === todayDate && schedTime > currentTime && schedTime < effectiveClose) {
-          effectiveClose = schedTime
-        }
-      }
-    }
-  }
-
   return {
     isOpen,
     isTemporarilyClosed,
     hasActiveSchedule,
     upcomingSchedule,
-    nextOpenDay,
-    nextOpenTime,
-    closeTime: effectiveClose,
-    currentDayIndo: dayIndo[now.getDay()],
+    nextOpenDay: '',
+    nextOpenTime: '',
+    closeTime: '',
+    currentDayIndo: '',
   }
 }

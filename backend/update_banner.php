@@ -2,7 +2,11 @@
 error_reporting(E_ERROR | E_PARSE);
 header('Content-Type: application/json');
 require_once 'config.php';
-requireLogin();
+
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    echo json_encode(["success" => false, "message" => "Akses ditolak. Silakan login terlebih dahulu."]);
+    exit;
+}
 
 $action = $_POST['action'] ?? '';
 
@@ -140,6 +144,18 @@ if ($action === 'save_playlist') {
     if (!empty($_FILES['photos'])) {
         $files = $_FILES['photos'];
         $uploadedCount = is_array($files['name']) ? count($files['name']) : 1;
+        
+        // Batasi maksimal 6 gambar per playlist
+        $max_photos = 6;
+        $current_count = count($playlist['photos'] ?? []);
+        if ($current_count >= $max_photos) {
+            echo json_encode(['success' => false, 'message' => "Maksimal {$max_photos} gambar per playlist telah tercapai. Hapus beberapa foto terlebih dahulu."]);
+            exit;
+        }
+        $available_slots = $max_photos - $current_count;
+        if ($uploadedCount > $available_slots) {
+            $uploadedCount = $available_slots;
+        }
         
         if (!is_array($files['name'])) {
             // Single file upload

@@ -43,34 +43,13 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed default superadmin (password: royalkomputer2026 — harus diganti setelah login pertama)
+-- Seed default superadmin (password: royal2026 — harus diganti setelah login pertama)
 INSERT INTO admins (username, password_hash, role, nama, created_at)
-SELECT 'superadmin', '$2y$10$8KzQMGx5wJj0Pf0qMfxpYeY0qT0qT0qT0qT0qT0qT0qT0qT0qTO', 'super_admin', 'Super Admin', NOW()
+SELECT 'superadmin', '$2y$10$Q6I5JUyogQq8uJtOu/BrH.HhtKUL7l/b/UonmVcQexE9dNtl7bUhq', 'super_admin', 'Super Admin', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM admins);
 
 -- ============================================================
--- 5. Operating hours
--- ============================================================
-CREATE TABLE IF NOT EXISTS jam_operasional (
-    day VARCHAR(20) PRIMARY KEY,
-    buka VARCHAR(5) DEFAULT '09:00',
-    tutup VARCHAR(5) DEFAULT '21:00',
-    indo VARCHAR(20) NOT NULL,
-    libur BOOLEAN DEFAULT FALSE
-);
-
-INSERT INTO jam_operasional (day, buka, tutup, indo, libur) VALUES
-    ('Monday', '09:00', '21:00', 'Senin', FALSE),
-    ('Tuesday', '09:00', '21:00', 'Selasa', FALSE),
-    ('Wednesday', '09:00', '21:00', 'Rabu', FALSE),
-    ('Thursday', '09:00', '21:00', 'Kamis', FALSE),
-    ('Friday', '13:30', '22:00', 'Jumat', FALSE),
-    ('Saturday', '09:00', '21:00', 'Sabtu', FALSE),
-    ('Sunday', '09:00', '21:00', 'Minggu', FALSE)
-ON CONFLICT (day) DO NOTHING;
-
--- ============================================================
--- 6. Closure schedules
+-- 5. Closure schedules
 -- ============================================================
 CREATE TABLE IF NOT EXISTS jadwal_tutup (
     id VARCHAR(50) PRIMARY KEY,
@@ -81,7 +60,7 @@ CREATE TABLE IF NOT EXISTS jadwal_tutup (
 );
 
 -- ============================================================
--- 7. Store manual status
+-- 6. Store manual status
 -- ============================================================
 CREATE TABLE IF NOT EXISTS status_toko (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -92,7 +71,7 @@ INSERT INTO status_toko (id, status) VALUES (1, 'buka')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 8. Tagline
+-- 7. Tagline
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tagline (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -103,7 +82,7 @@ INSERT INTO tagline (id, text) VALUES (1, 'Bingung mau rakit atau upgrade komput
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 9. Product info text
+-- 8. Product info text
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_info (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -114,7 +93,7 @@ INSERT INTO product_info (id, text) VALUES (1, 'Perhatian! Harga tidak selalu up
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 10. Heading config
+-- 9. Heading config
 -- ============================================================
 CREATE TABLE IF NOT EXISTS heading (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -126,7 +105,7 @@ INSERT INTO heading (id, prefix, brand) VALUES (1, 'Solusi Hardware di', 'Royal 
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 11. Admin history log
+-- 10. Admin history log
 -- ============================================================
 CREATE TABLE IF NOT EXISTS admin_history (
     id SERIAL PRIMARY KEY,

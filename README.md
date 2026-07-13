@@ -99,8 +99,7 @@ royal-website/              # Git repo root
 │   ├── nginx.conf          #   Nginx configuration
 │   ├── vite.config.js      #   Vite build config
 │   ├── package.json        #   Node dependencies
-│   ├── logo/               #   Brand assets
-│   └── netlify.toml        #   [DEPRECATED — was for Netlify]
+│   └── logo/               #   Brand assets
 │
 ├── backend/                # → BACKEND CONTAINER: PHP-FPM + Nginx
 │   ├── admin.php           #   Admin dashboard
@@ -111,8 +110,7 @@ royal-website/              # Git repo root
 │   ├── nginx.conf          #   Nginx configuration
 │   ├── supervisord.conf    #   Supervisor config
 │   ├── data/               #   JSON config storage
-│   ├── uploads/            #   Product photos (persistent volume)
-│   └── render.yaml         #   [DEPRECATED — was for Render]
+│   └── uploads/            #   Product photos (persistent volume)
 │
 ├── sync/                   # → LOCAL PC: IPOS data sync agent
 │   ├── update_produk.php   #   IPOS sync script
@@ -402,7 +400,6 @@ Atau jalankan `sync/setup_scheduler.ps1` sebagai Administrator (sekali saja).
 | `api_manage_photos.php` | POST | Session | Delete or reorder product photos |
 | `update_produk.php` | POST | Session | Update product description + photos |
 | `update_admin.php` | POST | Session | Admin CRUD, schedules, status |
-| `update_jam.php` | POST | Super Admin | Update operating hours |
 
 See [AGENTS.md](AGENTS.md) for detailed API documentation and examples.
 

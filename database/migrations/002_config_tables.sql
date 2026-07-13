@@ -1,6 +1,6 @@
 -- Migration 002: Configuration tables for persistent admin data
--- Replaces JSON file storage with DB-backed storage for Render deployment
--- (JSON files are ephemeral on Render and lost on container restart)
+-- Replaces JSON file storage with DB-backed storage
+-- (JSON files are ephemeral on container restarts)
 
 -- ============================================================
 -- 1. Admin accounts
@@ -20,29 +20,7 @@ SELECT 'superadmin', '$2y$10$dummy_placeholder_will_be_replaced_on_first_use', '
 WHERE NOT EXISTS (SELECT 1 FROM admins);
 
 -- ============================================================
--- 2. Operating hours
--- ============================================================
-CREATE TABLE IF NOT EXISTS jam_operasional (
-    day VARCHAR(20) PRIMARY KEY,
-    buka VARCHAR(5) DEFAULT '09:00',
-    tutup VARCHAR(5) DEFAULT '21:00',
-    indo VARCHAR(20) NOT NULL,
-    libur BOOLEAN DEFAULT FALSE
-);
-
--- Seed default hours
-INSERT INTO jam_operasional (day, buka, tutup, indo, libur) VALUES
-    ('Monday', '09:00', '21:00', 'Senin', FALSE),
-    ('Tuesday', '09:00', '21:00', 'Selasa', FALSE),
-    ('Wednesday', '09:00', '21:00', 'Rabu', FALSE),
-    ('Thursday', '09:00', '21:00', 'Kamis', FALSE),
-    ('Friday', '13:30', '22:00', 'Jumat', FALSE),
-    ('Saturday', '09:00', '21:00', 'Sabtu', FALSE),
-    ('Sunday', '09:00', '21:00', 'Minggu', FALSE)
-ON CONFLICT (day) DO NOTHING;
-
--- ============================================================
--- 3. Closure schedules
+-- 2. Closure schedules
 -- ============================================================
 CREATE TABLE IF NOT EXISTS jadwal_tutup (
     id VARCHAR(50) PRIMARY KEY,
@@ -53,7 +31,7 @@ CREATE TABLE IF NOT EXISTS jadwal_tutup (
 );
 
 -- ============================================================
--- 4. Store manual status
+-- 3. Store manual status
 -- ============================================================
 CREATE TABLE IF NOT EXISTS status_toko (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -64,7 +42,7 @@ INSERT INTO status_toko (id, status) VALUES (1, 'buka')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 5. Tagline
+-- 4. Tagline
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tagline (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -75,7 +53,7 @@ INSERT INTO tagline (id, text) VALUES (1, 'Bingung mau rakit atau upgrade komput
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 6. Product info text
+-- 5. Product info text
 -- ============================================================
 CREATE TABLE IF NOT EXISTS product_info (
     id INTEGER PRIMARY KEY DEFAULT 1,
@@ -86,7 +64,7 @@ INSERT INTO product_info (id, text) VALUES (1, 'Perhatian! Harga tidak selalu up
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- 7. Heading config
+-- 6. Heading config
 -- ============================================================
 CREATE TABLE IF NOT EXISTS heading (
     id INTEGER PRIMARY KEY DEFAULT 1,
