@@ -25,8 +25,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
-      - backend_uploads:/opt/app/uploads
-      - backend_data:/opt/app/data
+      - ./backend/uploads:/opt/app/uploads
+      - ./backend/data:/opt/app/data
       - backend_sessions:/var/lib/php/sessions
     environment:
       DB_HOST: db
@@ -56,7 +56,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - backend_uploads:/usr/share/nginx/html/uploads:ro
+      - ./backend/uploads:/usr/share/nginx/html/uploads:ro
     depends_on:
       - backend
     networks:
@@ -64,8 +64,6 @@ services:
 
 volumes:
   postgres_data:
-  backend_uploads:
-  backend_data:
   backend_sessions:
 
 networks:

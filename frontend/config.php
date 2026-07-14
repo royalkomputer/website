@@ -39,6 +39,32 @@ function loadSchedules(): array {
     return $data ?: [];
 }
 
+// ============================================================
+// JAM OPERASIONAL TOKO
+// ============================================================
+
+function loadJamOperasional(): array {
+    $default = [
+        'Monday'    => ['indo' => 'Senin',    'buka' => '08:00', 'tutup' => '22:00'],
+        'Tuesday'   => ['indo' => 'Selasa',   'buka' => '08:00', 'tutup' => '22:00'],
+        'Wednesday' => ['indo' => 'Rabu',     'buka' => '08:00', 'tutup' => '22:00'],
+        'Thursday'  => ['indo' => 'Kamis',    'buka' => '08:00', 'tutup' => '22:00'],
+        'Friday'    => ['indo' => 'Jumat',    'buka' => '08:00', 'tutup' => '22:00'],
+        'Saturday'  => ['indo' => 'Sabtu',    'buka' => '08:00', 'tutup' => '22:00'],
+        'Sunday'    => ['indo' => 'Minggu',   'buka' => '00:00', 'tutup' => '00:00', 'libur' => true],
+    ];
+
+    $file = __DIR__ . '/jam_buka.json';
+    if (file_exists($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        if (is_array($data) && !empty($data)) {
+            return $data;
+        }
+    }
+
+    return $default;
+}
+
 function saveSchedules(array $schedules): bool {
     return file_put_contents(SCHEDULE_FILE, json_encode($schedules, JSON_PRETTY_PRINT)) !== false;
 }

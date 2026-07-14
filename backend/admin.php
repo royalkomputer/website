@@ -1271,18 +1271,60 @@ let adminFilters = {search:'',photoStatus:'all',sortBy:'name-asc',condition:'all
 window.addEventListener('DOMContentLoaded', () => { fetchProducts();
     showPanel('katalog'); });
 
-function fetchProducts() {
+async function fetchProducts() {
     _savedScrollY = window.scrollY;
     document.getElementById('loading-spinner').style.display='flex';
     document.getElementById('table-container').classList.add('hidden');
-    fetch('api_produk.php?admin=1').then(r=>r.json()).then(data => {
-        allProducts=data; applyAdminFilters();
-        document.getElementById('loading-spinner').style.display='none';
-        document.getElementById('table-container').classList.remove('hidden');
-        requestAnimationFrame(() => window.scrollTo(0, _savedScrollY));
-    }).catch(()=>{
-        document.getElementById('loading-spinner').innerHTML='<p class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Gagal terhubung ke database.</p>';
-    });
+
+    // Helper: normalize image paths (prepend / if starts with uploads/)
+    function normalizeProduct(p) {
+        if (p.image && p.image.indexOf('uploads/') === 0) p.image = '/' + p.image;
+        if (p.images && Array.isArray(p.images)) {
+            p.images = p.images.map(function(img) {
+                return img.indexOf('uploads/') === 0 ? '/' + img : img;
+            });
+        }
+        return p;
+    }
+
+    try {
+        // Strategy 1: Load from cache file directly (fast, no PHP session locking)
+        const cacheRes = await fetch('/data/cache_produk.json?_t=' + Date.now());
+        if (cacheRes.ok) {
+            let data = await cacheRes.json();
+            if (Array.isArray(data) && data.length > 0) {
+                data = data.map(normalizeProduct);
+                allProducts = data;
+                applyAdminFilters();
+                document.getElementById('loading-spinner').style.display='none';
+                document.getElementById('table-container').classList.remove('hidden');
+                requestAnimationFrame(function() { window.scrollTo(0, _savedScrollY); });
+                return;
+            }
+        }
+    } catch(e) {
+        console.warn('Cache load failed, trying API:', e);
+    }
+
+    // Strategy 2: Fallback to API
+    try {
+        const res = await fetch('api_produk.php?admin=1');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        let data = await res.json();
+        if (Array.isArray(data)) {
+            allProducts = data;
+            applyAdminFilters();
+            document.getElementById('loading-spinner').style.display='none';
+            document.getElementById('table-container').classList.remove('hidden');
+            requestAnimationFrame(function() { window.scrollTo(0, _savedScrollY); });
+            return;
+        }
+    } catch(e) {
+        console.warn('API failed:', e);
+    }
+
+    // Both strategies failed
+    document.getElementById('loading-spinner').innerHTML='<p class="text-red-500 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Gagal memuat data produk.</p>';
 }
 
 function handleConditionFilterAdmin(v){adminFilters.condition=v;applyAdminFilters();}

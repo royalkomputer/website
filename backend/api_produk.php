@@ -6,6 +6,7 @@ require_once __DIR__ . '/cors.php';
 handleCORS();
 
 require_once 'config.php';
+session_write_close();
 
 $page = max(1, intval($_GET['page'] ?? 1));
 $limit = max(1, min(100, intval($_GET['limit'] ?? 12)));
