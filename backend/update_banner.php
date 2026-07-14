@@ -189,7 +189,9 @@ if ($action === 'save_playlist') {
         }
     }
 
+    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
     saveBanners($playlists);
+    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
     echo json_encode(['success' => true, 'message' => 'Playlist berhasil disimpan.', 'id' => $id]);
     exit;
 }
@@ -245,7 +247,9 @@ if ($action === 'delete_playlist_photo') {
     }
     unset($photo);
 
+    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
     saveBanners($playlists);
+    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
     echo json_encode(['success' => true, 'message' => 'Foto berhasil dihapus.']);
     exit;
 }
@@ -309,7 +313,9 @@ if ($action === 'reorder_playlist_photos') {
     unset($photo);
 
     $playlists[$idx]['photos'] = $reordered;
+    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
     saveBanners($playlists);
+    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
     echo json_encode(['success' => true, 'message' => 'Urutan foto berhasil disimpan.']);
     exit;
 }
@@ -345,7 +351,9 @@ if ($action === 'update_photo_info') {
 
     $playlists[$idx]['photos'][$photoIndex]['link'] = $link;
     $playlists[$idx]['photos'][$photoIndex]['alt'] = $alt;
+    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
     saveBanners($playlists);
+    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
     echo json_encode(['success' => true, 'message' => 'Info foto berhasil diperbarui.']);
     exit;
 }
@@ -388,7 +396,9 @@ if ($action === 'delete_playlist') {
     foreach ($playlists as $i => &$p) $p['order'] = $i + 1;
     unset($p);
 
+    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
     saveBanners($playlists);
+    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
     echo json_encode(['success' => true, 'message' => 'Playlist berhasil dihapus.']);
     exit;
 }

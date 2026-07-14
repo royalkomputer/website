@@ -21,8 +21,8 @@ export function renderPlaylist(playlist, index) {
   const padPct = (ah / aw * 100) + '%'
 
   return `
-  <div class="relative w-full overflow-hidden bg-astra-950" style="padding-bottom: ${padPct}">
-    <div class="pl-carousel absolute inset-0 overflow-hidden rounded-2xl" data-pl="${plId}">
+  <div class="relative w-full overflow-hidden" style="padding-bottom: ${padPct}">
+    <div class="pl-carousel absolute inset-0 overflow-hidden" data-pl="${plId}">
       <div class="pl-track flex transition-transform duration-500 ease-in-out w-full h-full" data-pl="${plId}">
         ${photos.map(p => `
           <div class="pl-slide min-w-full w-full flex-shrink-0 h-full" data-pl="${plId}">

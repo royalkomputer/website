@@ -1171,12 +1171,10 @@ async function moveBannerPhoto(idx, dir) {
     const newIdx = idx + dir;
     if (newIdx < 0 || newIdx >= photos.length) return;
     
-    // Swap in array
-    const temp = photos[idx];
-    photos[idx] = photos[newIdx];
-    photos[newIdx] = temp;
-    
+    // Kirim order sebagai indeks original dalam urutan baru
+    // Contoh: swap index 1↔2 pada [A,B,C] → order [0,2,1] → hasil [A,C,B]
     const order = photos.map((_, i) => i);
+    [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
     
     const fd = new FormData();
     fd.append('action', 'reorder_playlist_photos');
@@ -1187,16 +1185,13 @@ async function moveBannerPhoto(idx, dir) {
         const res = await fetch('update_banner.php', { method: 'POST', body: fd });
         const data = await res.json();
         if (data.success) {
-            bpmCurrentPl.photos = photos;
+            // Update local state hanya setelah server mengonfirmasi
+            const temp = photos[idx];
+            photos[idx] = photos[newIdx];
+            photos[newIdx] = temp;
             renderBpmPhotos();
         } else {
             showNotification(data.message || 'Gagal mengubah urutan', 'error');
-            // Revert
-            const r2 = await fetch('api_data.php?file=banners.json&_t=' + Date.now());
-            const d2 = await r2.json();
-            bannerPlaylists = Array.isArray(d2) ? d2 : [];
-            bpmCurrentPl = bannerPlaylists.find(p => p.id === bpmCurrentPl.id) || bpmCurrentPl;
-            renderBpmPhotos();
         }
     } catch (e) {
         showNotification('Gagal menghubungi server', 'error');

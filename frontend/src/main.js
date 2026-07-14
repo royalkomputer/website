@@ -4,7 +4,8 @@ import { FilterSidebar, bindFilterEvents, updateCategoryButtons, updateCondition
 import { ProductGrid, renderProductGrid, showSkeletonLoading, hideSkeletonLoading, loadProductInfoText } from './components/ProductGrid.js'
 import { ProductModal, openModal, bindModalEvents } from './components/ProductModal.js'
 import { Footer } from './components/Footer.js'
-import { fetchProductsPage } from './lib/api.js'
+import { fetchProductsPage, fetchBanners } from './lib/api.js'
+import { renderPlaylist, bindAllCarousels } from './components/Banner.js'
 
 const PAGE_SIZE = 32
 
@@ -25,13 +26,31 @@ const state = {
   isLoading: false,
 }
 
+async function loadBanners() {
+  try {
+    const banners = await fetchBanners()
+    const container = document.querySelector('.js-banner-container')
+    if (!container || !banners || banners.length === 0) return
+
+    const activePlaylists = banners.filter(p => p.active !== false && p.photos && p.photos.length > 0)
+    if (activePlaylists.length === 0) return
+
+    container.innerHTML = activePlaylists.map((pl, i) => renderPlaylist(pl, i)).join('')
+
+    // Bind carousel controls after DOM updated
+    requestAnimationFrame(() => bindAllCarousels(activePlaylists))
+  } catch (err) {
+    console.warn('Banner load failed:', err.message)
+  }
+}
+
 function renderApp() {
   const app = document.querySelector('#app')
 
   app.innerHTML = `
     ${Navbar({ onSearch: handleSearch })}
 
-    <!-- banner removed -->
+    <div class="js-banner-container w-full"></div>
     <main class="px-4 md:px-8 lg:px-12 pb-8 flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6">
       <div class="js-filter-container hidden"></div>
       ${ProductGrid({ viewMode: state.viewMode })}
@@ -49,14 +68,8 @@ function renderApp() {
   bindModalEvents()
   bindViewToggleEvents()
 
-  initApp()
+  loadBanners()
 }
-
-async function initApp() {
-  loadProducts(1)
-}
-
-
 
 async function loadProducts(page = 1) {
   if (state.isLoading) return
@@ -80,6 +93,17 @@ async function loadProducts(page = 1) {
     if (!state.hasActivated) {
       state.hasActivated = true
       updateLayout()
+      // Hide banner with slide-up animation
+      const bc = document.querySelector('.js-banner-container')
+      if (bc && !bc.classList.contains('hidden')) {
+        bc.classList.add('banner-leave')
+        bc.addEventListener('animationend', function handler() {
+          bc.removeEventListener('animationend', handler)
+          bc.classList.add('hidden')
+          bc.classList.remove('banner-leave')
+          bc.innerHTML = ''
+        })
+      }
     }
 
     state.products = result.data
@@ -121,7 +145,6 @@ function updateLayout() {
 function renderProducts() {
   const productGrid = document.querySelector('.js-product-grid')
   const infoBar = document.querySelector('.js-product-info-bar')
-
   if (!state.hasActivated) {
     if (productGrid) { productGrid.classList.add('hidden'); productGrid.innerHTML = '' }
     const emptyState = document.querySelector('.js-empty-state')
@@ -210,6 +233,28 @@ function resetToInitial() {
   if (section) {
     section.classList.remove('lg:col-span-4')
     section.classList.add('lg:col-span-5')
+  }
+
+  // Show banner: load konten dulu, baru animasi
+  const bc = document.querySelector('.js-banner-container')
+  if (bc) {
+    // Guard: jika banner-leave masih berjalan, selesaikan dulu
+    if (bc.classList.contains('banner-leave')) {
+      bc.classList.remove('banner-leave')
+      bc.classList.add('hidden')
+      bc.innerHTML = ''
+    }
+    bc.classList.remove('hidden')
+    // Load banners (async) dan animasi setelah konten siap
+    loadBanners().then(() => {
+      requestAnimationFrame(() => {
+        bc.classList.add('banner-enter')
+        bc.addEventListener('animationend', function handler() {
+          bc.removeEventListener('animationend', handler)
+          bc.classList.remove('banner-enter')
+        })
+      })
+    })
   }
 
   renderProducts()

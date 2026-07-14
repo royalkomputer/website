@@ -4,8 +4,8 @@
         "name": "MSI",
         "order": 1,
         "active": true,
-        "interval": 5000,
-        "aspect": "16\/9",
+        "interval": 7000,
+        "aspect": "4\/3",
         "photos": [
             {
                 "image": "pl_6a54e7e25c198_0.webp",
