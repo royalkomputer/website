@@ -1,14 +1,19 @@
 [
     {
-        "id": "pl_6a54e7e25c198",
-        "name": "MSI",
+        "id": "pl_6a56313dd4960",
+        "name": "Gigabyte",
         "order": 1,
         "active": true,
-        "interval": 7000,
-        "aspect": "4\/3",
+        "interval": 5000,
+        "aspect": "16\/9",
         "photos": [
             {
-                "image": "pl_6a54e7e25c198_0.webp",
+                "image": "pl_6a56313dd4960_0.webp",
+                "link": "",
+                "alt": ""
+            },
+            {
+                "image": "pl_6a56313dd4960_1.webp",
                 "link": "",
                 "alt": ""
             }

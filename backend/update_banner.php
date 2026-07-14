@@ -189,9 +189,11 @@ if ($action === 'save_playlist') {
         }
     }
 
-    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
-    saveBanners($playlists);
-    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
+    $saved = saveBanners($playlists);
+    if (!$saved) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan data. Periksa izin file."]);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Playlist berhasil disimpan.', 'id' => $id]);
     exit;
 }
@@ -247,9 +249,11 @@ if ($action === 'delete_playlist_photo') {
     }
     unset($photo);
 
-    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
-    saveBanners($playlists);
-    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
+    $saved = saveBanners($playlists);
+    if (!$saved) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan data. Periksa izin file."]);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Foto berhasil dihapus.']);
     exit;
 }
@@ -285,37 +289,15 @@ if ($action === 'reorder_playlist_photos') {
         }
     }
 
-    // Rename files to match new indices — two-pass to avoid collisions
-    $target_dir = __DIR__ . '/uploads/banners/';
-    // Pass 1: rename all to temp names
-    foreach ($reordered as $pi => &$photo) {
-        $oldName = $photo['image'];
-        $newName = photoFilename($playlistId, $pi);
-        if ($oldName !== $newName) {
-            $tmpName = $playlistId . '_' . $pi . '.reorder_tmp';
-            if (file_exists($target_dir . $oldName)) {
-                rename($target_dir . $oldName, $target_dir . $tmpName);
-            }
-            $photo['image'] = $tmpName;
-        }
-    }
-    // Pass 2: rename temps to final names
-    foreach ($reordered as $pi => &$photo) {
-        $oldName = $photo['image'];
-        $newName = photoFilename($playlistId, $pi);
-        if ($oldName !== $newName) {
-            if (file_exists($target_dir . $oldName)) {
-                rename($target_dir . $oldName, $target_dir . $newName);
-            }
-            $photo['image'] = $newName;
-        }
-    }
-    unset($photo);
-
     $playlists[$idx]['photos'] = $reordered;
-    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
-    saveBanners($playlists);
-    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
+    // NOTE: Tidak perlu rename file karena image field di JSON sudah
+    // mereferensikan file asli. Rename file dua-pass malah membatalkan
+    // efek reorder (konten file ikut tertukar).
+    $saved = saveBanners($playlists);
+    if (!$saved) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan data. Periksa izin file."]);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Urutan foto berhasil disimpan.']);
     exit;
 }
@@ -351,9 +333,11 @@ if ($action === 'update_photo_info') {
 
     $playlists[$idx]['photos'][$photoIndex]['link'] = $link;
     $playlists[$idx]['photos'][$photoIndex]['alt'] = $alt;
-    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
-    saveBanners($playlists);
-    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
+    $saved = saveBanners($playlists);
+    if (!$saved) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan data. Periksa izin file."]);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Info foto berhasil diperbarui.']);
     exit;
 }
@@ -396,9 +380,11 @@ if ($action === 'delete_playlist') {
     foreach ($playlists as $i => &$p) $p['order'] = $i + 1;
     unset($p);
 
-    file_put_contents("/tmp/banner_debug.log", "Saving... interval=$interval aspect=$aspect\n", FILE_APPEND);
-    saveBanners($playlists);
-    file_put_contents("/tmp/banner_debug.log", "After save, reading back: " . json_encode(loadBanners()) . "\n", FILE_APPEND);
+    $saved = saveBanners($playlists);
+    if (!$saved) {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan data. Periksa izin file."]);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Playlist berhasil dihapus.']);
     exit;
 }
@@ -427,7 +413,11 @@ if ($action === 'reorder_playlists') {
     }
     unset($p);
 
-    saveBanners($ordered);
+    $saved = saveBanners($ordered);
+    if (!$saved) {
+        echo json_encode(['success' => false, 'message' => 'Gagal menyimpan data. Periksa izin file.']);
+        exit;
+    }
     echo json_encode(['success' => true, 'message' => 'Urutan playlist berhasil disimpan.']);
     exit;
 }
