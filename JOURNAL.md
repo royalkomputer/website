@@ -410,6 +410,9 @@ Volumes:
 - Admin panels: Katalog, Admin, Banner, Profil, Serial Number, Penghasilan, Hutang, Aset — all functional
 - Session persistence: survives container restart via named volume
 
+### Search Prompt Position
+- `frontend/index.php`: Pindahkan search prompt "Gunakan pencarian untuk menampilkan produk." dari dalam `#main-layout` ke posisi di atas banner carousel (antara `</header>` dan `#banner-section`). Semua JS yang mereferensi tetap berfungsi karena menggunakan `getElementById`.
+
 ## 2026-07-19 — Branding, Sosmed & UX Tweaks
 
 ### Logo

@@ -234,6 +234,13 @@ $product_info_html = htmlspecialchars($product_info_text);
         </div>
     </header>
 
+    <div id="search-prompt" class="container mx-auto px-4 mt-6 mb-0 bg-slate-800/40 border border-white/5 rounded-xl py-2.5 flex items-center gap-2.5">
+        <div class="flex-shrink-0 w-6 h-6 bg-slate-700 rounded-full flex items-center justify-center">
+            <i class="fa-solid fa-magnifying-glass text-xs text-slate-400"></i>
+        </div>
+        <p class="text-xs text-slate-500 flex-1">Gunakan pencarian untuk menampilkan produk.</p>
+    </div>
+
     <div id="banner-section" class="w-full container mx-auto px-4 mt-4 mb-2">
         <div id="banner-carousel" class="relative w-full overflow-hidden rounded-xl bg-slate-800/40 min-h-[200px] flex items-center justify-center">
             <div class="text-slate-500 text-sm py-12 text-center px-4">
@@ -316,13 +323,6 @@ $product_info_html = htmlspecialchars($product_info_text);
                         <i class="fa-solid fa-list"></i>
                     </button>
                 </div>
-            </div>
-
-            <div id="search-prompt" class="bg-slate-800/40 border border-white/5 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
-                <div class="flex-shrink-0 w-6 h-6 bg-slate-700 rounded-full flex items-center justify-center">
-                    <i class="fa-solid fa-magnifying-glass text-xs text-slate-400"></i>
-                </div>
-                <p class="text-xs text-slate-500 flex-1">Gunakan pencarian untuk menampilkan produk.</p>
             </div>
 
             <div id="loading-spinner" class="py-16 flex flex-col items-center justify-center gap-3">

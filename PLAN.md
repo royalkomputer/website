@@ -15,6 +15,7 @@
 | 2026-07-19 | Batasi render produk maksimal 40 per halaman. `renderProductGrid()` slice `filteredProducts` ke 40 item pertama, counter ubah jadi format "Menampilkan 40 dari 766 produk". |
 | 2026-07-19 | Tambah pagination "Muat Lainnya": variable `displayLimit`, tombol di bawah grid increment +40, reset ke 40 saat filter/search berganti. |
 | 2026-07-19 | Tambah floating button "Kembali ke Atas": muncul setelah scroll >400px, smooth scroll, `bg-astra-700` di pojok kanan bawah. |
+| 2026-07-19 | Posisikan search prompt "Gunakan pencarian untuk menampilkan produk." di atas banner carousel (sebelumnya di dalam main layout). |
 | 2026-07-19 | Ubah teks search prompt dari "Gunakan pencarian atau pilih kategori untuk menampilkan produk." menjadi "Gunakan pencarian untuk menampilkan produk." |
 | 2026-07-19 | Fix banner & product image 404 di `php -S -t frontend` — buat symlink `frontend/uploads -> ../backend/uploads`. |
 | 2026-07-19 | Fix upload foto produk: hapus blok FRONTEND SYNC di `update_produk.php` (lines 247-303) yang jadi destruktif setelah symlink. Foto disimpan di `backend/uploads/` dan aksesibel via symlink, tidak perlu copy. |
