@@ -3,6 +3,13 @@
 > **Arsitektur saat ini:** Docker Compose (3 services) + Coolify di VPS.
 > **Referensi utama:** [AGENTS.md](AGENTS.md) untuk API, konvensi kode, dan pola arsitektur.
 
+### Changelog
+| Tanggal | Perubahan |
+|---------|-----------|
+| 2026-07-19 | Hapus menu Serial Number, Penghasilan, Hutang, Aset dari admin dashboard. Hapus endpoint API `api_aset.php`, `api_hutang.php`, `api_penghasilan.php`. Hapus sync data aset/hutang/penghasilan dari sync agent. |
+| 2026-07-19 | Hapus fitur jam buka toko (operating hours). Hapus `loadJamOperasional()` dari `frontend/config.php`. Hapus logic jam operasional, badge tutup/buka, schedule warning, dan footer "JAM BUKA TOKO" dari `frontend/index.php`. Hapus `StoreStatus.js` (dead code). Sederhanakan `api_status.php`. Hapus `fetchStoreStatus()` dari `api.js`. |
+| 2026-07-19 | Refactor UI `frontend/index.php` — minimal & modern: navbar lebih ramping (border-bottom, social links satu warna), hero header solid tanpa gradient, sidebar bg-slate-800/60, product card hover subtle (border aksen), grid 5 kolom di xl, info bar & empty state lebih clean, footer compact. |
+
 ---
 
 ## Arsitektur
@@ -62,12 +69,10 @@ website/
 | `api_status.php` | GET | Public | Store open/closed status |
 | `api_banner.php` | GET | Public | Banner playlists |
 | `api_schedules.php` | GET | Public | Closure schedules |
-| `api_hutang.php` | POST | Session | Outstanding debt report |
 | `api_manage_photos.php` | POST | Session | Photo delete/reorder |
 | `api_data.php` | GET | Public | JSON file proxy |
 | `update_produk.php` | POST | Session | Product description + photo upload |
 | `update_admin.php` | POST | Session | Admin CRUD + schedules + status |
-| _(removed)_ | — | — | _(Feature removed)_
 | `update_banner.php` | POST | Session | Banner management |
 
 ## Features
@@ -83,13 +88,17 @@ website/
 
 ### Admin Dashboard
 - [x] Product management (description, photo upload/reorder/delete, WEBP auto-conversion)
-- [x] Operating hours (per-day, with "Libur" option)
+- [-] Operating hours (per-day, with "Libur" option) — dihapus
 - [x] Temporary closure scheduling
 - [x] Manual store status override
 - [x] Multi-role admin (super_admin + admin)
 - [x] Profile editing (self-service)
-- [x] Admin history logging
+- [x] Banner management (playlist-based carousel)
 - [x] Sync status dashboard
+- [-] Serial Number search — dihapus
+- [-] Penghasilan report — dihapus
+- [-] Hutang report — dihapus
+- [-] Aset report — dihapus
 
 ### Sync Agent
 - [x] IPOS PostgreSQL → cache_produk.json
@@ -97,6 +106,7 @@ website/
 - [x] Git auto-commit + push
 - [x] Windows Task Scheduler integration
 - [x] Sync status tracking (last_sync.json)
+- [-] Admin data sync (aset, hutang, penghasilan) — dihapus
 
 ### Infrastructure
 - [x] Docker Compose (3 services)

@@ -34,9 +34,6 @@ $allowed = [
     'jadwal_tutup.json',
     'banners.json',
     'status_toko.txt',
-    'cache_aset.json',
-    'cache_hutang.json',
-    'cache_penghasilan.json',
 ];
 
 if (!in_array($file, $allowed)) {
