@@ -18,6 +18,11 @@
 | 2026-07-19 | Ubah teks search prompt dari "Gunakan pencarian atau pilih kategori untuk menampilkan produk." menjadi "Gunakan pencarian untuk menampilkan produk." |
 | 2026-07-19 | Fix banner & product image 404 di `php -S -t frontend` — buat symlink `frontend/uploads -> ../backend/uploads`. |
 | 2026-07-19 | Fix upload foto produk: hapus blok FRONTEND SYNC di `update_produk.php` (lines 247-303) yang jadi destruktif setelah symlink. Foto disimpan di `backend/uploads/` dan aksesibel via symlink, tidak perlu copy. |
+| 2026-07-19 | Ganti logo toko dengan "DESIGN LOGO R.png" — dikonversi ke WEBP, diresize 160×200, diterapkan ke `frontend/logo/`, `backend/logo/`, `frontend/public/logo/`. |
+| 2026-07-19 | Hapus WhatsApp dari MEDIA SOSIAL (Navbar Desktop, Navbar Mobile, Footer). Tetap di KONTAK dan tombol Pesan produk. |
+| 2026-07-19 | Tambah link TikTok di Navbar Desktop "Ikuti Kami:". |
+| 2026-07-19 | Ubah alamat footer jadi link Google Maps (koordinat akurat Royal Komputer). |
+| 2026-07-19 | Tambah favicon `logo/logo.webp` ke semua halaman (frontend & backend). |
 
 ---
 

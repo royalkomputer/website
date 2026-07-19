@@ -409,3 +409,19 @@ Volumes:
 - API: `http://localhost/api_produk.php` → returns 771 products
 - Admin panels: Katalog, Admin, Banner, Profil, Serial Number, Penghasilan, Hutang, Aset — all functional
 - Session persistence: survives container restart via named volume
+
+## 2026-07-19 — Branding, Sosmed & UX Tweaks
+
+### Logo
+- Ganti logo toko dengan "DESIGN LOGO R.png" — dikonversi ke WEBP (160×200), diterapkan ke 3 lokasi
+
+### Social Media Cleanup
+- Hapus WhatsApp dari semua bagian MEDIA SOSIAL (Navbar Desktop, Navbar Mobile, Footer)
+- WhatsApp tetap di KONTAK dan tombol Pesan di setiap produk
+- Tambah TikTok ke Navbar Desktop "Ikuti Kami:"
+
+### Alamat Google Maps
+- Alamat footer berubah dari teks biasa jadi link klik → buka Google Maps (koordinat akurat)
+
+### Favicon
+- Tambah `<link rel="icon">` ke `logo/logo.webp` di semua halaman (frontend + backend), sebelumnya tidak ada favicon

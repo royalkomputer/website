@@ -35,6 +35,7 @@ $product_info_html = htmlspecialchars($product_info_text);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/webp" href="logo/logo.webp">
     <title>Royal Komputer - Marketplace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -167,8 +168,8 @@ $product_info_html = htmlspecialchars($product_info_text);
             <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-400 dark:text-slate-500 hover:text-astra-400 transition-colors" title="Instagram">
                 <i class="fa-brands fa-instagram text-lg"></i>
             </a>
-            <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-400 dark:text-slate-500 hover:text-astra-400 transition-colors" title="WhatsApp">
-                <i class="fa-brands fa-whatsapp text-lg"></i>
+            <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-400 dark:text-slate-500 hover:text-astra-400 transition-colors" title="TikTok">
+                <i class="fa-brands fa-tiktok text-lg"></i>
             </a>
             <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-400 dark:text-slate-500 hover:text-astra-400 transition-colors" title="YouTube">
                 <i class="fa-brands fa-youtube text-lg"></i>
@@ -217,10 +218,6 @@ $product_info_html = htmlspecialchars($product_info_text);
             <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-tiktok text-lg w-5 text-black dark:text-white"></i>
                 <span class="text-sm font-medium">TikTok</span>
-            </a>
-            <a href="https://wa.me/6281380686168" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-green-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                <i class="fa-brands fa-whatsapp text-lg w-5 text-green-500"></i>
-                <span class="text-sm font-medium">WhatsApp Admin</span>
             </a>
             <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="flex items-center gap-3 text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors py-2 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <i class="fa-brands fa-youtube text-lg w-5 text-red-500"></i>
@@ -349,10 +346,10 @@ $product_info_html = htmlspecialchars($product_info_text);
             <div class="flex flex-col gap-2 items-center md:items-start">
                 <img src="logo/logo.webp" alt="Royal Komputer Logo" class="h-10 w-auto object-contain">
                 <p class="font-semibold text-slate-300 text-sm">ROYAL KOMPUTER KEDIRI</p>
-                <p class="text-slate-500 leading-relaxed text-center md:text-left text-xs">
-                    <i class="fa-solid fa-location-dot text-red-400 mr-1"></i> 
+                <a href="https://www.google.com/maps/place/Royal+Komputer/@-7.8247749,112.0198969,17z/data=!3m1!4b1!4m6!3m5!1s0x2e7857bb27d7da49:0x12d8857ab5c2e60d!8m2!3d-7.8247749!4d112.0198969!16s%2Fg%2F11fn0mc9js?entry=ttu&g_ep=EgoyMDI2MDcxNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors leading-relaxed text-center md:text-left text-xs inline-flex items-start gap-1">
+                    <i class="fa-solid fa-location-dot text-red-400 mt-0.5"></i>
                     Gg. Masjid No.22A, Jamsaren, Kec. Pesantren, Kota Kediri, Jawa Timur 64132
-                </p>
+                </a>
             </div>
             
             <div class="flex flex-col gap-2 items-center md:items-start w-full">
@@ -361,7 +358,6 @@ $product_info_html = htmlspecialchars($product_info_text);
                     <a href="https://www.facebook.com/royall.komp" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors" title="Facebook"><i class="fa-brands fa-facebook text-base"></i></a>
                     <a href="https://www.instagram.com/royalkomputerkediri/" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors" title="Instagram"><i class="fa-brands fa-instagram text-base"></i></a>
                     <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors" title="TikTok"><i class="fa-brands fa-tiktok text-base"></i></a>
-                    <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors" title="WhatsApp"><i class="fa-brands fa-whatsapp text-base"></i></a>
                     <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 hover:text-astra-400 transition-colors" title="YouTube"><i class="fa-brands fa-youtube text-base"></i></a>
                 </div>
             </div>

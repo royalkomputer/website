@@ -50,9 +50,6 @@ export function Navbar({ onSearch }) {
       <a href="https://www.tiktok.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-black dark:hover:text-white transition-colors" title="TikTok">
         ${icon('tiktok')}
       </a>
-      <a href="https://wa.me/6281380686168" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-green-500 transition-colors" title="WhatsApp">
-        ${icon('whatsapp')}
-      </a>
       <a href="https://www.youtube.com/@royalkomputerkediri" target="_blank" class="text-slate-500 dark:text-slate-300 hover:text-red-500 transition-colors" title="YouTube">
         ${icon('youtube')}
       </a>
@@ -94,7 +91,6 @@ export function Navbar({ onSearch }) {
       ${socialLink('https://www.facebook.com/royalkomputerkediri?locale=id_ID', 'flag', 'text-sky-500', 'Facebook Pages')}
       ${socialLink('https://www.instagram.com/royalkomputerkediri/', 'instagram', 'text-pink-500', 'Instagram')}
       ${socialLink('https://www.tiktok.com/@royalkomputerkediri', 'tiktok', 'text-black dark:text-white', 'TikTok')}
-      ${socialLink('https://wa.me/6281380686168', 'whatsapp', 'text-green-500', 'WhatsApp Admin')}
       ${socialLink('https://www.youtube.com/@royalkomputerkediri', 'youtube', 'text-red-500', 'YouTube')}
     </div>
   </div>
