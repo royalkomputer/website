@@ -120,8 +120,6 @@ royal-website/              # Git repo root
 │
 ├── docker-compose.yml      # Docker Compose for VPS deployment
 ├── .env.example            # Environment variable template
-├── dev.bat                 # Windows: start local PHP servers
-├── dev.sh                  # Unix: start local PHP servers
 ├── AGENTS.md               # AI agent instructions
 ├── README.md               # This file
 └── .gitignore
@@ -395,7 +393,7 @@ Atau jalankan `sync/setup_scheduler.ps1` sebagai Administrator (sekali saja).
 | `api_produk.php` | GET | None | Returns all products with stock > 0 |
 | `api_status.php` | GET | None | Store open/closed status |
 | `api_banner.php` | GET | None | Banner playlists |
-| `api_schedules.php` | GET | None | Closure schedules |
+
 | `api_hutang.php` | POST | Session | Outstanding debt report |
 | `api_manage_photos.php` | POST | Session | Delete or reorder product photos |
 | `update_produk.php` | POST | Session | Update product description + photos |

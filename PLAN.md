@@ -15,6 +15,7 @@
 | 2026-07-19 | Batasi render produk maksimal 40 per halaman. `renderProductGrid()` slice `filteredProducts` ke 40 item pertama, counter ubah jadi format "Menampilkan 40 dari 766 produk". |
 | 2026-07-19 | Tambah pagination "Muat Lainnya": variable `displayLimit`, tombol di bawah grid increment +40, reset ke 40 saat filter/search berganti. |
 | 2026-07-19 | Tambah floating button "Kembali ke Atas": muncul setelah scroll >400px, smooth scroll, `bg-astra-700` di pojok kanan bawah. |
+| 2026-07-19 | Hapus 10 file tidak terpakai: savepoint.md, server.pid, dev.sh, dev.bat, admin.php.bak, test_*.txt, push_admin.bat, setup_push_task.bat, api_schedules.php. Perbarui dokumentasi dan vite.config.js. |
 | 2026-07-19 | Posisikan search prompt "Gunakan pencarian untuk menampilkan produk." di atas banner carousel (sebelumnya di dalam main layout). |
 | 2026-07-19 | Ubah teks search prompt dari "Gunakan pencarian atau pilih kategori untuk menampilkan produk." menjadi "Gunakan pencarian untuk menampilkan produk." |
 | 2026-07-19 | Fix banner & product image 404 di `php -S -t frontend` — buat symlink `frontend/uploads -> ../backend/uploads`. |
@@ -84,7 +85,6 @@ website/
 | `api_produk.php` | GET | Public | Product catalog (paginated) |
 | `api_status.php` | GET | Public | Store open/closed status |
 | `api_banner.php` | GET | Public | Banner playlists |
-| `api_schedules.php` | GET | Public | Closure schedules |
 | `api_manage_photos.php` | POST | Session | Photo delete/reorder |
 | `api_data.php` | GET | Public | JSON file proxy |
 | `update_produk.php` | POST | Session | Product description + photo upload |

@@ -140,18 +140,6 @@ php -S localhost:8080
 
 Akses: `http://localhost:8080`
 
-### Atau Pakai Script Otomatis
-
-```bash
-# Unix/Mac
-bash dev.sh
-
-# Windows
-dev.bat
-```
-
-Script akan menjalankan frontend (`:8080`) + backend (`:8081`) secara bersamaan.
-
 ### Database Config
 
 Edit `backend/config.php` bagian database credentials:

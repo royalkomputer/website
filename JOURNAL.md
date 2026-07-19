@@ -413,6 +413,15 @@ Volumes:
 ### Search Prompt Position
 - `frontend/index.php`: Pindahkan search prompt "Gunakan pencarian untuk menampilkan produk." dari dalam `#main-layout` ke posisi di atas banner carousel (antara `</header>` dan `#banner-section`). Semua JS yang mereferensi tetap berfungsi karena menggunakan `getElementById`.
 
+### Cleanup File Tidak Terpakai
+Hapus 10 file yang tidak diperlukan:
+- `savepoint.md`, `server.pid`, `dev.sh`, `dev.bat` — snapshot/dev lokal
+- `backend/admin.php.bak` — backup file (140KB)
+- `backend/data/test_php.txt`, `backend/data/test_write.txt` — file test
+- `backend/setup_push_task.bat`, `backend/push_admin.bat` — fitur push ke git (sudah dihapus sejak migrasi Docker)
+- `backend/api_schedules.php` — endpoint jadwal tutup, tidak pernah dipanggil frontend
+- Diperbarui: `README.md`, `INSTALL.md`, `PLAN.md`, `frontend/vite.config.js`
+
 ## 2026-07-19 — Branding, Sosmed & UX Tweaks
 
 ### Logo

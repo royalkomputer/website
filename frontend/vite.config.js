@@ -21,10 +21,6 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
-      '/api_schedules.php': {
-        target: 'http://localhost:8081',
-        changeOrigin: true,
-      },
       // Proxy admin paths during dev
       '/admin.php': {
         target: 'http://localhost:8081',
