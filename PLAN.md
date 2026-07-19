@@ -9,6 +9,15 @@
 | 2026-07-19 | Hapus menu Serial Number, Penghasilan, Hutang, Aset dari admin dashboard. Hapus endpoint API `api_aset.php`, `api_hutang.php`, `api_penghasilan.php`. Hapus sync data aset/hutang/penghasilan dari sync agent. |
 | 2026-07-19 | Hapus fitur jam buka toko (operating hours). Hapus `loadJamOperasional()` dari `frontend/config.php`. Hapus logic jam operasional, badge tutup/buka, schedule warning, dan footer "JAM BUKA TOKO" dari `frontend/index.php`. Hapus `StoreStatus.js` (dead code). Sederhanakan `api_status.php`. Hapus `fetchStoreStatus()` dari `api.js`. |
 | 2026-07-19 | Refactor UI `frontend/index.php` — minimal & modern: navbar lebih ramping (border-bottom, social links satu warna), hero header solid tanpa gradient, sidebar bg-slate-800/60, product card hover subtle (border aksen), grid 5 kolom di xl, info bar & empty state lebih clean, footer compact. |
+| 2026-07-19 | Tambah banner carousel (promo) di halaman awal + dual-state layout: awal banner full-width, sidebar hidden; setelah cari/filter sidebar muncul, banner hide. Banner dari `api_banner.php`. |
+| 2026-07-19 | Tambah label kategori di pojok kanan atas gambar grid card (flat, subtle). |
+| 2026-07-19 | Fix: `api_banner.php` tidak ditemukan di frontend — buat wrapper `frontend/api_banner.php` yang baca langsung dari `backend/data/banners.json`. Sebelumnya fetch gagal 404, seluruh Promise.all reject → empty state muncul salah. |
+| 2026-07-19 | Batasi render produk maksimal 40 per halaman. `renderProductGrid()` slice `filteredProducts` ke 40 item pertama, counter ubah jadi format "Menampilkan 40 dari 766 produk". |
+| 2026-07-19 | Tambah pagination "Muat Lainnya": variable `displayLimit`, tombol di bawah grid increment +40, reset ke 40 saat filter/search berganti. |
+| 2026-07-19 | Tambah floating button "Kembali ke Atas": muncul setelah scroll >400px, smooth scroll, `bg-astra-700` di pojok kanan bawah. |
+| 2026-07-19 | Ubah teks search prompt dari "Gunakan pencarian atau pilih kategori untuk menampilkan produk." menjadi "Gunakan pencarian untuk menampilkan produk." |
+| 2026-07-19 | Fix banner & product image 404 di `php -S -t frontend` — buat symlink `frontend/uploads -> ../backend/uploads`. |
+| 2026-07-19 | Fix upload foto produk: hapus blok FRONTEND SYNC di `update_produk.php` (lines 247-303) yang jadi destruktif setelah symlink. Foto disimpan di `backend/uploads/` dan aksesibel via symlink, tidak perlu copy. |
 
 ---
 

@@ -1,19 +1,14 @@
 [
     {
-        "id": "pl_6a56313dd4960",
-        "name": "Gigabyte",
+        "id": "pl_6a5c6e8fd1854",
+        "name": "Bnner",
         "order": 1,
         "active": true,
         "interval": 5000,
         "aspect": "16\/9",
         "photos": [
             {
-                "image": "pl_6a56313dd4960_0.webp",
-                "link": "",
-                "alt": ""
-            },
-            {
-                "image": "pl_6a56313dd4960_1.webp",
+                "image": "pl_6a5c6e8fd1854_0.webp",
                 "link": "",
                 "alt": ""
             }

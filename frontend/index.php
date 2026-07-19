@@ -73,6 +73,26 @@ $product_info_html = htmlspecialchars($product_info_text);
             animation: slideDownFade 0.4s ease forwards;
         }
 
+        /* Banner slide-up */
+        @keyframes bannerSlideUp {
+            from { opacity: 1; transform: translateY(0); max-height: 2000px; }
+            to { opacity: 0; transform: translateY(-30px); max-height: 0; padding: 0; margin: 0; }
+        }
+        .banner-leave {
+            animation: bannerSlideUp 0.35s ease-in forwards;
+            overflow: hidden;
+        }
+
+        /* Banner slide-down */
+        @keyframes bannerSlideDown {
+            from { opacity: 0; transform: translateY(-30px); max-height: 0; padding: 0; margin: 0; }
+            to { opacity: 1; transform: translateY(0); max-height: 2000px; }
+        }
+        .banner-enter {
+            animation: bannerSlideDown 0.4s ease-out forwards;
+            overflow: hidden;
+        }
+
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
@@ -114,6 +134,7 @@ $product_info_html = htmlspecialchars($product_info_text);
         <span class="bg-astra-900/40 bg-white/20 bg-slate-800/40"></span>
         <span class="text-slate-400 hover:text-slate-200"></span>
         <span class="bg-slate-100 text-slate-500 bg-slate-800/60 bg-slate-800"></span>
+        <span class="bg-white w-4 bg-white/50 hover:bg-white/80 banner-leave banner-enter"></span>
     </div>
 
     <!-- Navbar -->
@@ -216,9 +237,18 @@ $product_info_html = htmlspecialchars($product_info_text);
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-6 flex-grow grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div id="banner-section" class="w-full container mx-auto px-4 mt-4 mb-2">
+        <div id="banner-carousel" class="relative w-full overflow-hidden rounded-xl bg-slate-800/40 min-h-[200px] flex items-center justify-center">
+            <div class="text-slate-500 text-sm py-12 text-center px-4">
+                <i class="fa-solid fa-image text-2xl mb-2 block"></i>
+                Selamat datang di Royal Komputer
+            </div>
+        </div>
+    </div>
+
+    <main id="main-layout" class="container mx-auto px-4 py-6 flex-grow grid grid-cols-1 gap-6">
         
-        <aside class="lg:col-span-1 bg-slate-800/60 rounded-xl border border-white/5 self-start overflow-hidden">
+        <aside id="sidebar-filter" class="hidden lg:col-span-1 bg-slate-800/60 rounded-xl border border-white/5 self-start overflow-hidden">
             
             <button onclick="toggleFilterMenu()" class="w-full p-3.5 flex items-center justify-between lg:cursor-default focus:outline-none bg-slate-800/40 border-b border-white/5 lg:border-none">
                 <h3 class="font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-astra-400 text-sm"></i> Filter & Urutkan</h3>
@@ -277,7 +307,10 @@ $product_info_html = htmlspecialchars($product_info_text);
 
         <section class="lg:col-span-3 flex flex-col gap-4">
             <div id="product-info-bar" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-white/5 hidden">
-                <div class="text-xs text-slate-400"><?php echo $product_info_html; ?></div>
+                <div class="flex items-center gap-3">
+                    <div class="text-xs text-slate-400"><?php echo $product_info_html; ?></div>
+                    <span id="product-count" class="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-md"></span>
+                </div>
                 <div class="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5">
                     <button id="view-grid-btn" onclick="setView('grid')" class="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all text-slate-400" title="Tampilan Grid">
                         <i class="fa-solid fa-grid-2"></i>
@@ -292,7 +325,7 @@ $product_info_html = htmlspecialchars($product_info_text);
                 <div class="flex-shrink-0 w-6 h-6 bg-slate-700 rounded-full flex items-center justify-center">
                     <i class="fa-solid fa-magnifying-glass text-xs text-slate-400"></i>
                 </div>
-                <p class="text-xs text-slate-500 flex-1">Gunakan pencarian atau pilih kategori untuk menampilkan produk.</p>
+                <p class="text-xs text-slate-500 flex-1">Gunakan pencarian untuk menampilkan produk.</p>
             </div>
 
             <div id="loading-spinner" class="py-16 flex flex-col items-center justify-center gap-3">
@@ -415,6 +448,7 @@ $product_info_html = htmlspecialchars($product_info_text);
         let activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
         let hasActivated = false;
         let currentView = localStorage.getItem('viewMode') || 'grid';
+        let displayLimit = 40;
         
         let currentDetailImages = [];
         let currentImageIndex = 0;
@@ -505,6 +539,96 @@ $product_info_html = htmlspecialchars($product_info_text);
             }
         }
         
+        // ── Banner Carousel ──
+        function renderBanners(playlists) {
+            const carousel = document.getElementById('banner-carousel');
+            if (!carousel) return;
+            const active = (playlists || []).filter(p => p.active !== false && p.photos && p.photos.length > 0);
+            if (active.length === 0) return;
+            const pl = active[0];
+            const photos = pl.photos;
+            const hasMultiple = photos.length > 1;
+            const aspect = pl.aspect || '16/9';
+            const parts = aspect.split('/').map(Number);
+            const padPct = (parts[1] / parts[0] * 100);
+            let html = `<div class="relative w-full overflow-hidden" style="padding-bottom:${padPct}%"><div class="absolute inset-0 overflow-hidden"><div id="banner-track" class="flex transition-transform duration-500 ease-in-out w-full h-full">`;
+            photos.forEach((p, i) => {
+                html += `<div class="min-w-full w-full flex-shrink-0 h-full">`;
+                if (p.link) html += `<a href="${p.link}" target="_blank" rel="noopener" class="block h-full">`;
+                html += `<img src="/uploads/banners/${p.image}" alt="${p.alt || pl.name || 'Banner'}" class="w-full h-full object-cover" onerror="this.style.display='none'">`;
+                if (p.link) html += `</a>`;
+                html += `</div>`;
+            });
+            html += `</div>`;
+            if (hasMultiple) {
+                html += `<div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">`;
+                photos.forEach((_, i) => { html += `<button class="banner-dot w-2 h-2 rounded-full transition-all ${i===0?'bg-white w-4':'bg-white/50 hover:bg-white/80'}" data-index="${i}"></button>`; });
+                html += `</div>`;
+            }
+            html += `</div></div>`;
+            carousel.innerHTML = html;
+            if (hasMultiple) bindCarousel(photos.length, pl.interval || 5000);
+        }
+
+        function bindCarousel(total, interval) {
+            const track = document.getElementById('banner-track');
+            if (!track) return;
+            let current = 0;
+            function goTo(index) {
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                current = index;
+                track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                document.querySelectorAll('.banner-dot').forEach(function(dot, i) {
+                    dot.className = 'banner-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+                });
+            }
+            document.querySelectorAll('.banner-dot').forEach(function(d) {
+                d.addEventListener('click', function() { goTo(parseInt(this.dataset.index) || 0); });
+            });
+            var autoInterval = setInterval(function() { goTo(current + 1); }, interval);
+            var carouselEl = document.getElementById('banner-carousel');
+            carouselEl.addEventListener('mouseenter', function() { clearInterval(autoInterval); });
+            carouselEl.addEventListener('mouseleave', function() { autoInterval = setInterval(function() { goTo(current + 1); }, interval); });
+        }
+
+        // ── Layout Mode (initial vs active) ──
+        var isInitialMode = true;
+
+        function setLayoutMode(mode) {
+            var sidebar = document.getElementById('sidebar-filter');
+            var banner = document.getElementById('banner-section');
+            var main = document.getElementById('main-layout');
+            var grid = document.getElementById('product-grid');
+
+            if (mode === 'active') {
+                isInitialMode = false;
+                if (sidebar) sidebar.classList.remove('hidden');
+                if (main) main.classList.add('lg:grid-cols-4');
+                if (banner && !banner.classList.contains('hidden')) {
+                    banner.classList.add('banner-leave');
+                    banner.addEventListener('animationend', function handler() {
+                        banner.removeEventListener('animationend', handler);
+                        banner.classList.add('hidden');
+                        banner.classList.remove('banner-leave');
+                    });
+                }
+            } else {
+                isInitialMode = true;
+                if (sidebar) sidebar.classList.add('hidden');
+                if (main) main.classList.remove('lg:grid-cols-4');
+                if (banner) {
+                    banner.classList.remove('hidden');
+                    banner.classList.add('banner-enter');
+                    banner.addEventListener('animationend', function handler() {
+                        banner.removeEventListener('animationend', handler);
+                        banner.classList.remove('banner-enter');
+                    });
+                }
+                if (grid) { grid.classList.add('hidden'); grid.innerHTML = ''; }
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             initPage();
         });
@@ -561,19 +685,24 @@ $product_info_html = htmlspecialchars($product_info_text);
 
         function initPage() {
             showLoading(true);
-            fetch('api_produk.php')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) throw new Error(data.error);
-                    allProducts = data;
-                    generateCategoryFilterOptions();
-                    initViewToggle();
-                })
-                .catch(err => {
-                    console.error(err);
-                    document.getElementById('empty-state').classList.remove('hidden');
-                })
-                .finally(() => showLoading(false));
+            Promise.all([
+                fetch('api_produk.php').then(r => r.json()),
+                fetch('api_banner.php').then(r => r.json())
+            ])
+            .then(function(results) {
+                var data = results[0];
+                var banners = results[1];
+                if (data.error) throw new Error(data.error);
+                allProducts = data;
+                generateCategoryFilterOptions();
+                initViewToggle();
+                renderBanners(banners);
+            })
+            .catch(function(err) {
+                console.error(err);
+                document.getElementById('empty-state').classList.remove('hidden');
+            })
+            .finally(function() { showLoading(false); });
         }
 
         function initViewToggle() {
@@ -638,7 +767,8 @@ $product_info_html = htmlspecialchars($product_info_text);
         function resetFilters() {
     if (!hasActivated) return;
     activeFilters = { category: 'Semua', search: '', sortBy: 'default', condition: 'Semua' };
-    hasActivated = true;
+    hasActivated = false;
+    displayLimit = 40;
     document.getElementById('search-input').value = '';
     document.getElementById('search-input-mobile').value = '';
     generateCategoryFilterOptions();
@@ -658,6 +788,7 @@ $product_info_html = htmlspecialchars($product_info_text);
             var emptyState = document.getElementById('empty-state');
 
             if (!hasActivated) {
+                setLayoutMode('initial');
                 updateCondUI('Semua');
                 updateSortUI('default');
                 if (prompt) { prompt.classList.remove('hidden'); }
@@ -670,6 +801,7 @@ $product_info_html = htmlspecialchars($product_info_text);
                 return;
             }
 
+            if (isInitialMode) setLayoutMode('active');
             updateCondUI(activeFilters.condition);
             updateSortUI(activeFilters.sortBy);
             if (prompt) hideSearchPrompt();
@@ -702,12 +834,14 @@ $product_info_html = htmlspecialchars($product_info_text);
                 filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
             }
 
+            displayLimit = 40;
             renderProductGrid();
         }
 
         function renderProductGrid() {
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
+            var countEl = document.getElementById('product-count');
 
             if (!grid || grid.classList.contains('hidden')) return;
 
@@ -715,8 +849,11 @@ $product_info_html = htmlspecialchars($product_info_text);
 
             if (filteredProducts.length === 0) {
                 emptyState.classList.remove('hidden');
+                if (countEl) countEl.textContent = '0 produk';
             } else {
                 emptyState.classList.add('hidden');
+                const display = filteredProducts.slice(0, displayLimit);
+                if (countEl) countEl.textContent = 'Menampilkan ' + display.length + ' dari ' + filteredProducts.length + ' produk';
 
                 if (currentView === 'grid') {
                     grid.style.gridTemplateColumns = '';
@@ -726,13 +863,25 @@ $product_info_html = htmlspecialchars($product_info_text);
                     grid.className = 'flex flex-col gap-3';
                 }
                 
-                filteredProducts.forEach(product => {
+                display.forEach(product => {
                     const el = currentView === 'grid'
                         ? createGridCard(product)
                         : createDetailCard(product);
                     grid.appendChild(el);
                 });
+
+                if (displayLimit < filteredProducts.length) {
+                    var loadMoreWrap = document.createElement('div');
+                    loadMoreWrap.className = currentView === 'grid' ? 'col-span-full text-center pt-2' : 'text-center pt-2';
+                    loadMoreWrap.innerHTML = '<button onclick="loadMore()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg border border-white/10 transition-colors"><i class="fa-solid fa-chevron-down mr-1"></i> Muat Lainnya</button>';
+                    grid.appendChild(loadMoreWrap);
+                }
             }
+        }
+
+        function loadMore() {
+            displayLimit += 40;
+            renderProductGrid();
         }
 
         function createGridCard(product) {
@@ -753,6 +902,7 @@ $product_info_html = htmlspecialchars($product_info_text);
                 <div class="relative overflow-hidden aspect-[4/3] bg-slate-800 cursor-pointer" onclick="openDetailModal('${product.id}')">
                     <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27300%27 viewBox=%270 0 400 300%27%3E%3Crect fill=%27%231e293b%27 width=%27400%27 height=%27300%27/%3E%3Ctext fill=%27%2364748b%27 font-family=%27sans-serif%27 font-size=%2714%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     ${badgeKondisi}
+                    <div class="absolute top-2 right-2 bg-slate-900/60 text-slate-300 text-[9px] font-medium px-1.5 py-0.5 rounded">${product.category}</div>
                 </div>
                 <div class="p-3 flex flex-col flex-grow">
                     <h3 class="font-medium text-white text-xs sm:text-sm leading-snug line-clamp-2 mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
@@ -804,6 +954,25 @@ $product_info_html = htmlspecialchars($product_info_text);
             `;
             return card;
         }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        window.addEventListener('scroll', function() {
+            var btn = document.getElementById('back-to-top');
+            if (!btn) return;
+            if (window.scrollY > 400) {
+                btn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                btn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            } else {
+                btn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                btn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }
+        });
     </script>
+
+    <button id="back-to-top" onclick="scrollToTop()" class="fixed bottom-6 right-6 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-astra-700 text-white shadow-lg transition-all duration-300 opacity-0 translate-y-4 pointer-events-none hover:bg-astra-600">
+        <i class="fa-solid fa-chevron-up text-sm"></i>
+    </button>
 </body>
 </html>

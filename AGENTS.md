@@ -83,8 +83,9 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 |------|------|------|
 | `index.php` | Public storefront (HTML+PHP) | No |
 | `api_produk.php` | Product JSON API | No (public) |
+| `api_banner.php` | Banner JSON API (proxies `backend/data/banners.json`) | No (public) |
 | `cache_produk.json` | Product cache fallback | — |
-| `uploads/` | Product photos (WEBP) | — |
+| `uploads/` | Symlink to `backend/uploads/` — product + banner photos | — |
 | `logo/` | Brand assets | — |
 
 ### `backend/`
@@ -327,6 +328,8 @@ $is_open = ($jam_sekarang >= $hari_ini['buka'] && $jam_sekarang <= $hari_ini['tu
 
 ## Photo Management Flow
 
+Photos are stored in `backend/uploads/`. `frontend/uploads/` is a **symlink** to `backend/uploads/`, so all images are accessible from the frontend without separate sync.
+
 ```
 User selects photos ──► update_produk.php
                            │
@@ -342,6 +345,8 @@ User selects photos ──► update_produk.php
                     Delete photos not in new order
                     (removes reordered-out files)
 ```
+
+**Note:** There is no separate FRONTEND SYNC step — the symlink `frontend/uploads -> ../backend/uploads` eliminates the need to copy files. Cache JSON files are updated directly by `update_produk.php`.
 
 ### Reorder Flow
 1. Client maintains `currentEditImages[]` array (mixed existing + new items)
@@ -374,19 +379,35 @@ let activeFilters = {
 ### Data Flow
 ```
 DOMContentLoaded
-    → initDatabaseConnection()
-        → fetch('api_produk.php')
-            → processAndRenderData()
-                → generateCategoryFilterOptions()
-                → applyFiltersAndSort()
-                    → renderProductGrid()
+    → initPage()
+        → Promise.all([fetch('api_produk.php'), fetch('api_banner.php')])
+            → generateCategoryFilterOptions()
+            → initViewToggle()
+            → renderBanners()
 ```
+
+### Layout Modes
+The page has two layout states:
+- **Initial:** Banner carousel full-width, sidebar hidden, products hidden, search prompt visible
+- **Active:** Banner slides up & hides, sidebar shows, product grid rendered
+
+Triggered by first search/filter action. `resetFilters()` returns to initial mode.
 
 ### Filter Logic
 - **Category:** Extracted from `product.category`, unique values rendered as buttons
 - **Search:** Case-insensitive match on `product.name`
 - **Condition:** Products with "2ND" in name → "Bekas"; everything else → "Baru"
 - **Sort:** Default (DB order), price ascending, price descending
+
+### Pagination
+- Products are rendered in pages of 40 via `displayLimit` variable
+- **"Muat Lainnya"** button increments `displayLimit += 40` and re-renders
+- `displayLimit` resets to 40 when filters/search change
+- Counter shows "Menampilkan X dari Y produk"
+
+### Back to Top
+- Floating button (`#back-to-top`) appears after scrolling >400px
+- Smooth scroll to top on click, `bg-astra-700` style
 
 ### Product Detail Modal
 - Opens via `openDetailModal(id)` which finds product in `allProducts[]`

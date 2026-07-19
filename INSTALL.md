@@ -337,7 +337,7 @@ sync/update_produk.php
     │
     ├── 1. Query produk dengan stok > 0
     ├── 2. Generate cache_produk.json
-    ├── 3. Sync foto: backend/uploads/ → frontend/uploads/
+    ├── 3. Generate cache_*.json (aset, hutang, penghasilan)
     ├── 4. Write last_sync.json
     └── 5. Log ke sync.log
          │
