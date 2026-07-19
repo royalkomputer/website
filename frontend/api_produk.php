@@ -58,7 +58,7 @@ if ($table_exists == 'f') {
     pg_query($conn, $create_sql);
 }
 
-$sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.hargajual1 AS price, 
+$sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.hargajual1 AS price,
             COALESCE(s.total_stok, 0) AS stock,
             COALESCE(w.deskripsi, '') AS description
         FROM tbl_item i

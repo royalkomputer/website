@@ -195,7 +195,7 @@ function runSync(): array {
 
     // ─── QUERY ──────────────────────────────────────────────────────────────
     $sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category,
-                i.hargajual1 AS price,
+                i.hargajual1 AS price, i.hargapokok AS harga_pokok,
                 COALESCE(s.total_stok, 0) AS stock,
                 COALESCE(w.deskripsi, '') AS description
             FROM tbl_item i

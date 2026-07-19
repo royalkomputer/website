@@ -138,7 +138,7 @@ if ($table_exists == 'f') {
     pg_query($conn, "CREATE TABLE tbl_web_deskripsi (kodeitem VARCHAR(50) PRIMARY KEY, deskripsi TEXT);");
 }
 
-$sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.hargajual1 AS price,
+$sql = "SELECT i.kodeitem AS id, i.namaitem AS name, i.jenis AS category, i.hargajual1 AS price, i.hargapokok AS harga_pokok,
             COALESCE(s.total_stok, 0) AS stock, COALESCE(w.deskripsi, '') AS description
         FROM tbl_item i
         INNER JOIN (SELECT kodeitem, SUM(stok) as total_stok FROM tbl_itemstok GROUP BY kodeitem HAVING SUM(stok) > 0) s ON i.kodeitem = s.kodeitem

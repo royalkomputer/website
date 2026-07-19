@@ -23,6 +23,7 @@
 | 2026-07-19 | Tambah link TikTok di Navbar Desktop "Ikuti Kami:". |
 | 2026-07-19 | Ubah alamat footer jadi link Google Maps (koordinat akurat Royal Komputer). |
 | 2026-07-19 | Tambah favicon `logo/logo.webp` ke semua halaman (frontend & backend). |
+| 2026-07-19 | Tambah kolom Harga Pokok (read-only) di modal edit produk admin dashboard. Hapus `harga_pokok` dari frontend API (`frontend/api_produk.php`) agar tidak diekspos ke publik. |
 
 ---
 

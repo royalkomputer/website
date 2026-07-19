@@ -155,7 +155,7 @@ $current_status = loadStatus();
                         <tr>
                             <th class="px-5 py-4 w-16">Foto</th><th class="px-5 py-4">Kode Item</th>
                             <th class="px-5 py-4">Nama Produk</th><th class="px-5 py-4">Kategori</th>
-                            <th class="px-5 py-4 text-right">Harga</th><th class="px-5 py-4 text-center">Stok</th><th class="px-5 py-4 text-center">Status Foto</th>
+                            <th class="px-5 py-4 text-right">Harga Jual</th><th class="px-5 py-4 text-right">Harga Pokok</th><th class="px-5 py-4 text-center">Stok</th><th class="px-5 py-4 text-center">Status Foto</th>
                             <th class="px-5 py-4 text-center w-28">Aksi</th>
                         </tr>
                     </thead>
@@ -347,6 +347,10 @@ $current_status = loadStatus();
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Produk</label>
                 <input type="text" id="modal-name" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-lg p-2.5 text-sm outline-none" readonly>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Harga Pokok <span class="text-slate-400 font-normal normal-case">(read-only)</span></label>
+                <input type="text" id="modal-harga-pokok" class="w-full bg-slate-100 border border-slate-200 text-slate-600 rounded-lg p-2.5 text-sm font-semibold outline-none" readonly>
             </div>
             
             <div id="saved-photos-section" class="hidden">
@@ -972,12 +976,16 @@ function renderAdminTable() {
         const safeName=(p.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         const safeDesc=(p.description||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.price || 0);
+        const formattedPokok = p.harga_pokok > 0
+            ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.harga_pokok)
+            : '<span class="text-slate-300">-</span>';
         tr.innerHTML=`
             <td class="px-5 py-3"><img src="${escHtml(p.image)}" alt="" class="w-12 h-12 object-cover rounded shadow-sm border border-slate-200"></td>
             <td class="px-5 py-3 font-mono text-xs text-slate-500">${escHtml(p.id)||'-'}</td>
             <td class="px-5 py-3 font-bold text-slate-800">${escHtml(p.name)||''}</td>
             <td class="px-5 py-3 text-xs"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded font-semibold">${escHtml(p.category)||'Lainnya'}</span></td>
             <td class="px-5 py-3 text-right font-bold text-astra-700">${formattedPrice}</td>
+            <td class="px-5 py-3 text-right font-medium text-slate-500">${formattedPokok}</td>
             <td class="px-5 py-3 text-center font-bold ${(p.stock||0)<5?'text-orange-500':'text-slate-700'}">${p.stock||0}</td>
             <td class="px-5 py-3 text-center">${photoBadge}</td>
             <td class="px-5 py-3 text-center">
@@ -994,6 +1002,9 @@ function openEditModal(id){
     if(!p) return;
     document.getElementById('modal-id').value=id;
     document.getElementById('modal-name').value=(p.name||'').replace(/&quot;/g,'"');
+    document.getElementById('modal-harga-pokok').value=p.harga_pokok>0
+        ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.harga_pokok)
+        : '-';
     document.getElementById('modal-desc').value=(p.description||'').replace(/&quot;/g,'"');
     document.getElementById('modal-foto').value='';
     
