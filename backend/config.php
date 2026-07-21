@@ -20,9 +20,9 @@ if (file_exists(__DIR__ . '/.env')) {
     }
 }
 // --- KREDENSIAL DATABASE ---
-// Di VPS/Docker: DB_HOST mengarah ke service 'db' (docker-compose)
-// Di lokal: set env var sesuai environment masing-masing
-define('DB_HOST', getenv('DB_HOST') ?: getenv('PGHOST') ?: 'db');
+// Default: PostgreSQL localhost:5432. Override via .env atau env var.
+// Untuk Docker Compose: set DB_HOST=db di environment service backend.
+define('DB_HOST', getenv('DB_HOST') ?: getenv('PGHOST') ?: 'localhost');
 define('DB_PORT', getenv('DB_PORT') ?: getenv('PGPORT') ?: '5432');
 define('DB_NAME', getenv('DB_NAME') ?: getenv('PGDATABASE') ?: 'royalkomputer');
 define('DB_USER', getenv('DB_USER') ?: getenv('PGUSER') ?: 'royal_owner');

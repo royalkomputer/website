@@ -9,9 +9,10 @@ Panduan lengkap menjalankan web app secara lokal (development) dan deploy ke VPS
 1. [Prerequisites](#1-prerequisites)
 2. [Local Development (Docker)](#2-local-development-docker)
 3. [Local Development (Manual)](#3-local-development-manual)
-4. [VPS Production Deployment](#4-vps-production-deployment)
-5. [Sync Agent Setup (Local PC)](#5-sync-agent-setup-local-pc)
-6. [Troubleshooting](#6-troubleshooting)
+4. [VPS Deployment (Docker / Coolify)](#4-vps-deployment-docker--coolify)
+5. [VPS Deployment (Manual Install)](#5-vps-deployment-manual-install)
+6. [Sync Agent Setup (Local PC)](#6-sync-agent-setup-local-pc)
+7. [Troubleshooting](#7-troubleshooting)
 
 ---
 
@@ -164,7 +165,7 @@ export DB_PASS=your_password
 
 ---
 
-## 4. VPS Production Deployment
+## 4. VPS Deployment (Docker / Coolify)
 
 ### Arsitektur
 
@@ -269,7 +270,199 @@ Password: royal2026 (ganti setelah login pertama!)
 
 ---
 
-## 5. Sync Agent Setup (Local PC)
+## 5. VPS Deployment (Manual Install)
+
+Untuk VPS dengan RAM terbatas (1–2GB), instalasi manual lebih ringan daripada Docker.
+
+### Arsitektur
+
+```
+Browser ──► VPS (Ubuntu 22.04, 1GB RAM)
+                │
+                ▼
+          Nginx + Let's Encrypt
+                │
+        ┌───────┴───────┐
+        ▼               ▼
+   royalkomputer.com   admin.royalkomputer.com
+   (frontend/)         (backend/)
+        │               │
+        └───────┬───────┘
+                ▼
+          PHP 8.2-FPM
+                │
+                ▼
+          PostgreSQL 16 (local)
+```
+
+### Step 1: Install Dependencies
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install nginx php8.2-fpm php8.2-pgsql php8.2-gd php8.2-mbstring php8.2-curl postgresql postgresql-contrib git -y
+```
+
+### Step 2: Clone Repository
+
+```bash
+sudo mkdir -p /var/www
+cd /var/www
+sudo git clone <repo-url> royalkomputer
+sudo chown -R www-data:www-data /var/www/royalkomputer
+```
+
+### Step 3: Setup Database
+
+```bash
+sudo -u postgres psql -c "CREATE DATABASE royalkomputer;"
+sudo -u postgres psql -c "CREATE USER royal_owner WITH PASSWORD 'your-strong-password';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE royalkomputer TO royal_owner;"
+sudo -u postgres psql -d royalkomputer -f /var/www/royalkomputer/database/init.sql
+```
+
+### Step 4: Environment Variables
+
+Buat file `/var/www/royalkomputer/backend/.env`:
+
+```
+DB_PASSWORD=your-strong-password
+APP_ENV=production
+```
+
+Buat juga `/var/www/royalkomputer/frontend/.env` (salin dari backend atau isi sama):
+
+```
+DB_PASSWORD=your-strong-password
+```
+
+### Step 5: Setup Uploads & Permissions
+
+```bash
+cd /var/www/royalkomputer
+sudo mkdir -p backend/uploads backend/data
+sudo chown -R www-data:www-data backend/uploads backend/data
+sudo chmod -R 755 backend/uploads backend/data
+```
+
+### Step 6: Konfigurasi Nginx — Frontend
+
+Buat `/etc/nginx/sites-available/royalkomputer`:
+
+```nginx
+server {
+    listen 80;
+    server_name royalkomputer.com;
+    root /var/www/royalkomputer/frontend;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location /uploads/ {
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+Aktifkan:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/royalkomputer /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Step 7: Konfigurasi Nginx — Admin Panel (Subdomain)
+
+Buat `/etc/nginx/sites-available/admin.royalkomputer`:
+
+```nginx
+server {
+    listen 80;
+    server_name admin.royalkomputer.com;
+    root /var/www/royalkomputer/backend;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location /uploads/ {
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    # Proteksi file JSON
+    location /data/ {
+        deny all;
+        return 404;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+Aktifkan:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/admin.royalkomputer /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Step 8: SSL Let's Encrypt
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d royalkomputer.com -d admin.royalkomputer.com
+```
+
+### Step 9: Optimasi PostgreSQL untuk 1GB RAM
+
+Edit `/etc/postgresql/16/main/postgresql.conf`:
+
+```
+shared_buffers = 256MB
+effective_cache_size = 512MB
+work_mem = 8MB
+maintenance_work_mem = 64MB
+```
+
+Restart:
+
+```bash
+sudo systemctl restart postgresql
+```
+
+### Step 10: Verifikasi
+
+```bash
+# Storefront
+curl -s -o /dev/null -w "%{http_code}" https://royalkomputer.com/
+# Expected: 200
+
+# API Produk
+curl https://royalkomputer.com/api_produk.php | head -c 200
+
+# Login Admin
+# Buka https://admin.royalkomputer.com/login.php
+# Username: superadmin
+# Password: royal2026 (ganti setelah login pertama!)
+```
+
+---
+
+## 6. Sync Agent Setup (Local PC)
 
 Sync agent berjalan di PC toko (Windows) via Task Scheduler. Setiap 1 jam, mengambil data dari IPOS dan push ke git.
 
@@ -342,7 +535,7 @@ sync/update_produk.php
 
 ---
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 ### Docker
 
@@ -352,6 +545,16 @@ sync/update_produk.php
 | Port 80 sudah dipakai | `sudo lsof -i :80` lalu hentikan process |
 | Database tidak connect | Pastikan container `db` healthy: `docker compose ps` |
 | Login "username atau password salah" | Reset hash: `docker compose exec db psql -U royal_owner -d royalkomputer -c "UPDATE admins SET password_hash = '\$2y\$10\$Q6I5JUyogQq8uJtOu/BrH.HhtKUL7l/b/UonmVcQexE9dNtl7bUhq' WHERE username = 'superadmin';"` |
+
+### Manual Install (No Docker)
+
+| Masalah | Solusi |
+|---------|--------|
+| `pg_connect()` gagal | Pastikan `php8.2-pgsql` terinstall: `php -m \| grep pgsql` |
+| 502 Bad Gateway | PHP-FPM tidak jalan: `sudo systemctl restart php8.2-fpm` |
+| 403 Forbidden di /data/ | Nginx config sudah benar — akses ke data/ sengaja diblokir |
+| Foto tidak muncul | Cek `/var/www/royalkomputer/backend/uploads/` permissions |
+| Login gagal | Reset password via DB: `sudo -u postgres psql -d royalkomputer -c "UPDATE admins SET password_hash = '\$2y\$10\$Q6I5JUyogQq8uJtOu/BrH.HhtKUL7l/b/UonmVcQexE9dNtl7bUhq' WHERE username = 'superadmin';"` |
 
 ### Frontend
 
@@ -366,8 +569,8 @@ sync/update_produk.php
 | Masalah | Solusi |
 |---------|--------|
 | `pg_connect()` fatal error | Pastikan extension `php-pgsql` terinstall |
-| Foto tidak ter-upload | Cek permissions: `docker compose exec backend chmod -R 755 /opt/app/uploads` |
-| Config tidak tersimpan | Cek `backend/data/` writable: `docker compose exec backend ls -la /opt/app/data/` |
+| Foto tidak ter-upload | Cek permissions: `sudo chmod -R 755 /var/www/royalkomputer/backend/uploads` |
+| Config tidak tersimpan | Cek `backend/data/` writable: `ls -la /var/www/royalkomputer/backend/data/` |
 
 ### Sync Agent
 

@@ -14,31 +14,26 @@ A single-store e-commerce marketplace for **Royal Komputer**, a computer hardwar
                             │ git push
                             ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                     LINUX VPS (Coolify + Docker)                  │
+│                     LINUX VPS (Ubuntu 22.04+)                    │
 │                                                                   │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  Frontend    │  │   Backend    │  │   Database (db)      │   │
-│  │  Nginx       │  │  Nginx + PHP │  │   PostgreSQL 16      │   │
-│  │  Vite SPA    │  │  8.2-FPM     │  │   :5432              │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
-│         │                 │                      │               │
-│         └─────────────────┼──────────────────────┘               │
-│                           │                                      │
-│                  ┌────────┴────────┐                             │
-│                  │    Coolify      │                             │
-│                  │ (Caddy Proxy)   │                             │
-│                  │ Auto HTTPS      │                             │
-│                  └─────────────────┘                             │
+│  ┌─────────────────────┐         ┌───────────────────────────┐   │
+│  │  Coolify + Docker   │   or    │  Manual (Nginx + PHP)     │   │
+│  │  (auto-deploy)      │         │  (lighter, 1GB RAM)       │   │
+│  └──────────┬──────────┘         └──────────┬────────────────┘   │
+│             │                               │                    │
+│             ▼                               ▼                    │
+│  ┌───────────────────────────────────────────────────────────┐   │
+│  │  Frontend / Backend + PostgreSQL 16                       │   │
+│  └───────────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 The system has a **hybrid local/cloud architecture**:
 1. **IPOS** POS software writes product data to a local PostgreSQL database
 2. **sync/** scripts (scheduled via Windows Task Scheduler every hour) pull data and push to git
-3. **Linux VPS** runs all three services via Docker Compose, managed by Coolify:
-   - **Frontend:** Nginx serving the Vite-built SPA
-   - **Backend:** Nginx + PHP 8.2-FPM serving the admin panel and API
-   - **Database:** PostgreSQL 16 for all product and config data
+3. **Linux VPS** runs the cloud services — choose one of two deployment options:
+   - **Docker + Coolify** (recommended for 2GB+ RAM): 3 containers — Nginx/Vite SPA frontend, Nginx/PHP-FPM backend, PostgreSQL 16
+   - **Manual Install** (for 1GB RAM): Nginx + PHP 8.2-FPM + PostgreSQL native — see `deploy.sh` or `INSTALL.md#5-vps-deployment-manual-install`
 
 ---
 
@@ -119,6 +114,7 @@ royal-website/              # Git repo root
 │   └── git_push.bat        #   Git commit + push
 │
 ├── docker-compose.yml      # Docker Compose for VPS deployment
+├── deploy.sh               # One-command VPS setup script (manual install)
 ├── .env.example            # Environment variable template
 ├── AGENTS.md               # AI agent instructions
 ├── README.md               # This file
@@ -136,7 +132,16 @@ royal-website/              # Git repo root
 
 ---
 
-## VPS + Docker Deployment
+## VPS Deployment
+
+Two options are available:
+
+| Approach | RAM | Setup | Maintenance |
+|----------|-----|-------|-------------|
+| **Docker + Coolify** (Section 4 of INSTALL.md) | ≥2GB | Semi-automated via Coolify UI | Built-in auto-deploy, rollback, health checks |
+| **Manual Install** (Section 5 of INSTALL.md) | ≥1GB | Run `deploy.sh` or follow INSTALL.md | Manual service management |
+
+### Docker + Coolify
 
 ### Prerequisites
 

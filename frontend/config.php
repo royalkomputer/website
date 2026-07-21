@@ -1,12 +1,30 @@
 <?php
+// Load .env (coba local dulu, fallback ke ../backend/.env)
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        putenv($line);
+    }
+} elseif (file_exists(__DIR__ . '/../backend/.env')) {
+    $lines = file(__DIR__ . '/../backend/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        putenv($line);
+    }
+}
+
 session_start();
 
 // --- KREDENSIAL DATABASE ---
-define('DB_HOST', '192.168.18.189');
-define('DB_PORT', '5444');
-define('DB_NAME', 'i4_ROYAL');
-define('DB_USER', 'admin');
-define('DB_PASS', '2356988');
+// Default: VPS PostgreSQL local. Override via .env atau env var.
+define('DB_HOST', getenv('DB_HOST') ?: getenv('PGHOST') ?: 'localhost');
+define('DB_PORT', getenv('DB_PORT') ?: getenv('PGPORT') ?: '5432');
+define('DB_NAME', getenv('DB_NAME') ?: getenv('PGDATABASE') ?: 'royalkomputer');
+define('DB_USER', getenv('DB_USER') ?: getenv('PGUSER') ?: 'royal_owner');
+define('DB_PASS', getenv('DB_PASSWORD') ?: getenv('PGPASSWORD') ?: '');
 
 // --- PATH FILE ---
 define('STATUS_FILE',  __DIR__ . '/status_toko.txt');
@@ -14,7 +32,7 @@ define('SCHEDULE_FILE',      __DIR__ . '/jadwal_tutup.json');
 define('PRODUCT_INFO_FILE', __DIR__ . '/product_info.json');
 
 // --- BACKEND URL UNTUK ASSETS ---
-// Di VPS: frontend & backend satu domain via Caddy, tidak perlu URL terpisah
+// Di VPS manual: frontend & backend satu server, tidak perlu URL terpisah
 define('BACKEND_URL', getenv('BACKEND_URL') ?: '');
 
 // --- FUNGSI KONEKSI DATABASE ---

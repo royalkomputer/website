@@ -69,6 +69,10 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `frontend/` | Public storefront + product API |
 | `backend/` | Admin dashboard + API layer |
 | `sync/` | IPOS sync agent (Task Scheduler) |
+| Root | | |
+| `deploy.sh` | VPS setup script (manual install) |
+| `INSTALL.md` | Full installation guide (Docker + manual) |
+| `.env.example` | Environment variable template |
 
 ### `database/`
 

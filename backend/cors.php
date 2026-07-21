@@ -25,6 +25,7 @@ function handleCORS(): void {
         'http://localhost:5173',
         'http://localhost:8080',
         'https://royalkomputer.com',
+        'https://admin.royalkomputer.com',
     ];
 
     // Determine the origin to allow
