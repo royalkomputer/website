@@ -51,3 +51,6 @@ backend/test_login_bypass.php
 
 # Deprecated configs
 *.deprecated
+
+# Notes / scratchpad (not sync data)
+note.md
