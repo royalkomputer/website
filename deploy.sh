@@ -79,12 +79,10 @@ info "Step 1/11: Menambah repository PHP 8.2 & PostgreSQL..."
 export DEBIAN_FRONTEND=noninteractive
 
 # PHP 8.2 (ondrej/php)
-if ! apt-cache policy php8.2-fpm &>/dev/null; then
+if [[ ! -f /etc/apt/sources.list.d/ondrej-ubuntu-php-$(lsb_release -sc).list ]]; then
     apt-get install -y -qq software-properties-common
     add-apt-repository -y ppa:ondrej/php
     ok "PHP 8.2 PPA added"
-else
-    ok "PHP 8.2 already available"
 fi
 
 # PostgreSQL 16 (official PG repo)
