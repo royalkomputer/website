@@ -242,7 +242,7 @@ $product_info_html = htmlspecialchars($product_info_text);
     </div>
 
     <div id="banner-section" class="w-full container mx-auto px-4 mt-4 mb-2">
-        <div id="banner-carousel" class="relative w-full overflow-hidden rounded-xl bg-slate-800/40 min-h-[200px] flex items-center justify-center">
+        <div id="banner-carousel" class="relative w-full overflow-hidden rounded-xl bg-slate-800/40 min-h-[200px] flex flex-col items-center justify-center">
             <div class="text-slate-500 text-sm py-12 text-center px-4">
                 <i class="fa-solid fa-image text-2xl mb-2 block"></i>
                 Selamat datang di Royal Komputer
@@ -544,24 +544,54 @@ $product_info_html = htmlspecialchars($product_info_text);
             let html = '';
             active.forEach((pl, pi) => {
                 const photos = pl.photos;
+                const hasMultiple = photos.length > 1;
                 const aspect = pl.aspect || '16/9';
                 const parts = aspect.split('/').map(Number);
                 const padPct = (parts[1] / parts[0] * 100);
                 const plName = pl.name || 'Banner';
                 const isLast = pi === active.length - 1;
-                html += `<div class="w-full rounded-xl overflow-hidden${isLast ? '' : ' mb-3'}">`;
+                html += `<div id="banner-wrapper-${pi}" class="relative w-full overflow-hidden rounded-xl bg-slate-800/40${isLast ? '' : ' mb-3'}"><div class="relative w-full overflow-hidden" style="padding-bottom:${padPct}%"><div class="absolute inset-0 overflow-hidden"><div id="banner-track-${pi}" class="flex transition-transform duration-500 ease-in-out w-full h-full">`;
                 photos.forEach((p, i) => {
-                    html += `<div class="relative w-full overflow-hidden bg-slate-800/40${i > 0 ? ' mt-1' : ''}" style="padding-bottom:${padPct}%">`;
-                    if (p.link) html += `<a href="${p.link}" target="_blank" rel="noopener" class="absolute inset-0 block">`;
-                    else html += `<div class="absolute inset-0">`;
+                    html += `<div class="min-w-full w-full flex-shrink-0 h-full">`;
+                    if (p.link) html += `<a href="${p.link}" target="_blank" rel="noopener" class="block h-full">`;
                     html += `<img src="/uploads/banners/${p.image}" alt="${p.alt || plName}" class="w-full h-full object-cover" onerror="this.style.display='none'">`;
                     if (p.link) html += `</a>`;
-                    else html += `</div>`;
                     html += `</div>`;
                 });
                 html += `</div>`;
+                if (hasMultiple) {
+                    html += `<div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">`;
+                    photos.forEach((_, i) => { html += `<button class="banner-dot w-2 h-2 rounded-full transition-all ${i===0?'bg-white w-4':'bg-white/50 hover:bg-white/80'}" data-playlist="${pi}" data-index="${i}"></button>`; });
+                    html += `</div>`;
+                }
+                html += `</div></div></div>`;
             });
             container.innerHTML = html;
+            active.forEach((pl, pi) => {
+                if (pl.photos.length > 1) bindCarousel(pi, pl.photos.length, pl.interval || 5000);
+            });
+        }
+
+        function bindCarousel(plIndex, total, interval) {
+            const track = document.getElementById('banner-track-' + plIndex);
+            if (!track) return;
+            let current = 0;
+            const wrapper = document.getElementById('banner-wrapper-' + plIndex);
+            function goTo(index) {
+                if (index < 0) index = total - 1;
+                if (index >= total) index = 0;
+                current = index;
+                track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                wrapper.querySelectorAll('.banner-dot').forEach(function(dot, i) {
+                    dot.className = 'banner-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+                });
+            }
+            wrapper.querySelectorAll('.banner-dot').forEach(function(d) {
+                d.addEventListener('click', function() { goTo(parseInt(this.dataset.index) || 0); });
+            });
+            var autoInterval = setInterval(function() { goTo(current + 1); }, interval);
+            wrapper.addEventListener('mouseenter', function() { clearInterval(autoInterval); });
+            wrapper.addEventListener('mouseleave', function() { autoInterval = setInterval(function() { goTo(current + 1); }, interval); });
         }
 
         // ── Layout Mode (initial vs active) ──
