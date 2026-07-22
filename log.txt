@@ -1,7 +1,8 @@
-This site can’t be reached
-103.93.133.60 refused to connect.
-Try:
-
-Checking the connection
-Checking the proxy and the firewall
-ERR_CONNECTION_REFUSED
+royaladmin@royalserver:~/website$ git config --global --add safe.directory /var/
+www/royalkomputer
+royaladmin@royalserver:~/website$ cd /war/www/royalkomputer
+-bash: cd: /war/www/royalkomputer: No such file or directory
+royaladmin@royalserver:~/website$ cd /var/www/royalkomputer
+royaladmin@royalserver:/var/www/royalkomputer$ git pull origin main
+error: cannot open .git/FETCH_HEAD: Permission denied
+royaladmin@royalserver:/var/www/royalkomputer$ _
