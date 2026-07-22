@@ -107,6 +107,17 @@ listen 8080;
 ```
 Akses sementara: `http://103.93.133.60:8080/` → Admin Panel
 
+### 11. Webhook Auto-Deploy & Runtime Data Separation
+**Masalah:** Runtime data (admins, banners, schedules, dll) ikut ter-track git, sehingga `git reset --hard` di webhook akan menghapus perubahan yang dilakukan via panel admin (admin baru, banner baru, dll).
+
+**Perbaikan:**
+- `backend/data/` untuk runtime data (admins, banners, heading, jadwal_tutup, product_info, status_toko, tagline) di-ignore via `.gitignore`
+- `backend/uploads/` (foto produk + banner) juga di-ignore (binary bloat)
+- `git rm --cached` untuk semua file runtime + upload yang sebelumnya ter-track, tanpa hapus file fisik
+- `backend/webhook.php` — endpoint yang menerima POST dari GitHub, validasi HMAC-SHA256, lalu `git fetch && git reset --hard origin/main`
+- Runtime data tetap aman karena sudah tidak di-track git
+- Aplikasi auto-create default files saat pertama kali akses (misal `loadAdmins()` membuat `admins.json` jika belum ada)
+
 ---
 
 ## Status DNS & SSL
@@ -149,3 +160,4 @@ Deploy.sh juga sudah diperbaiki untuk selalu recreate symlink (tidak skip jika s
 | 22 Jul 2026 | SSL Let's Encrypt terpasang, HTTP → HTTPS redirect aktif ✅ |
 | 22 Jul 2026 | `tbl_web_deskripsi` — hapus FK constraint (agar deskripsi bisa disimpan walau produk belum ada di cloud DB) |
 | 22 Jul 2026 | Banner multi-playlist: setiap playlist jadi carousel sendiri, tumpuk vertikal |
+| 22 Jul 2026 | Webhook auto-deploy: `backend/webhook.php`, runtime data di-ignore git, `git rm --cached` |
