@@ -231,6 +231,15 @@ ok "Symlink frontend/uploads -> backend/uploads created"
 
 chown -R www-data:www-data "$APP_DIR/backend/uploads" "$APP_DIR/backend/data"
 chmod -R 755 "$APP_DIR/backend/uploads" "$APP_DIR/backend/data"
+
+# .user.ini — upload limits untuk PHP-FPM (apply per-directory)
+cat > "$APP_DIR/backend/.user.ini" <<INI
+upload_max_filesize = 64M
+post_max_size = 128M
+max_execution_time = 120
+memory_limit = 256M
+INI
+chown www-data:www-data "$APP_DIR/backend/.user.ini"
 ok "Uploads directory ready"
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -248,6 +257,7 @@ server {
     server_name $DOMAIN;
     root $APP_DIR/frontend;
     index index.php;
+    client_max_body_size 64M;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
@@ -282,6 +292,7 @@ else
 server {
     listen 80;
     listen 8080;
+    client_max_body_size 64M;
     server_name $ADMIN_DOMAIN;
     root $APP_DIR/backend;
     index admin.php;

@@ -537,55 +537,31 @@ $product_info_html = htmlspecialchars($product_info_text);
         
         // ── Banner Carousel ──
         function renderBanners(playlists) {
-            const carousel = document.getElementById('banner-carousel');
-            if (!carousel) return;
+            const container = document.getElementById('banner-carousel');
+            if (!container) return;
             const active = (playlists || []).filter(p => p.active !== false && p.photos && p.photos.length > 0);
             if (active.length === 0) return;
-            const pl = active[0];
-            const photos = pl.photos;
-            const hasMultiple = photos.length > 1;
-            const aspect = pl.aspect || '16/9';
-            const parts = aspect.split('/').map(Number);
-            const padPct = (parts[1] / parts[0] * 100);
-            let html = `<div class="relative w-full overflow-hidden" style="padding-bottom:${padPct}%"><div class="absolute inset-0 overflow-hidden"><div id="banner-track" class="flex transition-transform duration-500 ease-in-out w-full h-full">`;
-            photos.forEach((p, i) => {
-                html += `<div class="min-w-full w-full flex-shrink-0 h-full">`;
-                if (p.link) html += `<a href="${p.link}" target="_blank" rel="noopener" class="block h-full">`;
-                html += `<img src="/uploads/banners/${p.image}" alt="${p.alt || pl.name || 'Banner'}" class="w-full h-full object-cover" onerror="this.style.display='none'">`;
-                if (p.link) html += `</a>`;
-                html += `</div>`;
-            });
-            html += `</div>`;
-            if (hasMultiple) {
-                html += `<div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">`;
-                photos.forEach((_, i) => { html += `<button class="banner-dot w-2 h-2 rounded-full transition-all ${i===0?'bg-white w-4':'bg-white/50 hover:bg-white/80'}" data-index="${i}"></button>`; });
-                html += `</div>`;
-            }
-            html += `</div></div>`;
-            carousel.innerHTML = html;
-            if (hasMultiple) bindCarousel(photos.length, pl.interval || 5000);
-        }
-
-        function bindCarousel(total, interval) {
-            const track = document.getElementById('banner-track');
-            if (!track) return;
-            let current = 0;
-            function goTo(index) {
-                if (index < 0) index = total - 1;
-                if (index >= total) index = 0;
-                current = index;
-                track.style.transform = 'translateX(-' + (current * 100) + '%)';
-                document.querySelectorAll('.banner-dot').forEach(function(dot, i) {
-                    dot.className = 'banner-dot w-2 h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/80');
+            let html = '';
+            active.forEach((pl, pi) => {
+                const photos = pl.photos;
+                const aspect = pl.aspect || '16/9';
+                const parts = aspect.split('/').map(Number);
+                const padPct = (parts[1] / parts[0] * 100);
+                const plName = pl.name || 'Banner';
+                const isLast = pi === active.length - 1;
+                html += `<div class="w-full rounded-xl overflow-hidden${isLast ? '' : ' mb-3'}">`;
+                photos.forEach((p, i) => {
+                    html += `<div class="relative w-full overflow-hidden bg-slate-800/40${i > 0 ? ' mt-1' : ''}" style="padding-bottom:${padPct}%">`;
+                    if (p.link) html += `<a href="${p.link}" target="_blank" rel="noopener" class="absolute inset-0 block">`;
+                    else html += `<div class="absolute inset-0">`;
+                    html += `<img src="/uploads/banners/${p.image}" alt="${p.alt || plName}" class="w-full h-full object-cover" onerror="this.style.display='none'">`;
+                    if (p.link) html += `</a>`;
+                    else html += `</div>`;
+                    html += `</div>`;
                 });
-            }
-            document.querySelectorAll('.banner-dot').forEach(function(d) {
-                d.addEventListener('click', function() { goTo(parseInt(this.dataset.index) || 0); });
+                html += `</div>`;
             });
-            var autoInterval = setInterval(function() { goTo(current + 1); }, interval);
-            var carouselEl = document.getElementById('banner-carousel');
-            carouselEl.addEventListener('mouseenter', function() { clearInterval(autoInterval); });
-            carouselEl.addEventListener('mouseleave', function() { autoInterval = setInterval(function() { goTo(current + 1); }, interval); });
+            container.innerHTML = html;
         }
 
         // ── Layout Mode (initial vs active) ──
