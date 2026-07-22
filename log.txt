@@ -1,8 +1,25 @@
-royaladmin@royalserver:~/website$ git config --global --add safe.directory /var/
-www/royalkomputer
-royaladmin@royalserver:~/website$ cd /war/www/royalkomputer
--bash: cd: /war/www/royalkomputer: No such file or directory
-royaladmin@royalserver:~/website$ cd /var/www/royalkomputer
-royaladmin@royalserver:/var/www/royalkomputer$ git pull origin main
-error: cannot open .git/FETCH_HEAD: Permission denied
-royaladmin@royalserver:/var/www/royalkomputer$ _
+root@royalserver:/var/www/royalkomputer# git update-index --skip-worktree frontend/uploads
+fatal: detected dubious ownership in repository at '/var/www/royalkomputer'
+To add an exception for this directory, call:
+
+        git config --global --add safe.directory /var/www/royalkomputer
+root@royalserver:/var/www/royalkomputer# ?2004hroot@royalserver:/var/www/royalkomputer# cd /var/www/royalkomputer/frontend
+root@royalserver:/var/www/royalkomputer/frontend#         ln -sf ../backend/uploads uploads
+root@royalserver:/var/www/royalkomputer/frontend#         ls -la uploads
+lrwxrwxrwx 1 root root 18 Jul 22 15:08 uploads -> ../backend/uploads
+root@royalserver:/var/www/royalkomputer/frontend# ?2004hroot@royalserver:/var/www/royalkomputer/frontend# cd /var/www/royalkomputer
+root@royalserver:/var/www/royalkomputer#         sudo -u www-data git update-index --skip-worktree frontend/uploads      curl -I http://103.93.133.60/uploads/MNTA24B36X_70_2.webp103.93.133.60/uploads/MNTA24B36X_70_2.webp
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 22 Jul 2026 08:12:40 GMT
+Content-Type: image/webp
+Content-Length: 4370
+Last-Modified: Wed, 22 Jul 2026 03:12:07 GMT
+Connection: keep-alive
+ETag: "6a603507-1112"
+Expires: Wed, 29 Jul 2026 08:12:40 GMT
+Cache-Control: max-age=604800
+Cache-Control: public
+Accept-Ranges: bytes
+
+root@royalserver:/var/www/royalkomputer# 
