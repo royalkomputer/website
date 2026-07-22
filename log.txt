@@ -1,25 +1,40 @@
-root@royalserver:/var/www/royalkomputer# git update-index --skip-worktree frontend/uploads
-fatal: detected dubious ownership in repository at '/var/www/royalkomputer'
-To add an exception for this directory, call:
-
-        git config --global --add safe.directory /var/www/royalkomputer
-root@royalserver:/var/www/royalkomputer# ?2004hroot@royalserver:/var/www/royalkomputer# cd /var/www/royalkomputer/frontend
-root@royalserver:/var/www/royalkomputer/frontend#         ln -sf ../backend/uploads uploads
-root@royalserver:/var/www/royalkomputer/frontend#         ls -la uploads
-lrwxrwxrwx 1 root root 18 Jul 22 15:08 uploads -> ../backend/uploads
-root@royalserver:/var/www/royalkomputer/frontend# ?2004hroot@royalserver:/var/www/royalkomputer/frontend# cd /var/www/royalkomputer
-root@royalserver:/var/www/royalkomputer#         sudo -u www-data git update-index --skip-worktree frontend/uploads      curl -I http://103.93.133.60/uploads/MNTA24B36X_70_2.webp103.93.133.60/uploads/MNTA24B36X_70_2.webp
+php -i | grep -E "upload_max_filesize|post_max_size|memory_limit"oad_max_filesize|post_max_size|memory_limit"
+memory_limit => -1 => -1
+post_max_size => 8M => 8M
+upload_max_filesize => 2M => 2M
+root@royalserver:/home/royaladmin/website#  tail -30 /var/log/php8.2-fpm.log
+[22-Jul-2026 10:11:35] NOTICE: fpm is running, pid 11539
+[22-Jul-2026 10:11:35] NOTICE: ready to handle connections
+[22-Jul-2026 10:11:35] NOTICE: systemd monitor interval set to 10000ms
+[22-Jul-2026 10:11:54] NOTICE: Terminating ...
+[22-Jul-2026 10:11:54] NOTICE: exiting, bye-bye!
+[22-Jul-2026 10:11:54] NOTICE: fpm is running, pid 13125
+[22-Jul-2026 10:11:54] NOTICE: ready to handle connections
+[22-Jul-2026 10:11:54] NOTICE: systemd monitor interval set to 10000ms
+[22-Jul-2026 10:28:47] NOTICE: fpm is running, pid 602
+[22-Jul-2026 10:28:47] NOTICE: ready to handle connections
+[22-Jul-2026 10:28:47] NOTICE: systemd monitor interval set to 10000ms
+[22-Jul-2026 10:32:51] NOTICE: fpm is running, pid 601
+[22-Jul-2026 10:32:51] NOTICE: ready to handle connections
+[22-Jul-2026 10:32:51] NOTICE: systemd monitor interval set to 10000ms
+[22-Jul-2026 15:02:46] NOTICE: Terminating ...
+[22-Jul-2026 15:02:46] NOTICE: exiting, bye-bye!
+[22-Jul-2026 15:03:28] NOTICE: fpm is running, pid 601
+[22-Jul-2026 15:03:28] NOTICE: ready to handle connections
+[22-Jul-2026 15:03:28] NOTICE: systemd monitor interval set to 10000ms
+root@royalserver:/home/royaladmin/website# hroot@royalserver:/home/royaladmin/website#  ls -la /var/www/royalkomputer/backend/uploads/banners/
+total 8
+drwxr-xr-x 2 www-data www-data 4096 Jul 22 15:21 .
+drwxr-xr-x 3 www-data www-data 4096 Jul 22 15:12 ..
+root@royalserver:/home/royaladmin/website#      stat -c "%a %U:%G" /var/www/royalkomputer/backend/uploads/banners/
+755 www-data:www-data                                                                                                    curl -I http://103.93.133.60:8080/update_banner.php\http://103.93.133.60:8080/update_banner.php
+> 
 HTTP/1.1 200 OK
 Server: nginx/1.18.0 (Ubuntu)
-Date: Wed, 22 Jul 2026 08:12:40 GMT
-Content-Type: image/webp
-Content-Length: 4370
-Last-Modified: Wed, 22 Jul 2026 03:12:07 GMT
+Date: Wed, 22 Jul 2026 08:30:43 GMT
+Content-Type: application/json
 Connection: keep-alive
-ETag: "6a603507-1112"
-Expires: Wed, 29 Jul 2026 08:12:40 GMT
-Cache-Control: max-age=604800
-Cache-Control: public
-Accept-Ranges: bytes
-
-root@royalserver:/var/www/royalkomputer# 
+Set-Cookie: PHPSESSID=ggsf0kfmtbognegn9il0bu6m2u; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
