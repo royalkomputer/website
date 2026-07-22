@@ -1,16 +1,8 @@
-root@royalserver:/home/royaladmin/website# nginx -t && systemctl reload nginx
-nginx: [emerg] invalid parameter "server_name" in /etc/nginx/sites-enabled/royal
-komputer.com:3
-nginx: configuration file /etc/nginx/nginx.conf test failed
-root@royalserver:/home/royaladmin/website# curl -I http://103.93.133.60
-HTTP/1.1 302 Found
-Server: nginx/1.18.0 (Ubuntu)
-Date: Wed, 22 Jul 2026 04:27:20 GMT
-Content-Type: text/html; charset=UTF-8
-Connection: keep-alive
-Set-Cookie: PHPSESSID=qkchr6ovr8186v8ckqiqrnrsj2; path=/
-Expires: Thu, 19 Nov 1981 08:52:00 GMT
-Cache-Control: no-store, no-cache, must-revalidate
-Pragma: no-cache
-Location: login.php
-root@royalserver:/home/royaladmin/website#
+root@royalserver:/home/royaladmin/website# curl -I http://royalkomputer.com
+curl: (6) Could not resolve host: royalkomputer.com
+root@royalserver:/home/royaladmin/website# nslookup royalkomputer.com
+Server:         127.0.0.53
+Address:        127.0.0.53#53
+
+Non-authoritative answer:
+*** Can't find royalkomputer.com: No answer
