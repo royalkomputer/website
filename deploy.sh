@@ -220,16 +220,14 @@ info "Step 7/11: Setup uploads & symlink..."
 mkdir -p "$APP_DIR/backend/uploads" "$APP_DIR/backend/data"
 
 # Create symlink frontend/uploads -> ../backend/uploads
+# Git symlink target is Windows absolute path (broken on Linux) — always recreate
 if [[ -L "$APP_DIR/frontend/uploads" ]]; then
-    warn "Symlink frontend/uploads already exists — skipping"
+    rm "$APP_DIR/frontend/uploads"
 elif [[ -d "$APP_DIR/frontend/uploads" ]]; then
-    warn "frontend/uploads is a directory — removing and replacing with symlink"
     rm -rf "$APP_DIR/frontend/uploads"
-    ln -sf ../backend/uploads "$APP_DIR/frontend/uploads"
-else
-    ln -sf ../backend/uploads "$APP_DIR/frontend/uploads"
-    ok "Symlink frontend/uploads -> backend/uploads created"
 fi
+ln -sf ../backend/uploads "$APP_DIR/frontend/uploads"
+ok "Symlink frontend/uploads -> backend/uploads created"
 
 chown -R www-data:www-data "$APP_DIR/backend/uploads" "$APP_DIR/backend/data"
 chmod -R 755 "$APP_DIR/backend/uploads" "$APP_DIR/backend/data"

@@ -129,6 +129,28 @@ Akses sementara: `http://103.93.133.60:8080/` → Admin Panel
 
 ---
 
+## Bug yang Ditemukan
+
+### Bug 1 — Produk: Foto slide 2+ tidak tampil
+**Root cause:** `frontend/uploads` adalah git symlink dengan target `C:/Websites/website/backend/uploads` (path Windows absolut). Di Linux VPS path ini tidak ada → symlink putus → semua request `/uploads/*` return 404.
+
+Cache `cache_produk.json` tetap menyertakan path untuk semua gambar (_1, _2, _3, dst), tapi file fisik hanya bisa diakses lewat symlink yang rusak.
+
+**Fix:** Hapus symlink lama lalu buat yang benar:
+```bash
+cd /var/www/royalkomputer/frontend
+rm uploads
+ln -sf ../backend/uploads uploads
+```
+Deploy.sh juga sudah diperbaiki untuk selalu recreate symlink (tidak skip jika sudah ada).
+
+### Bug 2 — Banner blank
+**Root cause:** Sama seperti Bug 1 — banner image di-render sebagai `/uploads/banners/pl_6a5c6e8fd1854_0.webp`, path tersebut melewati symlink yang sama yang rusak. Image 404 → `onerror` menyembunyikan img → container kosong.
+
+**Fix:** Sama seperti Bug 1 — perbaiki symlink.
+
+---
+
 ## Yang Tersisa (setelah DNS propagasi)
 
 1. **SSL Let's Encrypt:**
