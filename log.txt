@@ -1,8 +1,7 @@
-root@royalserver:/home/royaladmin/website# curl -I http://royalkomputer.com
-curl: (6) Could not resolve host: royalkomputer.com
-root@royalserver:/home/royaladmin/website# nslookup royalkomputer.com
-Server:         127.0.0.53
-Address:        127.0.0.53#53
+This site can’t be reached
+103.93.133.60 refused to connect.
+Try:
 
-Non-authoritative answer:
-*** Can't find royalkomputer.com: No answer
+Checking the connection
+Checking the proxy and the firewall
+ERR_CONNECTION_REFUSED
