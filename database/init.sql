@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_itemstok_kodeitem ON tbl_itemstok(kodeitem);
 -- 3. Custom product descriptions (admin panel)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS tbl_web_deskripsi (
-    kodeitem VARCHAR(50) PRIMARY KEY REFERENCES tbl_item(kodeitem) ON DELETE CASCADE,
+    kodeitem VARCHAR(50) PRIMARY KEY,
     deskripsi TEXT DEFAULT ''
 );
 
