@@ -246,7 +246,7 @@ if [[ -f "/etc/nginx/sites-enabled/$DOMAIN" ]]; then
 else
     cat > "/etc/nginx/sites-available/$DOMAIN" <<NGINX
 server {
-    listen 80;
+    listen 80 default_server;
     server_name $DOMAIN;
     root $APP_DIR/frontend;
     index index.php;
