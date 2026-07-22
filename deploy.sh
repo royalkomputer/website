@@ -283,6 +283,7 @@ else
     cat > "/etc/nginx/sites-available/$ADMIN_DOMAIN" <<NGINX
 server {
     listen 80;
+    listen 8080;
     server_name $ADMIN_DOMAIN;
     root $APP_DIR/backend;
     index admin.php;
