@@ -109,23 +109,13 @@ Akses sementara: `http://103.93.133.60:8080/` → Admin Panel
 
 ---
 
-## Status DNS
+## Status DNS & SSL
 
-| Domain | A Record | Status |
-|--------|----------|--------|
-| `royalkomputer.com` | `103.93.133.60` | ✅ Terisi di cPanel |
-| `admin.royalkomputer.com` | `103.93.133.60` | ✅ Terisi di cPanel |
-| Nameserver | `satu.neodns.id` / `dua.neodns.id` | ✅ Terisi di registrar |
-| Propagasi | — | ⏳ Menunggu (TTL 14400 detik / 4 jam) |
-
----
-
-## Akses Saat Ini (sementara, sebelum DNS propagasi)
-
-| Tujuan | URL | Status |
-|--------|-----|--------|
-| Marketplace | `http://103.93.133.60/` | ✅ 200 OK |
-| Admin Panel | `http://103.93.133.60:8080/` | ✅ Redirect ke login.php |
+| Domain | A Record | DNS Status | HTTPS Status |
+|--------|----------|------------|--------------|
+| `royalkomputer.com` | `103.93.133.60` | ✅ Propagasi OK | ✅ Let's Encrypt (exp: 2026-10-20) |
+| `admin.royalkomputer.com` | `103.93.133.60` | ✅ Propagasi OK | ✅ Let's Encrypt (exp: 2026-10-20) |
+| Nameserver | `satu.neodns.id` / `dua.neodns.id` | ✅ Terisi di registrar | — |
 
 ---
 
@@ -151,11 +141,11 @@ Deploy.sh juga sudah diperbaiki untuk selalu recreate symlink (tidak skip jika s
 
 ---
 
-## Yang Tersisa (setelah DNS propagasi)
+## Riwayat
 
-1. **SSL Let's Encrypt:**
-   ```bash
-   certbot --nginx -d royalkomputer.com -d admin.royalkomputer.com
-   ```
-2. **Hapus port 8080** dari konfigurasi admin (sudah tidak diperlukan)
-3. **Update note.md** — tandai tanggal DNS & SSL selesai
+| Tanggal | Perubahan |
+|---------|-----------|
+| 22 Jul 2026 | DNS A record `royalkomputer.com` + `admin.royalkomputer.com` → `103.93.133.60` ✅ |
+| 22 Jul 2026 | SSL Let's Encrypt terpasang, HTTP → HTTPS redirect aktif ✅ |
+| 22 Jul 2026 | `tbl_web_deskripsi` — hapus FK constraint (agar deskripsi bisa disimpan walau produk belum ada di cloud DB) |
+| 22 Jul 2026 | Banner multi-playlist: setiap playlist jadi carousel sendiri, tumpuk vertikal |
