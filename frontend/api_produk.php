@@ -47,6 +47,28 @@ if (file_exists($cache_file)) {
         });
         $produk = array_values($produk);
 
+        // Dynamic photo detection: scan actual uploads, override cache URLs
+        $upload_dir = __DIR__ . '/uploads/';
+        $all_photos = [];
+        if (is_dir($upload_dir)) {
+            foreach (glob($upload_dir . '*_*.webp') as $f) {
+                $base = basename($f);
+                if (preg_match('/^(.+)_(\d+)\.webp$/', $base, $m)) {
+                    $all_photos[$m[1]][] = '/uploads/' . $base . '?v=' . filemtime($f);
+                }
+            }
+        }
+        foreach ($produk as &$p) {
+            $id = $p['id'] ?? '';
+            if (!$id) continue;
+            $safe = preg_replace('/[^A-Za-z0-9]/', '_', $id);
+            if (isset($all_photos[$safe]) && !empty($all_photos[$safe])) {
+                $p['image'] = $all_photos[$safe][0];
+                $p['images'] = $all_photos[$safe];
+            }
+        }
+        unset($p);
+
         // Di VPS: cukup /uploads/ karena frontend & backend satu domain
         foreach ($produk as &$p) {
             if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
