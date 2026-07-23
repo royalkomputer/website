@@ -485,10 +485,14 @@ $current_status = loadStatus();
             </div>
             <div class="border-t border-slate-100 pt-4">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Promo / Harga Coret <span class="text-slate-400 font-normal normal-case">(opsional)</span></label>
+                <label class="flex items-center gap-2 mb-3 cursor-pointer select-none">
+                    <input type="checkbox" id="auto-label" onchange="toggleAutoLabel()" class="w-4 h-4 text-astra-700 border-slate-300 rounded focus:ring-astra-500">
+                    <span class="text-sm text-slate-700 font-medium">Hitung persentase diskon otomatis</span>
+                </label>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[10px] text-slate-400 mb-1 font-medium">Harga Coret (Rp)</label>
-                        <input type="number" id="modal-harga-coret" name="harga_coret" min="0" step="500" placeholder="0" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                        <input type="number" id="modal-harga-coret" name="harga_coret" oninput="autoLabelHandler()" min="0" step="500" placeholder="0" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
                     </div>
                     <div>
                         <label class="block text-[10px] text-slate-400 mb-1 font-medium">Label Promo</label>
@@ -1578,6 +1582,7 @@ async function hapusPromo(id) {
 function openEditModal(id){
     const p = allProducts.find(x => x.id === id);
     if(!p) return;
+    window._currentEditPrice = p.price;
     document.getElementById('modal-id').value=id;
     document.getElementById('modal-name').value=(p.name||'').replace(/&quot;/g,'"');
     document.getElementById('modal-harga-pokok').value=p.harga_pokok>0
@@ -1592,11 +1597,37 @@ function openEditModal(id){
 
     // Promo fields
     document.getElementById('modal-harga-coret').value = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].harga_coret) || '';
-    document.getElementById('modal-label-promo').value = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].label) || '';
+    var existingLabel = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].label) || '';
+    document.getElementById('modal-label-promo').value = existingLabel;
+
+    // Auto-label checkbox
+    var isAuto = /^Diskon \d+%$/.test(existingLabel);
+    document.getElementById('auto-label').checked = isAuto;
+    document.getElementById('modal-label-promo').readOnly = isAuto;
 
     renderSavedPhotos(id, p.images);
     document.getElementById('edit-modal').classList.remove('hidden');
     document.getElementById('edit-modal').classList.add('flex');
+}
+
+function toggleAutoLabel() {
+    var auto = document.getElementById('auto-label').checked;
+    var label = document.getElementById('modal-label-promo');
+    label.readOnly = auto;
+    if (auto) autoLabelHandler();
+}
+
+function autoLabelHandler() {
+    if (!document.getElementById('auto-label').checked) return;
+    var coret = parseInt(document.getElementById('modal-harga-coret').value) || 0;
+    var jual = window._currentEditPrice || 0;
+    var label = document.getElementById('modal-label-promo');
+    if (coret > 0 && jual > 0 && coret < jual) {
+        var pct = Math.round((jual - coret) / jual * 100);
+        label.value = 'Diskon ' + pct + '%';
+    } else {
+        label.value = '';
+    }
 }
 
 let currentEditId = '';
