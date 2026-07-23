@@ -1776,6 +1776,8 @@ function submitForm(event){
     const formData = new FormData();
     formData.append('id', document.getElementById('modal-id').value);
     formData.append('description', document.getElementById('modal-desc').value);
+    formData.append('harga_coret', document.getElementById('modal-harga-coret').value);
+    formData.append('label_promo', document.getElementById('modal-label-promo').value);
 
     const imageOrder = currentEditImages.map(item => item.type === 'existing' ? item.src : item.tempId);
     formData.append('image_order', JSON.stringify(imageOrder));
