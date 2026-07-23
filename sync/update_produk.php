@@ -232,11 +232,32 @@ function runSync(): array {
     $produk = [];
     $no_image_count = 0;
 
+    // Load cache lama untuk pertahankan URL foto (yang mungkin diupload via VPS)
+    $old_cache = [];
+    $old_cache_path = __DIR__ . '/cache_produk.json';
+    if (file_exists($old_cache_path)) {
+        $old_data = json_decode(file_get_contents($old_cache_path), true);
+        if (is_array($old_data)) {
+            foreach ($old_data as $p) {
+                if (!empty($p['id'])) $old_cache[$p['id']] = $p;
+            }
+        }
+    }
+
     while ($row = pg_fetch_assoc($pg_result)) {
         $row['price'] = (float) $row['price'];
         $row['stock'] = (float) $row['stock'];
         if (empty(trim($row['category']))) {
             $row['category'] = 'Lainnya';
+        }
+
+        // Pertahankan URL foto dari cache lama jika ada
+        if (isset($old_cache[$row['id']]) && !empty($old_cache[$row['id']]['images'])) {
+            $old = $old_cache[$row['id']];
+            $row['image'] = $old['image'];
+            $row['images'] = $old['images'];
+            $produk[] = $row;
+            continue;
         }
 
         $safe_kode = preg_replace('/[^A-Za-z0-9]/', '_', $row['id']);
