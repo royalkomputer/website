@@ -1788,6 +1788,8 @@ async function submitBuatPromo(e) {
 function editPromo(id) {
     showBuatPromo(id);
 }
+
+function openEditModal(id){
     const p = allProducts.find(x => x.id === id);
     if(!p) return;
     window._currentEditPrice = p.price;
