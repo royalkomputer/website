@@ -491,7 +491,7 @@ $current_status = loadStatus();
                 </label>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Harga Coret (Rp)</label>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Harga Coret (Rp) <span class="text-amber-500 font-normal">ⓘ isi harga sebelum diskon</span></label>
                         <input type="number" id="modal-harga-coret" name="harga_coret" oninput="autoLabelHandler()" min="0" step="500" placeholder="0" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
                     </div>
                     <div>
