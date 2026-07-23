@@ -376,6 +376,9 @@ $current_status = loadStatus();
                     </h3>
                     <p class="text-sm text-slate-500 mt-0.5">Atur harga coret untuk produk yang sedang diskon.</p>
                 </div>
+                <button onclick="showBuatPromo()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Buat Promo
+                </button>
             </div>
             <div id="promo-loading" class="py-8 text-center text-slate-400">
                 <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
@@ -397,7 +400,7 @@ $current_status = loadStatus();
                 </table>
                 <div id="promo-empty" class="hidden py-8 text-center text-slate-400">
                     <i class="fa-solid fa-tag text-3xl text-slate-300 mb-2"></i>
-                    <p class="text-sm">Belum ada promo. Atur promo dari menu <strong>Katalog</strong> → klik <strong>Kelola</strong> pada produk.</p>
+                    <p class="text-sm">Belum ada promo. Klik <strong>Buat Promo</strong> untuk menambahkan.</p>
                 </div>
             </div>
         </div>
@@ -504,6 +507,57 @@ $current_status = loadStatus();
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
                 <button type="submit" id="btn-submit" class="px-5 py-2 bg-astra-700 hover:bg-astra-800 text-white rounded-lg text-xs font-bold flex items-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL BUAT PROMO -->
+<div id="buat-promo-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-lg shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-astra-950 text-white p-4 flex items-center justify-between">
+            <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-tag text-astra-400"></i> <span id="bp-title">Buat Promo</span></h3>
+            <button onclick="closeBuatPromo()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="buat-promo-form" onsubmit="submitBuatPromo(event)" class="p-6 space-y-4">
+            <input type="hidden" id="bp-id" value="">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cari Produk</label>
+                <input type="text" id="bp-search" oninput="filterPromoProduct(this.value)" placeholder="Ketik nama atau ID produk..." autocomplete="off" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                <div id="bp-search-results" class="hidden mt-1 max-h-48 overflow-y-auto border border-slate-200 rounded-lg bg-white shadow-lg divide-y divide-slate-100"></div>
+            </div>
+
+            <div id="bp-selected" class="hidden p-3 bg-astra-50 rounded-lg border border-astra-200 flex items-center gap-3">
+                <img id="bp-selected-img" src="" class="w-10 h-10 object-cover rounded border border-astra-300">
+                <div>
+                    <p id="bp-selected-name" class="text-sm font-bold text-slate-800"></p>
+                    <p id="bp-selected-price" class="text-xs text-slate-500"></p>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-4">
+                <label class="flex items-center gap-2 mb-3 cursor-pointer select-none">
+                    <input type="checkbox" id="bp-auto-label" onchange="bpToggleAuto()" class="w-4 h-4 text-astra-700 border-slate-300 rounded focus:ring-astra-500">
+                    <span class="text-sm text-slate-700 font-medium">Hitung persentase diskon otomatis</span>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Harga Coret (Rp) <span class="text-amber-500 font-normal">ⓘ isi harga sebelum diskon</span></label>
+                        <input type="number" id="bp-harga-coret" oninput="bpAutoLabel()" min="0" step="500" placeholder="0" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Label Promo</label>
+                        <input type="text" id="bp-label" placeholder="Diskon 20%" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeBuatPromo()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
+                <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Promo
                 </button>
             </div>
         </form>
@@ -1553,7 +1607,10 @@ function renderPromoTable(promoData, products) {
             <td class="px-4 py-3 text-right font-bold text-red-600 text-sm">${formattedCoret}</td>
             <td class="px-4 py-3 text-center"><span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded">${label}</span></td>
             <td class="px-4 py-3 text-center">
-                <button onclick="hapusPromo('${id}')" class="text-red-500 hover:text-red-700 text-xs font-bold transition-colors"><i class="fa-solid fa-trash"></i> Hapus</button>
+                <div class="flex items-center justify-center gap-1">
+                    <button onclick="editPromo('${id}')" class="text-blue-500 hover:text-blue-700 text-xs font-bold transition-colors" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="hapusPromo('${id}')" class="text-red-500 hover:text-red-700 text-xs font-bold transition-colors" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </div>
             </td>`;
         tbody.appendChild(tr);
     });
@@ -1579,7 +1636,158 @@ async function hapusPromo(id) {
     }
 }
 
-function openEditModal(id){
+// ── BUAT / EDIT PROMO ──
+var _bpSelectedId = null;
+var _bpJual = 0;
+
+function showBuatPromo(id) {
+    document.getElementById('bp-id').value = id || '';
+    document.getElementById('bp-title').textContent = id ? 'Edit Promo' : 'Buat Promo';
+    document.getElementById('bp-selected').classList.add('hidden');
+    document.getElementById('bp-search').value = '';
+    document.getElementById('bp-search-results').classList.add('hidden');
+    document.getElementById('bp-harga-coret').value = '';
+    document.getElementById('bp-label').value = '';
+    document.getElementById('bp-auto-label').checked = false;
+    document.getElementById('bp-label').readOnly = false;
+    _bpSelectedId = id || null;
+    _bpJual = 0;
+
+    if (id) {
+        var p = allProducts.find(function(x) { return x.id === id; });
+        var promo = promoDataGlobal && promoDataGlobal[id];
+        if (p) {
+            _bpJual = p.price || 0;
+            _bpSelectedId = id;
+            document.getElementById('bp-search').value = p.name || id;
+            document.getElementById('bp-selected').classList.remove('hidden');
+            document.getElementById('bp-selected-img').src = p.image || '';
+            document.getElementById('bp-selected-name').textContent = p.name || id;
+            document.getElementById('bp-selected-price').textContent = 'Rp' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(p.price || 0);
+            document.getElementById('bp-harga-coret').value = promo ? (promo.harga_coret || '') : '';
+            var lbl = promo ? (promo.label || '') : '';
+            document.getElementById('bp-label').value = lbl;
+            var isAuto = /^Diskon \d+%$/.test(lbl);
+            document.getElementById('bp-auto-label').checked = isAuto;
+            document.getElementById('bp-label').readOnly = isAuto;
+        }
+    }
+
+    document.getElementById('buat-promo-modal').classList.remove('hidden');
+    document.getElementById('buat-promo-modal').classList.add('flex');
+    if (!id) document.getElementById('bp-search').focus();
+}
+
+function closeBuatPromo() {
+    document.getElementById('buat-promo-modal').classList.add('hidden');
+    document.getElementById('buat-promo-modal').classList.remove('flex');
+    _bpSelectedId = null;
+}
+
+function filterPromoProduct(q) {
+    var results = document.getElementById('bp-search-results');
+    if (q.trim().length < 1) {
+        results.classList.add('hidden');
+        results.innerHTML = '';
+        return;
+    }
+    var ql = q.toLowerCase();
+    var matches = allProducts.filter(function(p) {
+        return (p.name || '').toLowerCase().includes(ql) || (p.id || '').toLowerCase().includes(ql);
+    }).slice(0, 20);
+    if (matches.length === 0) {
+        results.innerHTML = '<div class="px-3 py-2 text-xs text-slate-400">Tidak ditemukan</div>';
+        results.classList.remove('hidden');
+        return;
+    }
+    results.innerHTML = '';
+    matches.forEach(function(p) {
+        var d = document.createElement('div');
+        d.className = 'px-3 py-2 text-sm cursor-pointer hover:bg-astra-50 flex items-center gap-2';
+        d.innerHTML = '<img src="' + (p.image || '') + '" class="w-7 h-7 object-cover rounded border border-slate-200 flex-shrink-0">'
+            + '<span class="font-medium text-slate-800">' + (p.name || '') + '</span>'
+            + '<span class="text-[10px] font-mono text-slate-400 ml-auto">' + (p.id || '') + '</span>';
+        d.onclick = function() { pilihPromo(p.id, p.name, p.price, p.image); };
+        results.appendChild(d);
+    });
+    results.classList.remove('hidden');
+}
+
+function pilihPromo(id, name, price, img) {
+    _bpSelectedId = id;
+    _bpJual = price || 0;
+    document.getElementById('bp-id').value = id;
+    document.getElementById('bp-search').value = name || id;
+    document.getElementById('bp-search-results').classList.add('hidden');
+    document.getElementById('bp-selected').classList.remove('hidden');
+    document.getElementById('bp-selected-img').src = img || '';
+    document.getElementById('bp-selected-name').textContent = name || id;
+    document.getElementById('bp-selected-price').textContent = 'Rp' + new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(price || 0);
+}
+
+function bpToggleAuto() {
+    var auto = document.getElementById('bp-auto-label').checked;
+    var label = document.getElementById('bp-label');
+    label.readOnly = auto;
+    if (auto) bpAutoLabel();
+}
+
+function bpAutoLabel() {
+    if (!document.getElementById('bp-auto-label').checked) return;
+    var coret = parseInt(document.getElementById('bp-harga-coret').value) || 0;
+    var label = document.getElementById('bp-label');
+    if (coret > 0 && _bpJual > 0 && coret > _bpJual) {
+        var pct = Math.round((coret - _bpJual) / coret * 100);
+        label.value = 'Diskon ' + pct + '%';
+    } else {
+        label.value = '';
+    }
+}
+
+async function submitBuatPromo(e) {
+    e.preventDefault();
+    var id = _bpSelectedId;
+    if (!id) {
+        showNotification('Pilih produk terlebih dahulu.', 'error');
+        return;
+    }
+    var harga_coret = parseInt(document.getElementById('bp-harga-coret').value) || 0;
+    var label = document.getElementById('bp-label').value.trim();
+
+    try {
+        var btn = document.querySelector('#buat-promo-modal button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+
+        var body = 'action=simpan_promo&id=' + encodeURIComponent(id)
+            + '&harga_coret=' + harga_coret
+            + '&label=' + encodeURIComponent(label);
+
+        var res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: body
+        });
+        var result = await res.json();
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeBuatPromo();
+            loadPromoPanel();
+        } else {
+            showNotification(result.message, 'error');
+        }
+    } catch(e) {
+        showNotification('Gagal: ' + e.message, 'error');
+    } finally {
+        var btn2 = document.querySelector('#buat-promo-modal button[type="submit"]');
+        btn2.disabled = false;
+        btn2.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Promo';
+    }
+}
+
+function editPromo(id) {
+    showBuatPromo(id);
+}
     const p = allProducts.find(x => x.id === id);
     if(!p) return;
     window._currentEditPrice = p.price;
