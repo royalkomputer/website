@@ -334,9 +334,14 @@ $current_status = loadStatus();
                     </h3>
                     <p class="text-sm text-slate-500 mt-0.5">Atur nama tampilan, grup induk, urutan, dan visibilitas kategori.</p>
                 </div>
-                <button onclick="saveAllKategori()" class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan Semua
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="showTambahKategori()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah
+                    </button>
+                    <button onclick="saveAllKategori()" class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Semua
+                    </button>
+                </div>
             </div>
             <div id="kategori-loading" class="py-8 text-center text-slate-400">
                 <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
@@ -352,6 +357,7 @@ $current_status = loadStatus();
                             <th class="px-4 py-3">Induk</th>
                             <th class="px-4 py-3 text-center w-20">Urut</th>
                             <th class="px-4 py-3 text-center w-20">Tampil</th>
+                            <th class="px-4 py-3 text-center w-16">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="kategori-table-body" class="divide-y divide-slate-100"></tbody>
@@ -494,6 +500,50 @@ $current_status = loadStatus();
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
                 <button type="submit" id="btn-submit" class="px-5 py-2 bg-astra-700 hover:bg-astra-800 text-white rounded-lg text-xs font-bold flex items-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL TAMBAH KATEGORI -->
+<div id="tambah-kategori-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl border border-slate-200 w-full max-w-md shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-astra-950 text-white p-4 flex items-center justify-between">
+            <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-plus text-astra-400"></i> Tambah Kategori</h3>
+            <button onclick="closeTambahKategori()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="tambah-kategori-form" onsubmit="submitTambahKategori(event)" class="p-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">ID <span class="text-red-500">*</span></label>
+                    <input type="text" id="tk-id" required placeholder="MONITOR" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500 uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Tampilan</label>
+                    <input type="text" id="tk-nama" placeholder="Monitor" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Induk</label>
+                    <select id="tk-parent" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                        <option value="">Tidak Ada (Root)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Urutan</label>
+                    <input type="number" id="tk-urut" value="99" min="1" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="tk-is-group" class="w-4 h-4 text-astra-700 border-slate-300 rounded focus:ring-astra-500">
+                <label for="tk-is-group" class="text-sm text-slate-700 font-medium">Kategori grup (induk virtual, tidak punya produk langsung)</label>
+            </div>
+            <div class="pt-2 flex justify-end gap-3 border-t border-slate-100">
+                <button type="button" onclick="closeTambahKategori()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
+                <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Tambah
                 </button>
             </div>
         </form>
@@ -1300,6 +1350,11 @@ function renderKategoriTable(newCats) {
                 <button onclick="toggleKategoriVis(${i})" class="text-lg ${k.visible === false ? 'text-slate-300 hover:text-green-500' : 'text-green-600 hover:text-slate-400'} transition-colors">
                     <i class="fa-solid ${k.visible === false ? 'fa-eye-slash' : 'fa-eye'}"></i>
                 </button>
+            </td>
+            <td class="px-4 py-3 text-center">
+                <button onclick="hapusKategori('${k.id}')" class="text-red-400 hover:text-red-600 transition-colors text-sm" title="Hapus kategori">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </td>`;
         tbody.appendChild(tr);
     });
@@ -1353,6 +1408,89 @@ async function saveAllKategori() {
         var btn2 = document.querySelector('#panel-kategori .bg-astra-700');
         btn2.disabled = false;
         btn2.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Semua';
+    }
+}
+
+function showTambahKategori() {
+    var sel = document.getElementById('tk-parent');
+    sel.innerHTML = '<option value="">Tidak Ada (Root)</option>';
+    kategoriEditData.forEach(function(k) {
+        if (!k.parent) {
+            var opt = document.createElement('option');
+            opt.value = k.id;
+            opt.textContent = (k.nama || k.id);
+            sel.appendChild(opt);
+        }
+    });
+    document.getElementById('tambah-kategori-modal').classList.remove('hidden');
+    document.getElementById('tambah-kategori-modal').classList.add('flex');
+    document.getElementById('tk-id').focus();
+}
+
+function closeTambahKategori() {
+    document.getElementById('tambah-kategori-modal').classList.add('hidden');
+    document.getElementById('tambah-kategori-modal').classList.remove('flex');
+    document.getElementById('tambah-kategori-form').reset();
+}
+
+async function submitTambahKategori(e) {
+    e.preventDefault();
+    var id = document.getElementById('tk-id').value.trim().toUpperCase();
+    var nama = document.getElementById('tk-nama').value.trim() || id;
+    var parent = document.getElementById('tk-parent').value || '';
+    var urut = parseInt(document.getElementById('tk-urut').value) || 99;
+    var isGroup = document.getElementById('tk-is-group').checked;
+
+    try {
+        var btn = document.querySelector('#tambah-kategori-modal button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menambah...';
+
+        var body = 'action=tambah&id=' + encodeURIComponent(id)
+            + '&nama=' + encodeURIComponent(nama)
+            + '&parent=' + encodeURIComponent(parent)
+            + '&urut=' + urut
+            + (isGroup ? '&is_group=1' : '');
+
+        var res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: body
+        });
+        var result = await res.json();
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeTambahKategori();
+            loadKategoriPanel();
+        } else {
+            showNotification(result.message, 'error');
+        }
+    } catch(e) {
+        showNotification('Gagal: ' + e.message, 'error');
+    } finally {
+        var btn2 = document.querySelector('#tambah-kategori-modal button[type="submit"]');
+        btn2.disabled = false;
+        btn2.innerHTML = '<i class="fa-solid fa-plus"></i> Tambah';
+    }
+}
+
+async function hapusKategori(id) {
+    if (!confirm('Hapus kategori "' + id + '"?\nAnak kategori akan otomatis menjadi root.')) return;
+    try {
+        var res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=hapus&id=' + encodeURIComponent(id)
+        });
+        var result = await res.json();
+        if (result.success) {
+            showNotification(result.message, 'success');
+            loadKategoriPanel();
+        } else {
+            showNotification(result.message, 'error');
+        }
+    } catch(e) {
+        showNotification('Gagal: ' + e.message, 'error');
     }
 }
 

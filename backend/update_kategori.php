@@ -98,6 +98,68 @@ if ($action === 'hapus_promo') {
     exit;
 }
 
+if ($action === 'tambah') {
+    $id = trim($_POST['id'] ?? '');
+    $nama = trim($_POST['nama'] ?? $id);
+    $parent = $_POST['parent'] ?? '';
+    if ($parent === '') $parent = null;
+    $urut = (int) ($_POST['urut'] ?? 99);
+    $is_group = ($_POST['is_group'] ?? '') === '1';
+    if (empty($id)) {
+        echo json_encode(['success' => false, 'message' => 'ID kategori wajib diisi.']);
+        exit;
+    }
+    $data = loadKategori();
+    foreach ($data['kategori'] as $k) {
+        if ($k['id'] === $id) {
+            echo json_encode(['success' => false, 'message' => 'Kategori dengan ID "' . $id . '" sudah ada.']);
+            exit;
+        }
+    }
+    $entry = [
+        'id' => $id,
+        'nama' => $nama,
+        'parent' => $parent,
+        'urut' => $urut,
+        'visible' => true,
+    ];
+    if ($is_group) $entry['is_group'] = true;
+    $data['kategori'][] = $entry;
+    saveKategori($data);
+    echo json_encode(['success' => true, 'message' => 'Kategori "' . $nama . '" berhasil ditambahkan.']);
+    exit;
+}
+
+if ($action === 'hapus') {
+    $id = trim($_POST['id'] ?? '');
+    if (empty($id)) {
+        echo json_encode(['success' => false, 'message' => 'ID kategori tidak valid.']);
+        exit;
+    }
+    $data = loadKategori();
+    $found = false;
+    $remaining = [];
+    foreach ($data['kategori'] as $k) {
+        if ($k['id'] === $id) {
+            $found = true;
+            continue;
+        }
+        // Reparent children to root
+        if (isset($k['parent']) && $k['parent'] === $id) {
+            $k['parent'] = null;
+        }
+        $remaining[] = $k;
+    }
+    if (!$found) {
+        echo json_encode(['success' => false, 'message' => 'Kategori tidak ditemukan.']);
+        exit;
+    }
+    $data['kategori'] = $remaining;
+    saveKategori($data);
+    echo json_encode(['success' => true, 'message' => 'Kategori berhasil dihapus.']);
+    exit;
+}
+
 echo json_encode(['success' => false, 'message' => 'Action tidak dikenali.']);
 
 } catch (Exception $e) {
