@@ -430,6 +430,153 @@ Photos are managed in the client-side `currentEditImages[]` array with mixed `{t
 
 ---
 
+## Category Management
+
+### Data Storage (`backend/data/kategori.json`)
+
+Maps raw IPOS `jenis` values to user-friendly names with hierarchy and visibility control.
+
+```json
+{
+  "kategori": [
+    {
+      "id": "MONITOR",
+      "nama": "Monitor",
+      "parent": null,
+      "urut": 1,
+      "visible": true
+    },
+    {
+      "id": "MOUSE",
+      "nama": "Mouse",
+      "parent": "PERIPHERAL",
+      "urut": 2,
+      "visible": true
+    },
+    {
+      "id": "PERIPHERAL",
+      "nama": "Peripheral",
+      "parent": null,
+      "urut": 5,
+      "visible": true,
+      "is_group": true
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Raw `jenis` value from IPOS (for matching) |
+| `nama` | string | User-friendly display name (Indonesian) |
+| `parent` | string\|null | Parent category ID (null = root) |
+| `urut` | number | Sort order |
+| `visible` | bool | Show/hide from marketplace |
+| `is_group` | bool | Virtual parent (no products directly assigned) |
+
+**Auto-detection:** Categories from IPOS not yet in `kategori.json` are detected when admin opens the panel and shown with default `visible: false`.
+
+### Product Visibility (`backend/data/produk_tersembunyi.json`)
+
+Array of product IDs hidden from marketplace:
+```json
+["BRG001", "VNRXEV_1"]
+```
+
+### Public API (`frontend/api_kategori.php`)
+
+Returns visible category hierarchy (excluding `is_group` parents as standalone items).
+
+### Frontend Filter Tree
+
+Categories with children render as expandable groups:
+```
+[Semua]
+[▼ Peripheral]
+  ├─ Mouse
+  ├─ Keyboard
+  └─ Mouse Keyboard
+[Monitor]
+[▼ Penyimpanan]
+  ├─ HDD
+  ├─ SSD SATA
+  └─ M.2 NVMe
+```
+
+- Clicking parent shows products from ALL its children
+- Categories with `visible: false` are excluded entirely
+- Products in hidden categories are filtered from API response
+
+### Admin Panel
+
+Tab "Kategori" in admin dashboard with:
+- Table of all categories (auto-detected + configured)
+- Inline edit: display name, parent dropdown, visibility toggle, sort order
+- New categories highlighted in yellow
+
+---
+
+## Promo Management
+
+### Data Storage (`backend/data/produk_promo.json`)
+
+```json
+{
+  "BRG001": { "harga_coret": 2500000, "label": "Diskon Akhir Tahun" },
+  "VNRXEV_1": { "harga_coret": 500000, "label": "Flash Sale" }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `harga_coret` | number | Original price (displayed with strikethrough) |
+| `label` | string | Optional promo badge text |
+
+**Rules:**
+- Only visible when `harga_coret > harga_jual` (actual price from IPOS)
+- `harga_coret` does NOT replace the actual selling price
+- Admin can set/unset via "Kelola" modal or tab "Promo"
+
+### Frontend Display
+```
+[ DISKON 20% ]          ← label badge
+~~Rp2.500.000~~         ← coret (strikethrough)
+Rp1.850.000             ← harga jual (IPOS, unchanged)
+```
+
+---
+
+## Sync Timestamp
+
+Sync agent writes `backend/data/waktu_sync.json` on every run:
+```json
+{
+  "terakhir": "2026-07-23 09:30:02",
+  "timezone": "Asia/Jakarta",
+  "produk": 744,
+  "produk_tanpa_foto": 667,
+  "total_foto": 135
+}
+```
+
+Displayed in admin dashboard as an info bar: "Sync terakhir: 23 Juli 2026 09:30 WIB | 744 produk | 135 foto"
+
+---
+
+## Dashboard Statistics (Admin)
+
+Cards computed from product data:
+| Card | Data Source |
+|------|-------------|
+| Total Produk | `allProducts.length` |
+| Kategori Aktif | Unique visible categories |
+| Tanpa Foto | Products with Unsplash fallback |
+| Total Stok | Sum of all `stock` |
+| Total Nilai Jual | Sum of `price * stock` |
+| Total Modal | Sum of `harga_pokok * stock` (read-only from IPOS) |
+
+---
+
 ## Code Conventions
 
 - **PHP files:** Lowercase with underscores (`update_produk.php`)

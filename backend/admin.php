@@ -459,6 +459,10 @@ $current_status = loadStatus();
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Harga Pokok <span class="text-slate-400 font-normal normal-case">(read-only)</span></label>
                 <input type="text" id="modal-harga-pokok" class="w-full bg-slate-100 border border-slate-200 text-slate-600 rounded-lg p-2.5 text-sm font-semibold outline-none" readonly>
             </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Harga Jual</label>
+                <input type="text" id="modal-harga-jual" class="w-full bg-slate-100 border border-slate-200 text-astra-800 rounded-lg p-2.5 text-sm font-bold outline-none" readonly>
+            </div>
             
             <div id="saved-photos-section" class="hidden">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Foto Tersimpan (Klik ⬅️ ➡️ untuk ubah urutan utama)</label>
@@ -1443,6 +1447,10 @@ function openEditModal(id){
         : '-';
     document.getElementById('modal-desc').value=(p.description||'').replace(/&quot;/g,'"');
     document.getElementById('modal-foto').value='';
+
+    document.getElementById('modal-harga-jual').value = p.price > 0
+        ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.price)
+        : '-';
 
     // Promo fields
     document.getElementById('modal-harga-coret').value = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].harga_coret) || '';
