@@ -36,7 +36,10 @@ define('TAGLINE_FILE',    __DIR__ . '/data/tagline.json');
 define('PRODUCT_INFO_FILE', __DIR__ . '/data/product_info.json');
 define('HEADING_FILE',      __DIR__ . '/data/heading.json');
 define('BANNER_FILE',       __DIR__ . '/data/banners.json');
-
+define('KATEGORI_FILE',    __DIR__ . '/data/kategori.json');
+define('HIDDEN_FILE',      __DIR__ . '/data/produk_tersembunyi.json');
+define('PROMO_FILE',       __DIR__ . '/data/produk_promo.json');
+define('WAKTU_SYNC_FILE',  __DIR__ . '/data/waktu_sync.json');
 
 define('TAGLINE_DEFAULT', 'Bingung mau rakit atau upgrade komputer? Ke Royal Komputer aja. Bisa tukar tambah loh.');
 define('PRODUCT_INFO_DEFAULT', 'Perhatian! Harga tidak selalu update. Silahkan hubungi Kami di WhatsApp.');
@@ -440,6 +443,83 @@ function loadBanners(): array {
 function saveBanners(array $playlists): bool {
     $result = file_put_contents(BANNER_FILE, json_encode($playlists, JSON_PRETTY_PRINT));
     return $result !== false;
+}
+
+// ============================================================
+// HELPER: KATEGORI
+// ============================================================
+
+function loadKategori(): array {
+    if (!file_exists(KATEGORI_FILE)) {
+        return ['kategori' => []];
+    }
+    $data = json_decode(file_get_contents(KATEGORI_FILE), true);
+    return is_array($data) ? $data : ['kategori' => []];
+}
+
+function saveKategori(array $data): bool {
+    return file_put_contents(KATEGORI_FILE, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+}
+
+function loadHiddenProducts(): array {
+    if (!file_exists(HIDDEN_FILE)) {
+        return [];
+    }
+    $data = json_decode(file_get_contents(HIDDEN_FILE), true);
+    return is_array($data) ? $data : [];
+}
+
+function saveHiddenProducts(array $ids): bool {
+    return file_put_contents(HIDDEN_FILE, json_encode(array_values($ids), JSON_PRETTY_PRINT)) !== false;
+}
+
+function loadPromo(): array {
+    if (!file_exists(PROMO_FILE)) {
+        return [];
+    }
+    $data = json_decode(file_get_contents(PROMO_FILE), true);
+    return is_array($data) ? $data : [];
+}
+
+function savePromo(array $data): bool {
+    return file_put_contents(PROMO_FILE, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+}
+
+function loadWaktuSync(): array {
+    if (!file_exists(WAKTU_SYNC_FILE)) {
+        return [];
+    }
+    $data = json_decode(file_get_contents(WAKTU_SYNC_FILE), true);
+    return is_array($data) ? $data : [];
+}
+
+// Detect categories from product cache that aren't yet in kategori.json
+function detectNewKategori(array $existingKategoriById): array {
+    $cachePath = __DIR__ . '/data/cache_produk.json';
+    if (!file_exists($cachePath)) return [];
+    $produk = json_decode(file_get_contents($cachePath), true);
+    if (!is_array($produk)) return [];
+    $jenisValues = [];
+    foreach ($produk as $p) {
+        $cat = trim($p['category'] ?? '');
+        if ($cat !== '' && $cat !== 'Lainnya') {
+            $jenisValues[$cat] = true;
+        }
+    }
+    $newCats = [];
+    foreach (array_keys($jenisValues) as $j) {
+        if (!isset($existingKategoriById[$j])) {
+            $newCats[] = [
+                'id' => $j,
+                'nama' => null,
+                'parent' => null,
+                'urut' => 99,
+                'visible' => false,
+            ];
+        }
+    }
+    usort($newCats, fn($a, $b) => strcmp($a['id'], $b['id']));
+    return $newCats;
 }
 
 // ============================================================

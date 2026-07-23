@@ -92,6 +92,14 @@ $current_status = loadStatus();
         </button>
         <?php endif; ?>
 
+        <button onclick="switchTab('kategori')" id="tab-kategori" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-tags"></i> Kategori
+        </button>
+
+        <button onclick="switchTab('promo')" id="tab-promo" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-tag"></i> Promo
+        </button>
+
         <button onclick="switchTab('banner')" id="tab-banner" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-images"></i> Banner
         </button>
@@ -112,13 +120,29 @@ $current_status = loadStatus();
                     Total: <span id="total-count" class="text-astra-700">0</span>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div class="flex items-center gap-3 text-xs text-slate-500 mb-4 pb-3 border-b border-slate-100 flex-wrap">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate text-astra-500"></i>
+                    Sync terakhir: <strong id="sync-time" class="text-slate-700">--</strong> WIB
+                </span>
+                <span class="text-slate-300">|</span>
+                <span id="sync-products" class="text-slate-600">-</span>
+                <span class="text-slate-300">|</span>
+                <span id="sync-photos" class="text-slate-600">-</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Cari Produk / Kode</label>
                 <div class="relative">
                     <input type="text" id="search-admin" oninput="handleAdminSearch(this.value)" placeholder="Ketik nama atau ID item..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 placeholder-slate-400 rounded-lg px-4 py-2.5 pl-10 focus:outline-none focus:border-astra-500 text-sm">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
                 </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kategori</label>
+                <select id="filter-kategori-admin" onchange="handleKategoriFilterAdmin(this.value)" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2.5 outline-none focus:border-astra-500 cursor-pointer">
+                    <option value="all">Semua Kategori</option>
+                </select>
             </div>
             <div>
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status Foto</label>
@@ -143,6 +167,15 @@ $current_status = loadStatus();
         </div>
     </div>
 
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4" id="stat-cards">
+            <div class="bg-astra-50 p-3 rounded-lg border border-astra-200"><span id="stat-total" class="text-xl font-black text-astra-700">-</span><p class="text-[10px] text-astra-600 font-semibold">Total Produk</p></div>
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200"><span id="stat-kategori" class="text-xl font-black text-emerald-700">-</span><p class="text-[10px] text-emerald-600 font-semibold">Kategori Aktif</p></div>
+            <div class="bg-amber-50 p-3 rounded-lg border border-amber-200"><span id="stat-nophoto" class="text-xl font-black text-amber-700">-</span><p class="text-[10px] text-amber-600 font-semibold">Tanpa Foto</p></div>
+            <div class="bg-sky-50 p-3 rounded-lg border border-sky-200"><span id="stat-stok" class="text-xl font-black text-sky-700">-</span><p class="text-[10px] text-sky-600 font-semibold">Total Stok</p></div>
+            <div class="bg-violet-50 p-3 rounded-lg border border-violet-200"><span id="stat-nilai" class="text-xl font-black text-violet-700">-</span><p class="text-[10px] text-violet-600 font-semibold">Nilai Jual</p></div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><span id="stat-modal" class="text-xl font-black text-slate-700">-</span><p class="text-[10px] text-slate-600 font-semibold">Total Modal</p></div>
+        </div>
+
         <div id="loading-spinner" class="py-12 flex flex-col items-center justify-center gap-3">
             <i class="fa-solid fa-circle-notch text-3xl text-astra-700 animate-spin"></i>
             <p class="text-slate-500 text-sm font-medium">Memuat data...</p>
@@ -156,6 +189,7 @@ $current_status = loadStatus();
                             <th class="px-5 py-4 w-16">Foto</th><th class="px-5 py-4">Kode Item</th>
                             <th class="px-5 py-4">Nama Produk</th><th class="px-5 py-4">Kategori</th>
                             <th class="px-5 py-4 text-right">Harga Jual</th><th class="px-5 py-4 text-right">Harga Pokok</th><th class="px-5 py-4 text-center">Stok</th><th class="px-5 py-4 text-center">Status Foto</th>
+                            <th class="px-5 py-4 text-center w-16">Tampil</th>
                             <th class="px-5 py-4 text-center w-28">Aksi</th>
                         </tr>
                     </thead>
@@ -290,6 +324,79 @@ $current_status = loadStatus();
         </div>
     </div>
 
+    <!-- PANEL KATEGORI -->
+    <div id="panel-kategori" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-tags text-astra-700"></i> Manajemen Kategori
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-0.5">Atur nama tampilan, grup induk, urutan, dan visibilitas kategori.</p>
+                </div>
+                <button onclick="saveAllKategori()" class="bg-astra-700 hover:bg-astra-800 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 flex-shrink-0">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Semua
+                </button>
+            </div>
+            <div id="kategori-loading" class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
+                <p class="text-sm">Memuat kategori...</p>
+            </div>
+            <div id="kategori-table-wrap" class="hidden overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 w-12">No</th>
+                            <th class="px-4 py-3">Nama Tampilan</th>
+                            <th class="px-4 py-3">ID IPOS</th>
+                            <th class="px-4 py-3">Induk</th>
+                            <th class="px-4 py-3 text-center w-20">Urut</th>
+                            <th class="px-4 py-3 text-center w-20">Tampil</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kategori-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL PROMO -->
+    <div id="panel-promo" class="hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-tag text-astra-700"></i> Manajemen Promo
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-0.5">Atur harga coret untuk produk yang sedang diskon.</p>
+                </div>
+            </div>
+            <div id="promo-loading" class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-spinner animate-spin text-2xl mb-2"></i>
+                <p class="text-sm">Memuat promo...</p>
+            </div>
+            <div id="promo-table-wrap" class="hidden overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 w-16">Foto</th>
+                            <th class="px-4 py-3">Produk</th>
+                            <th class="px-4 py-3 text-right">Harga Jual</th>
+                            <th class="px-4 py-3 text-right">Harga Coret</th>
+                            <th class="px-4 py-3 text-center">Label</th>
+                            <th class="px-4 py-3 text-center w-24">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+                <div id="promo-empty" class="hidden py-8 text-center text-slate-400">
+                    <i class="fa-solid fa-tag text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm">Belum ada promo. Atur promo dari menu <strong>Katalog</strong> → klik <strong>Kelola</strong> pada produk.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- PANEL PROFIL SAYA -->
     <div id="panel-profil" class="hidden">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-md">
@@ -365,6 +472,19 @@ $current_status = loadStatus();
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Deskripsi Produk</label>
                 <textarea id="modal-desc" name="description" rows="4" placeholder="Tulis rincian spesifikasi produk di sini..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500 focus:ring-1 focus:ring-astra-500 transition-all"></textarea>
+            </div>
+            <div class="border-t border-slate-100 pt-4">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Promo / Harga Coret <span class="text-slate-400 font-normal normal-case">(opsional)</span></label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Harga Coret (Rp)</label>
+                        <input type="number" id="modal-harga-coret" name="harga_coret" min="0" step="500" placeholder="0" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1 font-medium">Label Promo</label>
+                        <input type="text" id="modal-label-promo" name="label_promo" placeholder="Diskon 20%" class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg p-2.5 text-sm outline-none focus:border-astra-500">
+                    </div>
+                </div>
             </div>
             <div class="pt-2 flex justify-end gap-3 border-t border-slate-100">
                 <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50">Batal</button>
@@ -518,7 +638,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','admin','banner','profil'];
+    const panels = ['katalog','admin','banner','kategori','promo','profil'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -533,6 +653,8 @@ function showPanel(name){
     });
     if (name === 'admin' && IS_SUPER) loadAdminList();
     if (name === 'banner') loadBannerData();
+    if (name === 'kategori') loadKategoriPanel();
+    if (name === 'promo') loadPromoPanel();
 }
 
 // BANNER MANAGEMENT
@@ -867,7 +989,10 @@ function switchTab(tab){ showPanel(tab); }
 
 // KATALOG
 let allProducts=[], filteredProducts=[];
-let adminFilters = {search:'',photoStatus:'all',sortBy:'name-asc',condition:'all'};
+let adminFilters = {search:'',photoStatus:'all',sortBy:'name-asc',condition:'all',kategori:'all'};
+let hiddenProductIds = [];
+let promoDataGlobal = {};
+let kategoriData = [];
 
 window.addEventListener('DOMContentLoaded', () => { fetchProducts();
     showPanel('katalog'); });
@@ -888,6 +1013,12 @@ async function fetchProducts() {
         return p;
     }
 
+    // Load kategori + hidden + sync data
+    loadKategoriData();
+    loadHiddenData();
+    loadPromoGlobal();
+    loadSyncTime();
+
     try {
         // Strategy 1: Load from cache file directly (fast, no PHP session locking)
         const cacheRes = await fetch('/data/cache_produk.json?_t=' + Date.now());
@@ -897,6 +1028,7 @@ async function fetchProducts() {
                 data = data.map(normalizeProduct);
                 allProducts = data;
                 applyAdminFilters();
+                updateStatCards();
                 document.getElementById('loading-spinner').style.display='none';
                 document.getElementById('table-container').classList.remove('hidden');
                 requestAnimationFrame(function() { window.scrollTo(0, _savedScrollY); });
@@ -915,6 +1047,7 @@ async function fetchProducts() {
         if (Array.isArray(data)) {
             allProducts = data;
             applyAdminFilters();
+            updateStatCards();
             document.getElementById('loading-spinner').style.display='none';
             document.getElementById('table-container').classList.remove('hidden');
             requestAnimationFrame(function() { window.scrollTo(0, _savedScrollY); });
@@ -932,11 +1065,13 @@ function handleConditionFilterAdmin(v){adminFilters.condition=v;applyAdminFilter
 function handleAdminSearch(v){adminFilters.search=v.toLowerCase();applyAdminFilters();}
 function handlePhotoFilter(v){adminFilters.photoStatus=v;applyAdminFilters();}
 function handleAdminSort(v){adminFilters.sortBy=v;applyAdminFilters();}
+function handleKategoriFilterAdmin(v){adminFilters.kategori=v;applyAdminFilters();}
 
 function applyAdminFilters() {
     filteredProducts = allProducts.filter(p => {
         const s=adminFilters.search;
         const matchSearch=(p.name||'').toLowerCase().includes(s)||(p.id||'').toLowerCase().includes(s);
+        const matchKategori=adminFilters.kategori==='all'||p.category===adminFilters.kategori;
         const hasPhoto=(p.image||'')&&!(p.image||'').includes('unsplash.com');
         let matchPhoto=true;
         if(adminFilters.photoStatus==='no-photo') matchPhoto=!hasPhoto;
@@ -945,7 +1080,7 @@ function applyAdminFilters() {
         let matchCond=true;
         if(adminFilters.condition==='baru') matchCond=!isBekas;
         if(adminFilters.condition==='bekas') matchCond=isBekas;
-        return matchSearch&&matchPhoto&&matchCond;
+        return matchSearch&&matchKategori&&matchPhoto&&matchCond;
     });
     filteredProducts.sort((a,b)=>{
         const nA=a.name||'',nB=b.name||'';
@@ -989,12 +1124,313 @@ function renderAdminTable() {
             <td class="px-5 py-3 text-center font-bold ${(p.stock||0)<5?'text-orange-500':'text-slate-700'}">${p.stock||0}</td>
             <td class="px-5 py-3 text-center">${photoBadge}</td>
             <td class="px-5 py-3 text-center">
+                <button onclick="toggleVisibility('${p.id}')" title="${hiddenProductIds.indexOf(p.id) !== -1 ? 'Tampilkan' : 'Sembunyikan'}" class="text-base ${hiddenProductIds.indexOf(p.id) !== -1 ? 'text-slate-300 hover:text-amber-500' : 'text-slate-600 hover:text-amber-500'} transition-colors">
+                    <i class="fa-solid ${hiddenProductIds.indexOf(p.id) !== -1 ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                </button>
+            </td>
+            <td class="px-5 py-3 text-center">
                 <button onclick="openEditModal('${p.id}')" class="bg-astra-600 hover:bg-astra-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 mx-auto shadow-sm">
                     <i class="fa-solid fa-pen-to-square"></i> Kelola
                 </button>
             </td>`;
         tbody.appendChild(tr);
     });
+}
+
+async function toggleVisibility(id) {
+    const formData = new FormData();
+    formData.append('action', 'toggle_produk');
+    formData.append('id', id);
+    try {
+        const res = await fetch('update_kategori.php', { method: 'POST', body: formData });
+        const result = await res.json();
+        if (result.success) {
+            if (hiddenProductIds.indexOf(id) === -1) hiddenProductIds.push(id);
+            else hiddenProductIds = hiddenProductIds.filter(x => x !== id);
+            applyAdminFilters();
+            showNotification(result.message, 'success');
+        }
+    } catch(e) {
+        showNotification('Gagal mengubah visibilitas', 'error');
+    }
+}
+
+async function loadKategoriData() {
+    try {
+        const res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=get'
+        });
+        const result = await res.json();
+        if (result.success && Array.isArray(result.data)) {
+            kategoriData = result.data;
+            var sel = document.getElementById('filter-kategori-admin');
+            if (sel) {
+                kategoriData.forEach(function(k) {
+                    var opt = document.createElement('option');
+                    opt.value = k.id;
+                    opt.textContent = k.nama || k.id;
+                    sel.appendChild(opt);
+                });
+            }
+        }
+    } catch(e) {
+        console.warn('Failed to load kategori:', e);
+    }
+}
+
+async function loadHiddenData() {
+    try {
+        const res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=get'
+        });
+        const result = await res.json();
+        if (result.success && Array.isArray(result.hidden)) {
+            hiddenProductIds = result.hidden;
+        }
+    } catch(e) {
+        console.warn('Failed to load hidden:', e);
+    }
+}
+
+async function loadSyncTime() {
+    try {
+        const res = await fetch('data/waktu_sync.json?_t=' + Date.now());
+        if (res.ok) {
+            var w = await res.json();
+            document.getElementById('sync-time').textContent = w.terakhir || '--';
+            document.getElementById('sync-products').textContent = (w.produk || 0) + ' produk';
+            document.getElementById('sync-photos').textContent = (w.total_foto || 0) + ' foto';
+        }
+    } catch(e) {
+        document.getElementById('sync-time').textContent = 'Belum sync';
+    }
+}
+
+async function loadPromoGlobal() {
+    try {
+        const res = await fetch('data/produk_promo.json?_t=' + Date.now());
+        if (res.ok) {
+            promoDataGlobal = await res.json();
+        }
+    } catch(e) {
+        promoDataGlobal = {};
+    }
+}
+
+function updateStatCards() {
+    var total = allProducts.length;
+    var cats = {};
+    var noPhoto = 0;
+    var totalStok = 0;
+    var totalNilai = 0;
+    var totalModal = 0;
+    allProducts.forEach(function(p) {
+        if (p.category) cats[p.category] = true;
+        var hasPhoto = (p.image||'') && !(p.image||'').includes('unsplash.com');
+        if (!hasPhoto) noPhoto++;
+        totalStok += (p.stock||0);
+        totalNilai += (p.price||0) * (p.stock||0);
+        totalModal += (parseFloat(p.harga_pokok)||0) * (p.stock||0);
+    });
+    var catCount = Object.keys(cats).length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-kategori').textContent = catCount;
+    document.getElementById('stat-nophoto').textContent = noPhoto;
+    document.getElementById('stat-stok').textContent = totalStok;
+    document.getElementById('stat-nilai').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(totalNilai);
+    document.getElementById('stat-modal').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(totalModal);
+}
+
+// ── KATEGORI PANEL ──
+var kategoriEditData = [];
+
+async function loadKategoriPanel() {
+    document.getElementById('kategori-loading').classList.remove('hidden');
+    document.getElementById('kategori-table-wrap').classList.add('hidden');
+    try {
+        const res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=get'
+        });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message);
+        kategoriEditData = result.data || [];
+        var newCats = result.new || [];
+        renderKategoriTable(newCats);
+        document.getElementById('kategori-loading').classList.add('hidden');
+        document.getElementById('kategori-table-wrap').classList.remove('hidden');
+    } catch(e) {
+        document.getElementById('kategori-loading').innerHTML = '<p class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Gagal memuat: ' + e.message + '</p>';
+    }
+}
+
+function renderKategoriTable(newCats) {
+    var tbody = document.getElementById('kategori-table-body');
+    tbody.innerHTML = '';
+    var newIds = {};
+    newCats.forEach(function(n) { newIds[n.id] = true; });
+
+    kategoriEditData.forEach(function(k, i) {
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors' + (newIds[k.id] ? ' bg-yellow-50' : '');
+        var parentOpts = '<option value="">Tidak Ada (Root)</option>';
+        kategoriEditData.forEach(function(p) {
+            if (p.id !== k.id && !p.parent) {
+                parentOpts += '<option value="' + p.id + '"' + (p.id === k.parent ? ' selected' : '') + '>' + (p.nama || p.id) + '</option>';
+            }
+        });
+
+        var escId = (k.nama || k.id || '').replace(/'/g, "\\'");
+        tr.innerHTML = `
+            <td class="px-4 py-3 text-xs text-slate-400">${i+1}</td>
+            <td class="px-4 py-3"><input type="text" value="${escId}" data-idx="${i}" data-field="nama" class="kategori-input w-full bg-transparent border border-transparent hover:border-slate-300 focus:border-astra-500 rounded px-2 py-1 text-sm font-medium text-slate-800 outline-none transition-colors"></td>
+            <td class="px-4 py-3 text-xs font-mono text-slate-500">${k.id}</td>
+            <td class="px-4 py-3"><select data-idx="${i}" data-field="parent" class="kategori-input w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs outline-none focus:border-astra-500">${parentOpts}</select></td>
+            <td class="px-4 py-3 text-center"><input type="number" value="${k.urut||99}" data-idx="${i}" data-field="urut" class="kategori-input w-16 text-center bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs outline-none focus:border-astra-500"></td>
+            <td class="px-4 py-3 text-center">
+                <button onclick="toggleKategoriVis(${i})" class="text-lg ${k.visible === false ? 'text-slate-300 hover:text-green-500' : 'text-green-600 hover:text-slate-400'} transition-colors">
+                    <i class="fa-solid ${k.visible === false ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                </button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+
+    // Jika ada new cats, scroll ke bawah
+    if (newCats.length > 0) {
+        setTimeout(function() {
+            tbody.parentElement.scrollTop = tbody.parentElement.scrollHeight;
+        }, 100);
+    }
+
+    // Bind input events
+    document.querySelectorAll('.kategori-input').forEach(function(el) {
+        el.addEventListener('change', function() {
+            var idx = parseInt(this.dataset.idx);
+            var field = this.dataset.field;
+            var val = field === 'urut' ? parseInt(this.value) || 99 : this.value;
+            if (kategoriEditData[idx]) {
+                kategoriEditData[idx][field] = val;
+            }
+        });
+    });
+}
+
+function toggleKategoriVis(idx) {
+    if (kategoriEditData[idx]) {
+        kategoriEditData[idx].visible = kategoriEditData[idx].visible === false ? true : false;
+        loadKategoriPanel();
+    }
+}
+
+async function saveAllKategori() {
+    try {
+        var btn = document.querySelector('#panel-kategori .bg-astra-700');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...';
+        var res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=simpan&kategori=' + encodeURIComponent(JSON.stringify(kategoriEditData))
+        });
+        var result = await res.json();
+        if (result.success) {
+            showNotification('Kategori berhasil disimpan', 'success');
+        } else {
+            showNotification(result.message, 'error');
+        }
+    } catch(e) {
+        showNotification('Gagal menyimpan: ' + e.message, 'error');
+    } finally {
+        var btn2 = document.querySelector('#panel-kategori .bg-astra-700');
+        btn2.disabled = false;
+        btn2.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Semua';
+    }
+}
+
+// ── PROMO PANEL ──
+async function loadPromoPanel() {
+    document.getElementById('promo-loading').classList.remove('hidden');
+    document.getElementById('promo-table-wrap').classList.add('hidden');
+    try {
+        const res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=get'
+        });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message);
+        var promoData = result.promo || {};
+        promoDataGlobal = promoData;
+        var products = allProducts.length ? allProducts : [];
+        renderPromoTable(promoData, products);
+        document.getElementById('promo-loading').classList.add('hidden');
+        document.getElementById('promo-table-wrap').classList.remove('hidden');
+    } catch(e) {
+        document.getElementById('promo-loading').innerHTML = '<p class="text-red-500"><i class="fa-solid fa-triangle-exclamation"></i> Gagal memuat: ' + e.message + '</p>';
+    }
+}
+
+function renderPromoTable(promoData, products) {
+    var tbody = document.getElementById('promo-table-body');
+    var empty = document.getElementById('promo-empty');
+    tbody.innerHTML = '';
+
+    var entries = Object.keys(promoData);
+    if (entries.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    entries.forEach(function(id) {
+        var p = products.find(function(x) { return x.id === id; });
+        var promo = promoData[id];
+        if (!promo) return;
+        var name = p ? (p.name || id) : id;
+        var img = p ? (p.image || '') : '';
+        var price = p ? (p.price || 0) : 0;
+        var formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+        var formattedCoret = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(promo.harga_coret || 0);
+        var label = promo.label || '-';
+
+        var tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+            <td class="px-4 py-3"><img src="${img}" alt="" class="w-10 h-10 object-cover rounded border border-slate-200"></td>
+            <td class="px-4 py-3 font-medium text-slate-800 text-sm">${name}<br><span class="text-[10px] font-mono text-slate-400">${id}</span></td>
+            <td class="px-4 py-3 text-right font-bold text-slate-600 text-sm">${formattedPrice}</td>
+            <td class="px-4 py-3 text-right font-bold text-red-600 text-sm">${formattedCoret}</td>
+            <td class="px-4 py-3 text-center"><span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded">${label}</span></td>
+            <td class="px-4 py-3 text-center">
+                <button onclick="hapusPromo('${id}')" class="text-red-500 hover:text-red-700 text-xs font-bold transition-colors"><i class="fa-solid fa-trash"></i> Hapus</button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function hapusPromo(id) {
+    if (!confirm('Hapus promo untuk produk ini?')) return;
+    try {
+        var res = await fetch('update_kategori.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: 'action=hapus_promo&id=' + encodeURIComponent(id)
+        });
+        var result = await res.json();
+        if (result.success) {
+            showNotification('Promo dihapus', 'success');
+            loadPromoPanel();
+        } else {
+            showNotification(result.message, 'error');
+        }
+    } catch(e) {
+        showNotification('Gagal: ' + e.message, 'error');
+    }
 }
 
 function openEditModal(id){
@@ -1007,7 +1443,11 @@ function openEditModal(id){
         : '-';
     document.getElementById('modal-desc').value=(p.description||'').replace(/&quot;/g,'"');
     document.getElementById('modal-foto').value='';
-    
+
+    // Promo fields
+    document.getElementById('modal-harga-coret').value = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].harga_coret) || '';
+    document.getElementById('modal-label-promo').value = (promoDataGlobal && promoDataGlobal[id] && promoDataGlobal[id].label) || '';
+
     renderSavedPhotos(id, p.images);
     document.getElementById('edit-modal').classList.remove('hidden');
     document.getElementById('edit-modal').classList.add('flex');

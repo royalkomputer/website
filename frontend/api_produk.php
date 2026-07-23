@@ -16,6 +16,37 @@ if (file_exists($cache_file)) {
             stripos($p['name'] ?? '', 'pesanan') === false &&
             stripos($p['name'] ?? '', 'jasa') === false
         ));
+
+        // Muat konfigurasi kategori + hidden + promo
+        $kategori_config = [];
+        $kategori_file = __DIR__ . '/../backend/data/kategori.json';
+        if (file_exists($kategori_file)) {
+            $raw = json_decode(file_get_contents($kategori_file), true);
+            foreach (($raw['kategori'] ?? []) as $k) {
+                $kategori_config[$k['id']] = $k;
+            }
+        }
+
+        $hidden_ids = [];
+        $hidden_file = __DIR__ . '/../backend/data/produk_tersembunyi.json';
+        if (file_exists($hidden_file)) {
+            $hidden_ids = json_decode(file_get_contents($hidden_file), true) ?? [];
+        }
+
+        $promo_data = [];
+        $promo_file = __DIR__ . '/../backend/data/produk_promo.json';
+        if (file_exists($promo_file)) {
+            $promo_data = json_decode(file_get_contents($promo_file), true) ?? [];
+        }
+
+        // Filter: hapus produk dari kategori tersembunyi + produk tersembunyi
+        $produk = array_filter($produk, function($p) use ($kategori_config, $hidden_ids) {
+            $cat = $p['category'] ?? '';
+            $visible = $kategori_config[$cat]['visible'] ?? true;
+            return $visible && !in_array($p['id'], $hidden_ids);
+        });
+        $produk = array_values($produk);
+
         // Di VPS: cukup /uploads/ karena frontend & backend satu domain
         foreach ($produk as &$p) {
             if (!empty($p['image']) && strpos($p['image'], 'uploads/') === 0) {
@@ -28,6 +59,17 @@ if (file_exists($cache_file)) {
                     }
                 }
                 unset($img);
+            }
+            // Sertakan data promo
+            $id = $p['id'] ?? '';
+            if (isset($promo_data[$id])) {
+                $promo = $promo_data[$id];
+                if (!empty($promo['harga_coret']) && $promo['harga_coret'] > $p['price']) {
+                    $p['harga_coret'] = (int) $promo['harga_coret'];
+                    if (!empty($promo['label'])) {
+                        $p['label_promo'] = $promo['label'];
+                    }
+                }
             }
         }
         unset($p);

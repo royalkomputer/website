@@ -448,6 +448,8 @@ $product_info_html = htmlspecialchars($product_info_text);
         
         let currentDetailImages = [];
         let currentImageIndex = 0;
+        let kategoriConfig = {};
+        let expandedParents = {};
 
         function setView(mode) {
             var grid = document.getElementById('product-grid');
@@ -689,13 +691,16 @@ $product_info_html = htmlspecialchars($product_info_text);
             showLoading(true);
             Promise.all([
                 fetch('api_produk.php').then(r => r.json()),
-                fetch('api_banner.php').then(r => r.json())
+                fetch('api_banner.php').then(r => r.json()),
+                fetch('api_kategori.php').then(r => r.json()).catch(() => ({}))
             ])
             .then(function(results) {
                 var data = results[0];
                 var banners = results[1];
+                var kategoriData = results[2] || {};
                 if (data.error) throw new Error(data.error);
                 allProducts = data;
+                kategoriConfig = kategoriData.map || {};
                 generateCategoryFilterOptions();
                 initViewToggle();
                 renderBanners(banners);
@@ -715,19 +720,63 @@ $product_info_html = htmlspecialchars($product_info_text);
         }
 
         function generateCategoryFilterOptions() {
-            const categories = ['Semua', ...new Set(allProducts.map(p => p.category))];
             const container = document.getElementById('category-list');
             container.innerHTML = '';
-            
-            categories.forEach(cat => {
-                const isSelected = activeFilters.category === cat;
-                const button = document.createElement('button');
-                button.className = `w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${
+
+            function makeBtn(cat, label, isSelected) {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${
                     isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-400 hover:bg-slate-700/50'
                 }`;
-                button.innerHTML = `<span>${cat}</span>`;
-                button.onclick = () => selectCategory(cat);
-                container.appendChild(button);
+                btn.innerHTML = `<span>${label}</span>`;
+                btn.onclick = () => selectCategory(cat);
+                return btn;
+            }
+
+            function makeParent(kat, children) {
+                const isOpen = expandedParents[kat.id];
+                const isSelected = activeFilters.category === kat.id;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-0.5';
+                const header = document.createElement('button');
+                header.className = `w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${
+                    isSelected ? 'bg-astra-700 text-white font-semibold shadow-sm' : 'text-slate-400 hover:bg-slate-700/50'
+                }`;
+                header.innerHTML = `<span><i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'} text-[9px] mr-1.5 opacity-60"></i>${kat.nama || kat.id}</span>`;
+                header.onclick = () => {
+                    if (isOpen) {
+                        delete expandedParents[kat.id];
+                    } else {
+                        expandedParents[kat.id] = true;
+                    }
+                    generateCategoryFilterOptions();
+                };
+                wrapper.appendChild(header);
+                if (isOpen) {
+                    const childWrapper = document.createElement('div');
+                    childWrapper.className = 'ml-3 space-y-0.5 mt-0.5';
+                    children.forEach(child => {
+                        childWrapper.appendChild(makeBtn(child.id, child.nama || child.id, activeFilters.category === child.id));
+                    });
+                    wrapper.appendChild(childWrapper);
+                }
+                return wrapper;
+            }
+
+            // Semua button
+            container.appendChild(makeBtn('Semua', 'Semua', activeFilters.category === 'Semua'));
+
+            // Top-level categories
+            var catValues = Object.values(kategoriConfig);
+            var topLevel = catValues.filter(k => !k.parent).sort((a, b) => (a.urut || 99) - (b.urut || 99));
+
+            topLevel.forEach(kat => {
+                var children = catValues.filter(c => c.parent === kat.id).sort((a, b) => (a.urut || 99) - (b.urut || 99));
+                if (children.length > 0) {
+                    container.appendChild(makeParent(kat, children));
+                } else if (!kat.is_group) {
+                    container.appendChild(makeBtn(kat.id, kat.nama || kat.id, activeFilters.category === kat.id));
+                }
             });
         }
 
@@ -742,6 +791,18 @@ $product_info_html = htmlspecialchars($product_info_text);
             hasActivated = true;
             generateCategoryFilterOptions();
             applyFiltersAndSort();
+        }
+
+        function getChildCategoryIds(parentId) {
+            var ids = [];
+            if (kategoriConfig[parentId] && kategoriConfig[parentId].is_group) {
+                Object.values(kategoriConfig).forEach(function(k) {
+                    if (k.parent === parentId) {
+                        ids.push(k.id);
+                    }
+                });
+            }
+            return ids;
         }
 
         function triggerSearch(source) {
@@ -815,7 +876,16 @@ $product_info_html = htmlspecialchars($product_info_text);
             var resetBtn = document.getElementById('reset-filter-btn');
             if (resetBtn) { resetBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
             filteredProducts = allProducts.filter(p => {
-                const matchCategory = activeFilters.category === 'Semua' || p.category === activeFilters.category;
+                var catFilter = activeFilters.category;
+                var matchCategory = catFilter === 'Semua';
+                if (!matchCategory) {
+                    if (p.category === catFilter) {
+                        matchCategory = true;
+                    } else {
+                        var children = getChildCategoryIds(catFilter);
+                        matchCategory = children.indexOf(p.category) !== -1;
+                    }
+                }
                 
                 const searchStr = (activeFilters.search || '').toLowerCase();
                 const pName = (p.name || '').toLowerCase();
@@ -886,10 +956,14 @@ $product_info_html = htmlspecialchars($product_info_text);
             renderProductGrid();
         }
 
+        function formatHarga(val) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+        }
+
         function createGridCard(product) {
             const card = document.createElement('div');
             card.className = "bg-slate-800/60 rounded-xl border border-white/5 overflow-hidden hover:border-astra-500/30 transition-all duration-300 flex flex-col group";
-            const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+            const formattedPrice = formatHarga(product.price);
 
             const waNumber = "6281380686168";
             const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
@@ -900,16 +974,23 @@ $product_info_html = htmlspecialchars($product_info_text);
                 ? `<div class="absolute top-2 left-2 bg-orange-500/80 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded">BEKAS</div>`
                 : `<div class="absolute top-2 left-2 bg-sky-500/80 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded">BARU</div>`;
 
+            const hargaCoret = product.harga_coret
+                ? `<span class="text-slate-400 text-[10px] line-through mr-1">${formatHarga(product.harga_coret)}</span>`
+                : '';
+            const labelPromo = product.label_promo
+                ? `<div class="absolute top-2 right-2 bg-red-500/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">${product.label_promo}</div>`
+                : '';
+
             card.innerHTML = `
                 <div class="relative overflow-hidden aspect-[4/3] bg-slate-800 cursor-pointer" onclick="openDetailModal('${product.id}')">
                     <img src="${product.image}" alt="${product.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27300%27 viewBox=%270 0 400 300%27%3E%3Crect fill=%27%231e293b%27 width=%27400%27 height=%27300%27/%3E%3Ctext fill=%27%2364748b%27 font-family=%27sans-serif%27 font-size=%2714%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3ETidak ada gambar%3C/text%3E%3C/svg%3E'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     ${badgeKondisi}
-                    <div class="absolute top-2 right-2 bg-slate-900/60 text-slate-300 text-[9px] font-medium px-1.5 py-0.5 rounded">${product.category}</div>
+                    ${labelPromo}
                 </div>
                 <div class="p-3 flex flex-col flex-grow">
                     <h3 class="font-medium text-white text-xs sm:text-sm leading-snug line-clamp-2 mb-2 cursor-pointer" onclick="openDetailModal('${product.id}')">${product.name}</h3>
                     <div class="mt-auto pt-2 border-t border-white/5 flex items-center justify-between gap-1.5">
-                        <div class="text-sm sm:text-base font-bold text-white truncate min-w-0">${formattedPrice}</div>
+                        <div class="text-sm sm:text-base font-bold text-white truncate min-w-0">${hargaCoret}${formattedPrice}</div>
                         <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-medium px-2 py-1 rounded-lg transition-colors flex-shrink-0" title="Pesan via WhatsApp">
                             <i class="fa-brands fa-whatsapp text-xs"></i>
                         </a>
@@ -922,7 +1003,7 @@ $product_info_html = htmlspecialchars($product_info_text);
         function createDetailCard(product) {
             const card = document.createElement('div');
             card.className = "bg-slate-800/60 rounded-xl border border-white/5 overflow-hidden hover:border-astra-500/30 transition-all duration-200 flex flex-col sm:flex-row group";
-            const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
+            const formattedPrice = formatHarga(product.price);
 
             const waNumber = "6281380686168";
             const waText = encodeURIComponent(`Halo Admin Royal Komputer,\nSaya ingin membeli produk ini:\n\n*${product.name}*\nHarga: ${formattedPrice}\n\nApakah stoknya masih ready?`);
@@ -932,6 +1013,10 @@ $product_info_html = htmlspecialchars($product_info_text);
             const badgeKondisi = isBekas
                 ? `<span class="bg-orange-500/80 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded">BEKAS</span>`
                 : `<span class="bg-sky-500/80 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded">BARU</span>`;
+
+            const hargaCoret = product.harga_coret
+                ? `<span class="text-slate-400 text-[10px] line-through mr-1">${formatHarga(product.harga_coret)}</span>`
+                : '';
 
             card.innerHTML = `
                 <div class="w-24 sm:w-32 md:w-36 shrink-0 bg-slate-800 cursor-pointer" onclick="openDetailModal('${product.id}')">
@@ -945,7 +1030,7 @@ $product_info_html = htmlspecialchars($product_info_text);
                     <h3 class="font-medium text-white text-sm sm:text-base leading-snug cursor-pointer line-clamp-2 mb-1.5" onclick="openDetailModal('${product.id}')">${product.name}</h3>
                     <p class="text-xs text-slate-400 line-clamp-2 mb-2 hidden sm:block">${product.description || 'Tidak ada deskripsi rinci untuk produk ini.'}</p>
                     <div class="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-white/5">
-                        <div class="text-sm sm:text-base font-bold text-white">${formattedPrice}</div>
+                        <div class="text-sm sm:text-base font-bold text-white">${hargaCoret}${formattedPrice}</div>
                         <div class="flex items-center gap-1.5">
                             <a href="${waUrl}" target="_blank" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-medium px-2 py-1 rounded-lg transition-colors flex-shrink-0" title="Pesan via WhatsApp">
                                 <i class="fa-brands fa-whatsapp text-xs"></i> <span class="hidden sm:inline">Pesan</span>

@@ -284,6 +284,25 @@ function runSync(): array {
     // ─── WRITE CACHE ────────────────────────────────────────────────────────
     $result['cache_written'] = writeCacheFiles($produk);
 
+    // Tulis waktu sync
+    $no_image_count = $no_image_count ?? 0;
+    $sync_time = [
+        'terakhir' => date('Y-m-d H:i:s'),
+        'timezone' => 'Asia/Jakarta',
+        'produk' => count($produk),
+        'produk_tanpa_foto' => $no_image_count,
+        'total_foto' => 0,
+    ];
+    $total_foto = 0;
+    foreach ($produk as $p) {
+        $imgs = $p['images'] ?? [];
+        foreach ($imgs as $img) {
+            if (strpos($img, 'uploads/') === 0) $total_foto++;
+        }
+    }
+    $sync_time['total_foto'] = $total_foto;
+    @file_put_contents(__DIR__ . '/../backend/data/waktu_sync.json', json_encode($sync_time, JSON_PRETTY_PRINT));
+
     // Close connection after all queries are done
     pg_close($conn);
 

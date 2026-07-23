@@ -303,6 +303,23 @@ foreach ($cache_files as $cache_file) {
     }
 }
 
+// 4. PROSES PROMO
+$harga_coret = (int) ($_POST['harga_coret'] ?? 0);
+$label_promo = trim($_POST['label_promo'] ?? '');
+if (isset($_POST['harga_coret'])) {
+    $promo = loadPromo();
+    if ($harga_coret > 0) {
+        $entry = ['harga_coret' => $harga_coret];
+        if ($label_promo !== '') {
+            $entry['label'] = $label_promo;
+        }
+        $promo[$id] = $entry;
+    } else {
+        unset($promo[$id]);
+    }
+    savePromo($promo);
+}
+
 // Catat history — HARUS sebelum pg_close() karena getDB() memakai static connection cache
 logAdminHistory('update_produk', 'product', $_POST['id'] ?? '', 'Deskripsi dan foto produk diperbarui');
 
