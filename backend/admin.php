@@ -1622,8 +1622,8 @@ function autoLabelHandler() {
     var coret = parseInt(document.getElementById('modal-harga-coret').value) || 0;
     var jual = window._currentEditPrice || 0;
     var label = document.getElementById('modal-label-promo');
-    if (coret > 0 && jual > 0 && coret < jual) {
-        var pct = Math.round((jual - coret) / jual * 100);
+    if (coret > 0 && jual > 0 && coret > jual) {
+        var pct = Math.round((coret - jual) / coret * 100);
         label.value = 'Diskon ' + pct + '%';
     } else {
         label.value = '';
