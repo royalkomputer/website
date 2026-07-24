@@ -104,6 +104,9 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 | `update_admin.php` | Admin CRUD + schedules + status API | Session |
 | `api_manage_photos.php` | Photo delete/reorder API | Session |
 | `api_hutang.php` | Outstanding debt report API | Session |
+| `api_aset.php` | Asset valuation API | Session |
+| `api_penghasilan.php` | Revenue/net income API | Session |
+| `api_status.php` | Store status API | Session |
 | `data/admins.json` | Admin accounts (bcrypt) | — |
 | `data/status_toko.txt` | Manual store status override | — |
 | `data/cache_produk.json` | Product cache (written by admin) | — |
@@ -205,7 +208,65 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 - At least 1 super admin must exist at all times
 - Schedule dates must be valid, start ≤ end
 
+### 4. `api_penghasilan.php` — Get Revenue Data (Admin)
+
+**Method:** GET
+**Auth:** Session (admin logged in)
+**Response:** JSON object with `summary` and `transactions`
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `range` | string | No | Preset range: `day`, `week`, `month` (default: `month`) |
+| `start` | string | No | Custom start date (`YYYY-MM-DD`) — overrides `range` |
+| `end` | string | No | Custom end date (`YYYY-MM-DD`) — paired with `start` |
+
+**Response fields:**
+- `summary.total_penjualan` — total revenue (IDR)
+- `summary.total_hpp` — total cost of goods sold
+- `summary.penghasilan_bersih` — net income = `total_penjualan - total_hpp`
+- `summary.total_transaksi` — transaction count
+- `summary.rata_rata` — average transaction value
+- `summary.label` — human-readable date range label
+- `transactions[]` — array of transactions with nested `items[]`
+
+**Date range logic:**
+- `start` + `end`: custom range
+- `range=day`: current date only
+- `range=week`: last 7 days
+- `range=month` (default): 29th of prev month to 28th of current month
+
+**Data source:** `tbl_ikhd` JOIN `tbl_ikdt` LEFT JOIN `tbl_item`
+
+**Cache fallback:** Reads `data/cache_penghasilan.json` when DB is unavailable.
+
+### 5. `api_hutang.php` — Get Outstanding Debt Report (Admin)
+
+**Method:** GET
+**Auth:** Session (admin logged in)
+**Response:** JSON object with `data`, `grand_total_faktur`, `grand_total_sisa`, `total`
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tipe` | string | No | Filter type: `BL` (Pembelian), `KI` (Kongsi), or empty (all) |
+| `sort` | string | No | Sort: `tgl_desc` (default), `jatuh_tempo_asc` |
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "no_faktur": "BL001",
+      "supplier": "PT Supplier",
+      "tanggal": "2026-06-01",
+      "total_faktur": 5000000,
+      "total_sisa": 4000000,
       "keterangan": "",
+      "tipe": "BL",
+      "tgl_jatuh_tempo": "2026-07-01",
       "status": "terlambat",
       "hari_terlambat": 5
     }
@@ -221,6 +282,19 @@ The project uses a 4-folder monorepo structure at the root level. Each folder ma
 **Notes:**
 - RKI (Retur Kongsi) transactions are **excluded** from all queries because returns to suppliers are not debts.
 - The filter dropdown and table badges only show BL (Pembelian) and KI (Kongsi).
+
+### 6. `api_aset.php` — Get Asset Data (Admin)
+
+**Method:** GET
+**Auth:** Session (admin logged in)
+**Response:** JSON array of product asset objects
+
+**Behavior:**
+- Queries `tbl_item` JOIN `tbl_itemstok` WHERE `SUM(stok) > 0`
+- Excludes items with "jasa" in the name
+- Returns per-item: `kode`, `nama`, `kategori`, `stok`, `harga_pokok`, `harga_jual`, `total_modal` (= `harga_pokok * stok`), `total_nilai_jual` (= `harga_jual * stok`)
+
+**Cache fallback:** Reads `data/cache_aset.json` when DB is unavailable.
 
 ---
 

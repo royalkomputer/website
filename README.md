@@ -54,6 +54,12 @@ The system has a **hybrid local/cloud architecture**:
 - Manual store status override
 - Multi-role admin management (super admin + regular admin)
 - Profile editing (self-service)
+- **Penghasilan** panel with net income, date range filtering (day/week/month/custom)
+- **Hutang** panel with BL/KI type filtering, sort by date or due date
+- **Aset** panel with asset valuation (excluding "jasa" items)
+- Category management with hierarchy, visibility control, auto-detection
+- Promo management (strikethrough prices, badge labels)
+- Sync status bar with last-sync timestamp
 
 ---
 
@@ -398,8 +404,9 @@ Atau jalankan `sync/setup_scheduler.ps1` sebagai Administrator (sekali saja).
 | `api_produk.php` | GET | None | Returns all products with stock > 0 |
 | `api_status.php` | GET | None | Store open/closed status |
 | `api_banner.php` | GET | None | Banner playlists |
-
-| `api_hutang.php` | POST | Session | Outstanding debt report |
+| `api_penghasilan.php` | GET | Session | Revenue data with net income, date range filtering |
+| `api_aset.php` | GET | Session | Asset valuation by item (excludes "jasa") |
+| `api_hutang.php` | GET | Session | Outstanding debt report with BL/KI filter |
 | `api_manage_photos.php` | POST | Session | Delete or reorder product photos |
 | `update_produk.php` | POST | Session | Update product description + photos |
 | `update_admin.php` | POST | Session | Admin CRUD, schedules, status |
