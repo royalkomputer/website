@@ -2,7 +2,7 @@
 # Run this script as Administrator to create/update the hourly sync task.
 
 $TaskName = "RoyalKomputer Sync"
-$ScriptPath = "$PSScriptRoot\sync_and_push.bat"
+$ScriptPath = "$PSScriptRoot\sync_to_vps.bat"
 $RepoDir = "$PSScriptRoot\.."
 
 # Verify the script exists
@@ -36,7 +36,7 @@ $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoi
 # Register the task — runs as current user so Git/SSH config is available
 $CurrentUser = "$env:USERDOMAIN\$env:USERNAME"
 $Principal = New-ScheduledTaskPrincipal -UserId $CurrentUser -LogonType S4U -RunLevel Highest
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "Sync produk dari IPOS dan push ke GitHub setiap 1 jam" -Force
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "Sync produk dari IPOS dan rsync ke VPS setiap 1 jam" -Force
 
 Write-Host "Task '$TaskName' created successfully."
 Write-Host "It will run every 1 hour starting at 00:00."

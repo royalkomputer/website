@@ -1,12 +1,18 @@
 <?php
-// sync/config.php — Minimal DB config for headless IPOS sync agent
-// No session, no admin helpers, no JSON file management
+// sync/config.php — DB config + VPS connection for direct sync
 
 define('DB_HOST', '192.168.18.189');
 define('DB_PORT', '5444');
 define('DB_NAME', 'i4_ROYAL');
 define('DB_USER', 'admin');
 define('DB_PASS', '2356988');
+
+// VPS direct sync (rsync via SSH) — gantikan git push
+define('VPS_HOST', '103.93.133.60');
+define('VPS_USER', 'royaladmin');
+define('VPS_SSH_KEY', 'C:\royalserver.pem');
+define('VPS_TARGET_DIR', '/var/www/royalkomputer');
+define('VPS_SSH_PORT', 22);
 
 date_default_timezone_set('Asia/Jakarta');
 

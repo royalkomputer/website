@@ -324,6 +324,21 @@ function runSync(): array {
     $sync_time['total_foto'] = $total_foto;
     @file_put_contents(__DIR__ . '/../backend/data/waktu_sync.json', json_encode($sync_time, JSON_PRETTY_PRINT));
 
+    // ─── FINANCIAL DATA SYNC ────────────────────────────────────────────────
+    echo "─── Financial Data ────────────────────────────\n";
+
+    log_and_echo("Menyinkronkan data aset...");
+    $aset_data = syncDataAset($conn);
+    writeFinancialCache('cache_aset.json', $aset_data);
+
+    log_and_echo("Menyinkronkan data hutang...");
+    $hutang_data = syncDataHutang($conn);
+    writeFinancialCache('cache_hutang.json', $hutang_data);
+
+    log_and_echo("Menyinkronkan data penghasilan...");
+    $penghasilan_data = syncDataPenghasilan($conn);
+    writeFinancialCache('cache_penghasilan.json', $penghasilan_data);
+
     // Close connection after all queries are done
     pg_close($conn);
 
@@ -404,6 +419,212 @@ function writeCacheFiles(array $produk): bool {
     return $all_ok;
 }
 
+// ─── FINANCIAL DATA SYNC ──────────────────────────────────────────────────────
+
+function syncDataAset($conn): array {
+    $sql = "SELECT i.kodeitem, i.namaitem, i.jenis, i.hargapokok, i.hargajual1, COALESCE(SUM(s.stok), 0) AS stok
+            FROM tbl_item i
+            JOIN tbl_itemstok s ON i.kodeitem = s.kodeitem
+            GROUP BY i.kodeitem, i.namaitem, i.jenis, i.hargapokok, i.hargajual1
+            HAVING SUM(s.stok) > 0
+            ORDER BY i.namaitem ASC";
+    $result = @pg_query($conn, $sql);
+    if (!$result) return [];
+
+    $data = [];
+    while ($row = pg_fetch_assoc($result)) {
+        $harga_pokok = (float)($row['hargapokok'] ?? 0);
+        $harga_jual = (float)($row['hargajual1'] ?? 0);
+        $stok = (float)$row['stok'];
+        $data[] = [
+            'kode' => $row['kodeitem'],
+            'nama' => $row['namaitem'],
+            'kategori' => empty(trim($row['jenis'] ?? '')) ? 'Lainnya' : trim($row['jenis']),
+            'stok' => $stok,
+            'harga_pokok' => $harga_pokok,
+            'harga_jual' => $harga_jual,
+            'total_modal' => round($harga_pokok * $stok),
+            'total_nilai_jual' => round($harga_jual * $stok),
+        ];
+    }
+    return $data;
+}
+
+function syncDataHutang($conn): array {
+    $sql = "SELECT h.no_faktur, h.tgl, h.total_faktur, h.jmlkredit AS total_sisa,
+                   COALESCE(h.keterangan, '') AS keterangan, h.tgl_jatuh_tempo,
+                   COALESCE(s.nama, 'Unknown') AS supplier
+            FROM tbl_imhd h
+            LEFT JOIN tbl_supel s ON h.kodesupel = s.kode
+            WHERE h.jmlkredit > 0
+              AND (h.jenis IS NULL OR h.jenis NOT IN ('RKI'))
+            ORDER BY h.tgl DESC";
+    $result = @pg_query($conn, $sql);
+    if (!$result) return ['data' => [], 'grand_total_faktur' => 0, 'grand_total_sisa' => 0, 'total' => 0];
+
+    $data = [];
+    $grand_faktur = 0;
+    $grand_sisa = 0;
+    $now = time();
+    while ($row = pg_fetch_assoc($result)) {
+        $total_faktur = (float)$row['total_faktur'];
+        $total_sisa = (float)$row['total_sisa'];
+        $grand_faktur += $total_faktur;
+        $grand_sisa += $total_sisa;
+
+        $jatuh_tempo = $row['tgl_jatuh_tempo'] ? strtotime($row['tgl_jatuh_tempo']) : 0;
+        $hari_terlambat = 0;
+        if ($jatuh_tempo && $total_sisa > 0) {
+            $hari_terlambat = max(0, (int)(($now - $jatuh_tempo) / 86400));
+        }
+
+        $data[] = [
+            'no_faktur' => $row['no_faktur'],
+            'supplier' => $row['supplier'],
+            'tanggal' => $row['tgl'],
+            'total_faktur' => $total_faktur,
+            'total_sisa' => $total_sisa,
+            'keterangan' => $row['keterangan'] ?? '',
+            'status' => $total_sisa <= 0 ? 'lunas' : ($hari_terlambat > 0 ? 'terlambat' : 'aktif'),
+            'hari_terlambat' => $hari_terlambat,
+        ];
+    }
+
+    return [
+        'data' => $data,
+        'grand_total_faktur' => $grand_faktur,
+        'grand_total_sisa' => $grand_sisa,
+        'total' => count($data),
+    ];
+}
+
+function syncDataPenghasilan($conn): array {
+    $sql = "SELECT COUNT(DISTINCT h.no_faktur) AS total_transaksi,
+                   COALESCE(SUM(h.total), 0) AS total_penjualan,
+                   COALESCE(SUM(d.qty), 0) AS total_item
+            FROM tbl_ikhd h
+            JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
+            WHERE h.tgl >= date_trunc('month', CURRENT_DATE)";
+    $result = @pg_query($conn, $sql);
+    $summary = pg_fetch_assoc($result);
+    if (!$summary) $summary = ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0];
+
+    $total_trans = (int)$summary['total_transaksi'];
+    $total_jual = (float)$summary['total_penjualan'];
+
+    $sql2 = "SELECT h.no_faktur, h.tgl, h.total, d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.qty, d.harga
+             FROM tbl_ikhd h
+             JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
+             LEFT JOIN tbl_item i ON d.kodeitem = i.kodeitem
+             WHERE h.tgl >= date_trunc('month', CURRENT_DATE)
+             ORDER BY h.tgl DESC, h.no_faktur ASC";
+    $result2 = @pg_query($conn, $sql2);
+
+    $merged = [];
+    if ($result2) {
+        while ($row = pg_fetch_assoc($result2)) {
+            $key = $row['no_faktur'];
+            if (!isset($merged[$key])) {
+                $merged[$key] = [
+                    'no_faktur' => $row['no_faktur'],
+                    'tanggal' => $row['tgl'],
+                    'total' => (float)$row['total'],
+                    'items' => [],
+                ];
+            }
+            $merged[$key]['items'][] = [
+                'kode' => $row['kodeitem'],
+                'nama' => $row['namaitem'],
+                'qty' => (float)$row['qty'],
+                'harga' => (float)$row['harga'],
+            ];
+        }
+    }
+
+    return [
+        'summary' => [
+            'total_transaksi' => $total_trans,
+            'total_penjualan' => $total_jual,
+            'total_item' => (int)$summary['total_item'],
+            'rata_rata' => $total_trans > 0 ? round($total_jual / $total_trans) : 0,
+            'bulan' => date('F Y'),
+        ],
+        'transactions' => array_values($merged),
+    ];
+}
+
+function writeFinancialCache(string $filename, array $data): bool {
+    $targets = [
+        __DIR__ . '/' . $filename => 'sync/',
+        __DIR__ . '/../backend/data/' . $filename => 'backend/data/',
+    ];
+    $json = json_encode($data, JSON_PRETTY_PRINT);
+    if ($json === false) {
+        log_and_echo("GAGAL — JSON encoding error untuk $filename: " . json_last_error_msg());
+        return false;
+    }
+    $all_ok = true;
+    foreach ($targets as $path => $label) {
+        $dir = dirname($path);
+        if (!is_dir($dir)) mkdir($dir, 0777, true);
+        $written = file_put_contents($path, $json);
+        if ($written === false) {
+            log_and_echo("GAGAL menulis $label$filename");
+            $all_ok = false;
+        } else {
+            log_and_echo("Ditulis ke $label$filename: " . format_bytes($written));
+        }
+    }
+    return $all_ok;
+}
+
+// ─── VPS DIRECT SYNC ──────────────────────────────────────────────────────────
+
+function syncToVPS(): bool {
+    $key = VPS_SSH_KEY;
+    $user = VPS_USER;
+    $host = VPS_HOST;
+    $port = VPS_SSH_PORT;
+    $target = VPS_TARGET_DIR;
+
+    $files = [
+        __DIR__ . '/cache_produk.json',
+        __DIR__ . '/cache_aset.json',
+        __DIR__ . '/cache_hutang.json',
+        __DIR__ . '/cache_penghasilan.json',
+        __DIR__ . '/../backend/data/waktu_sync.json',
+    ];
+
+    $ssh_cmd = "ssh -i \"$key\" -p $port -o StrictHostKeyChecking=no";
+
+    $all_ok = true;
+    foreach ($files as $file) {
+        if (!file_exists($file)) {
+            log_and_echo("VPS: File tidak ditemukan: $file — skip");
+            continue;
+        }
+        $basename = basename($file);
+        $dest = "$target/backend/data/$basename";
+        $cmd = "rsync -az --rsync-path=\"sudo rsync\" -e \"$ssh_cmd\" \"$file\" $user@$host:$dest 2>&1";
+        exec($cmd, $output, $exit_code);
+
+        if ($exit_code === 0) {
+            log_and_echo("VPS: $basename → VPS OK");
+        } else {
+            log_and_echo("VPS: GAGAL sync $basename: " . implode("\n", $output));
+            $all_ok = false;
+        }
+    }
+
+    if ($all_ok) {
+        log_and_echo("VPS: Semua file berhasil di-sync ke $host");
+    } else {
+        log_and_echo("VPS: Beberapa file gagal di-sync — cek log");
+    }
+
+    return $all_ok;
+}
+
 // ─── MAIN ───────────────────────────────────────────────────────────────────
 function main(bool $watch_mode, int $watch_interval, bool $git_push, int $git_interval): void {
     echo "\n";
@@ -412,8 +633,8 @@ function main(bool $watch_mode, int $watch_interval, bool $git_push, int $git_in
     echo "╚══════════════════════════════════════════════╝\n";
     echo "\n";
     log_and_echo("PHP version: " . PHP_VERSION);
-    $git_label = $git_push ? " — Git push setiap " . ($git_interval >= 3600 ? ($git_interval/3600) . " jam" : $git_interval . " detik") : "";
-    log_and_echo("Mode: " . ($watch_mode ? "WATCH (interval: {$watch_interval}s)" : "ONCE") . $git_label);
+    $mode_desc = $watch_mode ? "WATCH (interval: {$watch_interval}s)" : "ONCE";
+    log_and_echo("Mode: $mode_desc — rsync ke VPS (" . VPS_HOST . ")");
     log_and_echo("Memory limit: " . ini_get('memory_limit'));
 
     $iteration = 0;
@@ -450,16 +671,11 @@ function main(bool $watch_mode, int $watch_interval, bool $git_push, int $git_in
             file_put_contents($path, json_encode($last_sync, JSON_PRETTY_PRINT));
         }
 
-        // ─── GIT PUSH ──────────────────────────────────────────────────────
-        if ($git_push) {
-            $elapsed = $iteration * $watch_interval;
-            $last_git_file = __DIR__ . '/last_git_push.txt';
-            $last_git_time = file_exists($last_git_file) ? (int)file_get_contents($last_git_file) : 0;
-            $do_git = ($watch_mode && (time() - $last_git_time) >= $git_interval) || !$watch_mode;
-            if ($do_git) {
-                gitCommitAndPush();
-                file_put_contents($last_git_file, (string) time());
-            }
+        // ─── VPS SYNC ──────────────────────────────────────────────────────
+        if ($sync_result['cache_written']) {
+            syncToVPS();
+        } else {
+            log_and_echo("VPS: Skip — cache tidak ditulis");
         }
 
         $status = $sync_result['success'] ? "OK" : "GAGAL";
@@ -481,7 +697,6 @@ function main(bool $watch_mode, int $watch_interval, bool $git_push, int $git_in
             $next_run = date('H:i:s', time() + $watch_interval);
             echo "  Menunggu {$watch_interval}s... (berikutnya ~$next_run)\n";
             sleep($watch_interval);
-            // Reset peak memory per iterasi
             memory_get_peak_usage(true);
         }
     } while ($watch_mode);

@@ -1,11 +1,12 @@
 # Royal Komputer — Project Plan
 
-> **Arsitektur saat ini:** Docker Compose (3 services) + Coolify di VPS.
+> **Arsitektur saat ini:** Hybrid — sync langsung via rsync ke VPS (non-Docker).
 > **Referensi utama:** [AGENTS.md](AGENTS.md) untuk API, konvensi kode, dan pola arsitektur.
 
 ### Changelog
 | Tanggal | Perubahan |
 |---------|-----------|
+| 2026-07-24 | **Direct Sync VPS** — Ganti flow sync dari git push ke rsync langsung ke VPS (103.93.133.60). Tambah fitur Aset, Hutang, Penghasilan di dashboard admin. Data finansial tidak masuk GitHub public (`.gitignore`). Foto tetap di VPS, tidak sync dari lokal. |
 | 2026-07-19 | Hapus menu Serial Number, Penghasilan, Hutang, Aset dari admin dashboard. Hapus endpoint API `api_aset.php`, `api_hutang.php`, `api_penghasilan.php`. Hapus sync data aset/hutang/penghasilan dari sync agent. |
 | 2026-07-19 | Hapus fitur jam buka toko (operating hours). Hapus `loadJamOperasional()` dari `frontend/config.php`. Hapus logic jam operasional, badge tutup/buka, schedule warning, dan footer "JAM BUKA TOKO" dari `frontend/index.php`. Hapus `StoreStatus.js` (dead code). Sederhanakan `api_status.php`. Hapus `fetchStoreStatus()` dari `api.js`. |
 | 2026-07-19 | Refactor UI `frontend/index.php` — minimal & modern: navbar lebih ramping (border-bottom, social links satu warna), hero header solid tanpa gradient, sidebar bg-slate-800/60, product card hover subtle (border aksen), grid 5 kolom di xl, info bar & empty state lebih clean, footer compact. |
@@ -15,7 +16,7 @@
 | 2026-07-19 | Batasi render produk maksimal 40 per halaman. `renderProductGrid()` slice `filteredProducts` ke 40 item pertama, counter ubah jadi format "Menampilkan 40 dari 766 produk". |
 | 2026-07-19 | Tambah pagination "Muat Lainnya": variable `displayLimit`, tombol di bawah grid increment +40, reset ke 40 saat filter/search berganti. |
 | 2026-07-19 | Tambah floating button "Kembali ke Atas": muncul setelah scroll >400px, smooth scroll, `bg-astra-700` di pojok kanan bawah. |
-| 2026-07-19 | Hapus 10 file tidak terpakai: savepoint.md, server.pid, dev.sh, dev.bat, admin.php.bak, test_*.txt, push_admin.bat, setup_push_task.bat, api_schedules.php. Perbarui dokumentasi dan vite.config.js. |
+| 2026-07-19 | Hapus 10 file tidak terpakai: savepoint.md, server.pid, dev.sh, dev.bat, admin.php.bak, test_*.txt, push_admin.bat, setup_push_task.bat, api_schedules.php, sf_sync.bat. Perbarui dokumentasi dan vite.config.js. |
 | 2026-07-19 | Posisikan search prompt "Gunakan pencarian untuk menampilkan produk." di atas banner carousel (sebelumnya di dalam main layout). |
 | 2026-07-19 | Ubah teks search prompt dari "Gunakan pencarian atau pilih kategori untuk menampilkan produk." menjadi "Gunakan pencarian untuk menampilkan produk." |
 | 2026-07-19 | Fix banner & product image 404 di `php -S -t frontend` — buat symlink `frontend/uploads -> ../backend/uploads`. |
@@ -32,59 +33,103 @@
 ## Arsitektur
 
 ```
-┌─────────────────────────────────────────────────────┐
-│               LOCAL PC (Toko Kediri)                 │
-│  IPOS PostgreSQL ──► sync/ (Task Scheduler 1 jam)   │
-│                       ──► git push                   │
-└──────────────────────┬──────────────────────────────┘
-                       │ git push
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│                    VPS (Coolify)                      │
-│                                                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │
-│  │ Frontend │  │ Backend  │  │ PostgreSQL 16    │   │
-│  │ Nginx    │  │ PHP-FPM  │  │                  │   │
-│  │ Vite SPA │  │ + Nginx  │  │ :5432            │   │
-│  │ :80      │  │ :80      │  │                  │   │
-│  └──────────┘  └──────────┘  └──────────────────┘   │
-│                                                       │
-│  Coolify (Caddy) → Auto HTTPS → Hot Swap Deploy     │
-└─────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                      LOCAL PC (Windows — Toko Kediri)                 │
+│                                                                       │
+│  IPOS PostgreSQL (192.168.18.189:5444/i4_ROYAL)                      │
+│         │                                                              │
+│         ▼                                                              │
+│  sync/update_produk.php (Task Scheduler tiap jam)                     │
+│         │                                                              │
+│    ┌────┴────┬────────────┬──────────────┬──────────────┐             │
+│    │         │            │              │              │             │
+│    ▼         ▼            ▼              ▼              ▼             │
+│ cache_  cache_aset  cache_hutang  cache_         backend/            │
+│ produk  .json      .json        penghasilan     uploads/             │
+│ .json                         .json            (foto — VPS saja)     │
+│ (public) (─ SENSITIVE ─)                           │                 │
+│    │         │            │              │         ── tidak di rsync  │
+│    └────┬────┴────────────┴──────────────┴──────────┘                 │
+│         │                                                              │
+│         ▼                                                              │
+│  rsync -az --rsync-path="sudo rsync" -e "ssh -i royalserver.pem"     │
+│  (hanya 5 file JSON ke backend/data/)                                 │
+│         │                                                              │
+│         ▼                                                              │
+└───────────────────────────────────────────────────────────────────────┘
+                         │
+                         ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                    VPS (royaladmin@103.93.133.60)                      │
+│                                                                       │
+│  /var/www/royalkomputer/                                              │
+│  ├── frontend/          → royalkomputer.com (Nginx + PHP-FPM)        │
+│  │   ├── index.php        (storefront)                                │
+│  │   ├── api_produk.php   (product API)                               │
+│  │   └── uploads/         → symlink → ../backend/uploads/             │
+│  │                                                                     │
+│  ├── backend/           → admin.royalkomputer.com (Nginx + PHP-FPM)  │
+│  │   ├── admin.php        (dashboard admin)                           │
+│  │   ├── api_aset.php     (aset API — BARU)                           │
+│  │   ├── api_hutang.php   (hutang API — BARU)                         │
+│  │   ├── api_penghasilan.php (penghasilan API — BARU)                 │
+│  │   └── data/            (diblock nginx — deny all)                  │
+│  │       ├── cache_produk.json                                        │
+│  │       ├── cache_aset.json        ← rsync dari lokal                │
+│  │       ├── cache_hutang.json      ← rsync dari lokal                │
+│  │       ├── cache_penghasilan.json ← rsync dari lokal                │
+│  │       ├── waktu_sync.json        ← rsync dari lokal                │
+│  │       └── ... (admins, kategori, dll — diubah via admin panel)     │
+│  │                                                                     │
+│  └── sync/              → tidak dipakai di VPS                        │
+│                                                                       │
+│  Nginx: royalkomputer.com + admin.royalkomputer.com (SSL via certbot) │
+│  PHP 8.2-FPM, PostgreSQL 16 (cloud DB untuk auth + config)           │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
-## File Structure
+### Aliran Data Sync (setiap jam)
 
-```
-website/
-├── database/           → DB container (init.sql)
-├── frontend/           → Frontend container (Vite SPA + Nginx)
-├── backend/            → Backend container (PHP-FPM + Nginx)
-├── sync/               → Local PC (Task Scheduler)
-├── docker-compose.yml  → Docker Compose untuk VPS
-├── tests/              → PHPUnit test suite
-├── AGENTS.md           → AI agent instructions
-├── README.md           → Project overview
-├── INSTALL.md          → Panduan instalasi lengkap
-└── PLAN.md             → File ini
-```
+| Langkah | Deskripsi |
+|---------|-----------|
+| 1 | Task Scheduler jalankan `sync_to_vps.bat` |
+| 2 | `php update_produk.php --once` |
+| 3 | Sync foto lokal: `backend/uploads/` → `frontend/uploads/` (local dev) |
+| 4 | Query produk dari IPOS → `cache_produk.json` |
+| 5 | Query aset dari IPOS → `cache_aset.json` |
+| 6 | Query hutang dari IPOS → `cache_hutang.json` |
+| 7 | Query penghasilan dari IPOS → `cache_penghasilan.json` |
+| 8 | Tulis `waktu_sync.json` |
+| 9 | rsync 5 file JSON ke VPS `backend/data/` via SSH |
+| 10 | VPS Nginx + PHP serve data dari file tersebut |
+
+### Catatan penting
+
+- **Foto tidak di rsync** — foto diupload via admin panel langsung ke VPS, tidak perlu sync dari lokal
+- **GitHub hanya untuk kode** — push manual saat ada perubahan PHP/konfigurasi
+- **File finansial di .gitignore** — tidak masuk public repo
+- **rsync pakai sudo** karena file di VPS milik `www-data`, user `royaladmin` punya sudo
+- **Data file** (`admins.json`, `kategori.json`, dll) tetap diubah via admin panel di VPS — tidak sync dari lokal
 
 ## Service Mapping
 
-| Folder | Container | Port | Purpose |
-|--------|-----------|------|---------|
-| `frontend/` | `frontend` | 80 | Vite SPA + Nginx (storefront) |
-| `backend/` | `backend` | 80 | PHP-FPM + Nginx (admin + API) |
-| `database/` | `db` | 5432 | PostgreSQL 16 |
-| `sync/` | — | — | Windows Task Scheduler (local) |
+| Folder | Server | Port | Purpose |
+|--------|--------|------|---------|
+| `frontend/` | royalkomputer.com | 443 | Storefront (Nginx + PHP-FPM) |
+| `backend/` | admin.royalkomputer.com | 443 | Admin dashboard + API (Nginx + PHP-FPM) |
+| `database/` | localhost | 5432 | PostgreSQL 16 (cloud) |
+| `sync/` | — | — | Windows Task Scheduler (local PC) |
 
 ## API Endpoints
 
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
-| `api_produk.php` | GET | Public | Product catalog (paginated) |
+| `api_produk.php` | GET | Public | Product catalog |
 | `api_status.php` | GET | Public | Store open/closed status |
 | `api_banner.php` | GET | Public | Banner playlists |
+| `api_aset.php` | GET | Session | Aset report (BARU) |
+| `api_hutang.php` | GET | Session | Hutang report (BARU) |
+| `api_penghasilan.php` | GET | Session | Penghasilan report (BARU) |
 | `api_manage_photos.php` | POST | Session | Photo delete/reorder |
 | `api_data.php` | GET | Public | JSON file proxy |
 | `update_produk.php` | POST | Session | Product description + photo upload |
@@ -95,74 +140,74 @@ website/
 
 ### Storefront (Public)
 - [x] Product catalog with search, category/condition filters, price sort
-- [x] Store open/closed status (operating hours, schedules, manual override)
+- [x] Store open/closed status (schedules, manual override)
 - [x] Product detail modal with image carousel
 - [x] WhatsApp order integration
 - [x] Mobile-responsive, dark mode
-- [x] Pagination (32 products/page)
+- [x] Pagination (40 products/page)
 - [x] Fallback to cache when DB unavailable
 
 ### Admin Dashboard
 - [x] Product management (description, photo upload/reorder/delete, WEBP auto-conversion)
-- [-] Operating hours (per-day, with "Libur" option) — dihapus
 - [x] Temporary closure scheduling
 - [x] Manual store status override
 - [x] Multi-role admin (super_admin + admin)
 - [x] Profile editing (self-service)
 - [x] Banner management (playlist-based carousel)
 - [x] Sync status dashboard
-- [-] Serial Number search — dihapus
-- [-] Penghasilan report — dihapus
-- [-] Hutang report — dihapus
-- [-] Aset report — dihapus
+- [x] **Aset report** (nilai modal, nilai jual per item)
+- [x] **Hutang report** (hutang ke supplier)
+- [x] **Penghasilan report** (penjualan bulan berjalan)
 
 ### Sync Agent
-- [x] IPOS PostgreSQL → cache_produk.json
-- [x] Photo sync (backend → frontend uploads)
-- [x] Git auto-commit + push
+- [x] IPOS PostgreSQL → cache_produk.json + cache_aset/hutang/penghasilan.json
+- [x] Photo sync (backend → frontend uploads — local dev)
+- [x] Rsync ke VPS via SSH (langsung, tanpa GitHub)
 - [x] Windows Task Scheduler integration
-- [x] Sync status tracking (last_sync.json)
-- [-] Admin data sync (aset, hutang, penghasilan) — dihapus
+- [x] Sync status tracking (last_sync.json, waktu_sync.json)
+- [x] File finansial di .gitignore (tidak bocor ke public repo)
 
 ### Infrastructure
-- [x] Docker Compose (3 services)
-- [x] Health checks (db, backend /ping, frontend /)
-- [x] Persistent volumes (uploads, data, postgres)
-- [x] Coolify integration (auto HTTPS, hot swap deploy)
+- [x] Nginx + PHP 8.2-FPM (VPS)
+- [x] SSL via Let's Encrypt (certbot)
+- [x] PostgreSQL 16 (cloud)
+- [ ] Coolify — tidak dipakai (deploy manual via git)
 
 ## Data Flow
 
-### Admin → Storefront (Immediate)
+### Admin → Storefront (Immediate via VPS API)
 | Admin Action | Writes To |
 |---|---|
 | Edit product | `cache_produk.json`, `backend/data/` |
-| Upload photo | `backend/uploads/` + `frontend/uploads/` |
-| _(Operating hours removed) |
-| Save schedule | `jadwal_tutup.json` (both) |
-| Set manual status | `status_toko.txt` (both) |
-| Save tagline | `tagline.json` (both) |
+| Upload photo | `backend/uploads/` |
+| Save schedule | `jadwal_tutup.json` |
+| Set manual status | `status_toko.txt` |
+| Save tagline | `tagline.json` |
 
-### Sync Agent → Git → VPS (Every 1 Hour)
+### Sync Agent → VPS (Every 1 Hour, Direct rsync)
 ```
-IPOS DB → sync agent → cache_produk.json → git push → Coolify deploy
+IPOS DB → sync agent → 5 cache JSON → rsync via SSH → VPS backend/data/
 ```
 
-## Deployment Flow
-
+## Deployment Flow (Kode)
 ```
-git push → Webhook → Coolify Git Pull → Build Container →
-Health Check (HTTP 200?) → Hot Swap (Caddy) → Graceful Teardown
+git push → VPS git pull → reload PHP-FPM
 ```
+Dilakukan manual saat ada perubahan kode. Tidak otomatis.
 
 ## Testing
 
 ```bash
-# Run PHPUnit tests
-cd tests
-php ../vendor/bin/phpunit
+# Jalankan sync agent manual (dry-run, tanpa rsync)
+cd sync
+php update_produk.php --once
 
-# Run without vendor
-php phpunit.phar --configuration phpunit.xml
+# Cek hasil cache
+ls -la sync/cache_*.json
+ls -la backend/data/cache_*.json
+
+# Test rsync ke VPS
+rsync -az --rsync-path="sudo rsync" -e "ssh -i key.pem -p 22" sync/cache_produk.json royaladmin@103.93.133.60:/var/www/royalkomputer/backend/data/
 ```
 
 ## Git Convention

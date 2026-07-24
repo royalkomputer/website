@@ -65,5 +65,13 @@ backend/test_login_bypass.php
 # Deprecated configs
 *.deprecated
 
+# Financial cache (sensitive — jangan push ke public repo)
+backend/data/cache_aset.json
+backend/data/cache_hutang.json
+backend/data/cache_penghasilan.json
+sync/cache_aset.json
+sync/cache_hutang.json
+sync/cache_penghasilan.json
+
 # Notes / scratchpad (not sync data)
 note.md

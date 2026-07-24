@@ -104,6 +104,18 @@ $current_status = loadStatus();
             <i class="fa-solid fa-images"></i> Banner
         </button>
 
+        <button onclick="switchTab('aset')" id="tab-aset" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-chart-pie"></i> Aset
+        </button>
+
+        <button onclick="switchTab('hutang')" id="tab-hutang" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Hutang
+        </button>
+
+        <button onclick="switchTab('penghasilan')" id="tab-penghasilan" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
+            <i class="fa-solid fa-money-bill-trend-up"></i> Penghasilan
+        </button>
+
         <button onclick="switchTab('profil')" id="tab-profil" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100">
             <i class="fa-solid fa-circle-user"></i> Profil Saya
         </button>
@@ -449,6 +461,171 @@ $current_status = loadStatus();
         </div>
     </div>
 
+    <!-- PANEL ASET -->
+    <div id="panel-aset" class="hidden">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-chart-pie text-astra-700"></i> Data Aset</h3>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Total Modal</div>
+                    <div id="aset-total-modal" class="text-2xl font-extrabold text-emerald-800 mt-1">-</div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Nilai Jual</div>
+                    <div id="aset-total-jual" class="text-2xl font-extrabold text-blue-800 mt-1">-</div>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-purple-600 uppercase tracking-wider">Total Item</div>
+                    <div id="aset-total-item" class="text-2xl font-extrabold text-purple-800 mt-1">-</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <div class="relative flex-1 min-w-[200px]">
+                    <input type="text" id="aset-search" placeholder="Cari nama/kode item..." oninput="renderAset()"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-astra-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                </div>
+                <select id="aset-kategori" onchange="renderAset()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 outline-none focus:border-astra-500 cursor-pointer">
+                    <option value="all">Semua Kategori</option>
+                </select>
+                <select id="aset-sort" onchange="renderAset()" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 outline-none focus:border-astra-500 cursor-pointer">
+                    <option value="nama-asc">Nama A-Z</option>
+                    <option value="nama-desc">Nama Z-A</option>
+                    <option value="modal-desc">Modal Tertinggi</option>
+                    <option value="modal-asc">Modal Terendah</option>
+                    <option value="jual-desc">Nilai Jual Tertinggi</option>
+                    <option value="jual-asc">Nilai Jual Terendah</option>
+                </select>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="text-left py-3 px-2 font-semibold">Kode</th>
+                            <th class="text-left py-3 px-2 font-semibold">Nama</th>
+                            <th class="text-left py-3 px-2 font-semibold">Kategori</th>
+                            <th class="text-right py-3 px-2 font-semibold">Stok</th>
+                            <th class="text-right py-3 px-2 font-semibold">Hrg Pokok</th>
+                            <th class="text-right py-3 px-2 font-semibold">Hrg Jual</th>
+                            <th class="text-right py-3 px-2 font-semibold">Total Modal</th>
+                            <th class="text-right py-3 px-2 font-semibold">Total Nilai Jual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aset-tbody"></tbody>
+                </table>
+            </div>
+            <div id="aset-empty" class="hidden text-center py-10 text-slate-400">
+                <i class="fa-solid fa-box-open text-4xl mb-3"></i>
+                <p>Tidak ada data aset ditemukan.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL HUTANG -->
+    <div id="panel-hutang" class="hidden">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-hand-holding-dollar text-astra-700"></i> Data Hutang</h3>
+            </div>
+
+            <!-- Grand Totals -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-red-600 uppercase tracking-wider">Grand Total Faktur</div>
+                    <div id="hutang-grand-faktur" class="text-2xl font-extrabold text-red-800 mt-1">-</div>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-orange-600 uppercase tracking-wider">Grand Total Sisa</div>
+                    <div id="hutang-grand-sisa" class="text-2xl font-extrabold text-orange-800 mt-1">-</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+                <div class="relative flex-1 min-w-[200px]">
+                    <input type="text" id="hutang-search" placeholder="Cari supplier..." oninput="renderHutang()"
+                        class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-astra-500">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="text-left py-3 px-2 font-semibold">No. Faktur</th>
+                            <th class="text-left py-3 px-2 font-semibold">Supplier</th>
+                            <th class="text-left py-3 px-2 font-semibold">Tanggal</th>
+                            <th class="text-right py-3 px-2 font-semibold">Total Faktur</th>
+                            <th class="text-right py-3 px-2 font-semibold">Sisa</th>
+                            <th class="text-center py-3 px-2 font-semibold">Status</th>
+                            <th class="text-right py-3 px-2 font-semibold">Terlambat</th>
+                            <th class="text-left py-3 px-2 font-semibold">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hutang-tbody"></tbody>
+                </table>
+            </div>
+            <div id="hutang-empty" class="hidden text-center py-10 text-slate-400">
+                <i class="fa-solid fa-file-invoice text-4xl mb-3"></i>
+                <p>Tidak ada data hutang ditemukan.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL PENGHASILAN -->
+    <div id="panel-penghasilan" class="hidden">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-money-bill-trend-up text-astra-700"></i> Penghasilan <span id="penghasilan-bulan" class="text-sm font-normal text-slate-500">-</span></h3>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-green-600 uppercase tracking-wider">Total Penjualan</div>
+                    <div id="penghasilan-total" class="text-2xl font-extrabold text-green-800 mt-1">-</div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Transaksi</div>
+                    <div id="penghasilan-transaksi" class="text-2xl font-extrabold text-blue-800 mt-1">-</div>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Rata-rata / Transaksi</div>
+                    <div id="penghasilan-rata" class="text-2xl font-extrabold text-indigo-800 mt-1">-</div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+                            <th class="text-left py-3 px-2 font-semibold">No. Faktur</th>
+                            <th class="text-left py-3 px-2 font-semibold">Tanggal</th>
+                            <th class="text-right py-3 px-2 font-semibold">Total</th>
+                            <th class="text-left py-3 px-2 font-semibold">Item</th>
+                        </tr>
+                    </thead>
+                    <tbody id="penghasilan-tbody"></tbody>
+                </table>
+            </div>
+            <div id="penghasilan-empty" class="hidden text-center py-10 text-slate-400">
+                <i class="fa-solid fa-chart-line text-4xl mb-3"></i>
+                <p>Belum ada transaksi bulan ini.</p>
+            </div>
+        </div>
+    </div>
+
         </main>
 
 <!-- MODAL KELOLA PRODUK -->
@@ -750,7 +927,7 @@ function hideNotification() {
 
 // TAB
 function showPanel(name){
-    const panels = ['katalog','admin','banner','kategori','promo','profil'];
+    const panels = ['katalog','admin','banner','kategori','promo','aset','hutang','penghasilan','profil'];
     panels.forEach(p=>{
         const panel = document.getElementById('panel-'+p);
         const btn = document.getElementById('tab-'+p);
@@ -767,6 +944,9 @@ function showPanel(name){
     if (name === 'banner') loadBannerData();
     if (name === 'kategori') loadKategoriPanel();
     if (name === 'promo') loadPromoPanel();
+    if (name === 'aset') loadAset();
+    if (name === 'hutang') loadHutang();
+    if (name === 'penghasilan') loadPenghasilan();
 }
 
 // BANNER MANAGEMENT
@@ -2110,6 +2290,180 @@ function submitProfil(){
         else{fb.className='text-sm font-semibold text-red-600';fb.innerHTML='<i class="fa-solid fa-triangle-exclamation mr-1"></i>'+data.message;}
         setTimeout(()=>fb.classList.add('hidden'),4000);
     }).catch(()=>{fb.classList.remove('hidden');fb.className='text-sm font-semibold text-red-600';fb.textContent='Gagal. Cek koneksi.';});
+}
+
+function formatRupiah(n){
+    return 'Rp' + Number(n).toLocaleString('id-ID');
+}
+
+// ─── ASET PANEL ─────────────────────────────────────────────────────────
+let asetData = [];
+
+async function loadAset() {
+    try {
+        const res = await fetch('api_aset.php?_t=' + Date.now());
+        asetData = await res.json();
+        if (!Array.isArray(asetData)) asetData = [];
+
+        // Populate kategori filter
+        const kategoriSet = new Set();
+        asetData.forEach(p => kategoriSet.add(p.kategori));
+        const sel = document.getElementById('aset-kategori');
+        sel.innerHTML = '<option value="all">Semua Kategori</option>';
+        [...kategoriSet].sort().forEach(k => {
+            sel.innerHTML += '<option value="' + escAttr(k) + '">' + escAttr(k) + '</option>';
+        });
+
+        renderAset();
+    } catch (e) {
+        document.getElementById('aset-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
+    }
+}
+
+function renderAset() {
+    const search = (document.getElementById('aset-search').value || '').toLowerCase();
+    const kategori = document.getElementById('aset-kategori').value;
+    const sort = document.getElementById('aset-sort').value;
+
+    let filtered = asetData.filter(p => {
+        if (kategori !== 'all' && p.kategori !== kategori) return false;
+        if (search && !p.nama.toLowerCase().includes(search) && !p.kode.toLowerCase().includes(search)) return false;
+        return true;
+    });
+
+    filtered.sort((a, b) => {
+        switch (sort) {
+            case 'nama-desc': return a.nama.localeCompare(b.nama) * -1;
+            case 'modal-desc': return b.total_modal - a.total_modal;
+            case 'modal-asc': return a.total_modal - b.total_modal;
+            case 'jual-desc': return b.total_nilai_jual - a.total_nilai_jual;
+            case 'jual-asc': return a.total_nilai_jual - b.total_nilai_jual;
+            default: return a.nama.localeCompare(b.nama);
+        }
+    });
+
+    // Update summary
+    let totalModal = 0, totalJual = 0;
+    filtered.forEach(p => { totalModal += p.total_modal; totalJual += p.total_nilai_jual; });
+    document.getElementById('aset-total-modal').textContent = formatRupiah(totalModal);
+    document.getElementById('aset-total-jual').textContent = formatRupiah(totalJual);
+    document.getElementById('aset-total-item').textContent = filtered.length;
+
+    const tbody = document.getElementById('aset-tbody');
+    if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('aset-empty').classList.remove('hidden');
+        return;
+    }
+    document.getElementById('aset-empty').classList.add('hidden');
+
+    tbody.innerHTML = filtered.map(p => `
+        <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="py-2.5 px-2 font-mono text-xs text-slate-500">${escAttr(p.kode)}</td>
+            <td class="py-2.5 px-2 font-semibold text-slate-800">${escAttr(p.nama)}</td>
+            <td class="py-2.5 px-2 text-slate-500">${escAttr(p.kategori)}</td>
+            <td class="py-2.5 px-2 text-right font-semibold">${Number(p.stok).toLocaleString('id-ID')}</td>
+            <td class="py-2.5 px-2 text-right text-slate-600">${formatRupiah(p.harga_pokok)}</td>
+            <td class="py-2.5 px-2 text-right text-slate-600">${formatRupiah(p.harga_jual)}</td>
+            <td class="py-2.5 px-2 text-right font-semibold text-emerald-700">${formatRupiah(p.total_modal)}</td>
+            <td class="py-2.5 px-2 text-right font-semibold text-blue-700">${formatRupiah(p.total_nilai_jual)}</td>
+        </tr>
+    `).join('');
+}
+
+// ─── HUTANG PANEL ────────────────────────────────────────────────────────
+let hutangData = { data: [], grand_total_faktur: 0, grand_total_sisa: 0, total: 0 };
+
+async function loadHutang() {
+    try {
+        const res = await fetch('api_hutang.php?_t=' + Date.now());
+        hutangData = await res.json();
+        if (!hutangData || !Array.isArray(hutangData.data)) hutangData = { data: [], grand_total_faktur: 0, grand_total_sisa: 0, total: 0 };
+        renderHutang();
+    } catch (e) {
+        document.getElementById('hutang-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
+    }
+}
+
+function renderHutang() {
+    const search = (document.getElementById('hutang-search').value || '').toLowerCase();
+
+    let filtered = hutangData.data.filter(h => {
+        if (search && !h.supplier.toLowerCase().includes(search) && !h.no_faktur.toLowerCase().includes(search)) return false;
+        return true;
+    });
+
+    document.getElementById('hutang-grand-faktur').textContent = formatRupiah(hutangData.grand_total_faktur);
+    document.getElementById('hutang-grand-sisa').textContent = formatRupiah(hutangData.grand_total_sisa);
+
+    const tbody = document.getElementById('hutang-tbody');
+    if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('hutang-empty').classList.remove('hidden');
+        return;
+    }
+    document.getElementById('hutang-empty').classList.add('hidden');
+
+    tbody.innerHTML = filtered.map(h => {
+        let badge = '';
+        if (h.status === 'lunas') badge = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold">Lunas</span>';
+        else if (h.status === 'terlambat') badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">Terlambat</span>';
+        else badge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">Aktif</span>';
+
+        return `<tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="py-2.5 px-2 font-mono text-xs text-slate-500">${escAttr(h.no_faktur)}</td>
+            <td class="py-2.5 px-2 font-semibold text-slate-800">${escAttr(h.supplier)}</td>
+            <td class="py-2.5 px-2 text-slate-500">${formatDate(h.tanggal)}</td>
+            <td class="py-2.5 px-2 text-right">${formatRupiah(h.total_faktur)}</td>
+            <td class="py-2.5 px-2 text-right font-bold ${h.total_sisa > 0 ? 'text-red-600' : 'text-green-600'}">${formatRupiah(h.total_sisa)}</td>
+            <td class="py-2.5 px-2 text-center">${badge}</td>
+            <td class="py-2.5 px-2 text-right text-slate-500">${h.hari_terlambat > 0 ? h.hari_terlambat + ' hari' : '-'}</td>
+            <td class="py-2.5 px-2 text-slate-500 max-w-[200px] truncate">${escAttr(h.keterangan || '-')}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ─── PENGHASILAN PANEL ───────────────────────────────────────────────────
+let penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, bulan: '' }, transactions: [] };
+
+async function loadPenghasilan() {
+    try {
+        const res = await fetch('api_penghasilan.php?_t=' + Date.now());
+        penghasilanData = await res.json();
+        if (!penghasilanData || !penghasilanData.summary) penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, bulan: '' }, transactions: [] };
+        renderPenghasilan();
+    } catch (e) {
+        document.getElementById('penghasilan-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
+    }
+}
+
+function renderPenghasilan() {
+    const s = penghasilanData.summary;
+    document.getElementById('penghasilan-bulan').textContent = s.bulan ? '— ' + s.bulan : '';
+    document.getElementById('penghasilan-total').textContent = formatRupiah(s.total_penjualan);
+    document.getElementById('penghasilan-transaksi').textContent = s.total_transaksi.toLocaleString('id-ID');
+    document.getElementById('penghasilan-rata').textContent = formatRupiah(s.rata_rata);
+
+    const tbody = document.getElementById('penghasilan-tbody');
+    const tx = penghasilanData.transactions || [];
+    if (tx.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('penghasilan-empty').classList.remove('hidden');
+        return;
+    }
+    document.getElementById('penghasilan-empty').classList.add('hidden');
+
+    tbody.innerHTML = tx.map(t => {
+        const itemList = (t.items || []).map(it =>
+            escAttr(it.nama || it.kode) + ' x' + Number(it.qty).toLocaleString('id-ID')
+        ).join(', ');
+        return `<tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="py-2.5 px-2 font-mono text-xs text-slate-500">${escAttr(t.no_faktur)}</td>
+            <td class="py-2.5 px-2 text-slate-600">${formatDate(t.tanggal)}</td>
+            <td class="py-2.5 px-2 text-right font-semibold text-green-700">${formatRupiah(t.total)}</td>
+            <td class="py-2.5 px-2 text-slate-500 text-xs max-w-[300px] truncate">${itemList || '-'}</td>
+        </tr>`;
+    }).join('');
 }
 
 function escAttr(str){
