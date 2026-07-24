@@ -555,6 +555,15 @@ $current_status = loadStatus();
                         class="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-astra-500">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
                 </div>
+                <div class="flex gap-1 bg-slate-100 rounded-lg p-1" id="hutang-tipe-filter">
+                    <button onclick="setHutangTipe('')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-astra-700 shadow-sm">Semua</button>
+                    <button onclick="setHutangTipe('BL')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700">Hutang (BL)</button>
+                    <button onclick="setHutangTipe('KI')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700">Kongsi (KI)</button>
+                </div>
+                <select id="hutang-sort" onchange="loadHutang()" class="bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-2 text-xs font-semibold outline-none focus:border-astra-500">
+                    <option value="tgl_desc">Terbaru</option>
+                    <option value="jatuh_tempo_asc">Jatuh Tempo Terdekat</option>
+                </select>
             </div>
 
             <!-- Table -->
@@ -564,9 +573,11 @@ $current_status = loadStatus();
                         <tr class="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
                             <th class="text-left py-3 px-2 font-semibold">No. Faktur</th>
                             <th class="text-left py-3 px-2 font-semibold">Supplier</th>
-                            <th class="text-left py-3 px-2 font-semibold">Tanggal</th>
+                            <th class="text-left py-3 px-2 font-semibold">Tipe</th>
+                            <th class="text-left py-3 px-2 font-semibold">Tgl Faktur</th>
                             <th class="text-right py-3 px-2 font-semibold">Total Faktur</th>
                             <th class="text-right py-3 px-2 font-semibold">Sisa</th>
+                            <th class="text-left py-3 px-2 font-semibold">Jatuh Tempo</th>
                             <th class="text-center py-3 px-2 font-semibold">Status</th>
                             <th class="text-right py-3 px-2 font-semibold">Terlambat</th>
                             <th class="text-left py-3 px-2 font-semibold">Keterangan</th>
@@ -586,7 +597,23 @@ $current_status = loadStatus();
     <div id="panel-penghasilan" class="hidden">
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-6">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-100">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-money-bill-trend-up text-astra-700"></i> Penghasilan <span id="penghasilan-bulan" class="text-sm font-normal text-slate-500">-</span></h3>
+                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><i class="fa-solid fa-money-bill-trend-up text-astra-700"></i> Penghasilan <span id="penghasilan-label" class="text-sm font-normal text-slate-500">-</span></h3>
+            </div>
+
+            <!-- Range Filter Buttons -->
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <div class="flex gap-1 bg-slate-100 rounded-lg p-1" id="penghasilan-range-filter">
+                    <button onclick="setPenghasilanRange('day')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-astra-700 shadow-sm">Hari Ini</button>
+                    <button onclick="setPenghasilanRange('week')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700">1 Minggu</button>
+                    <button onclick="setPenghasilanRange('month')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700">Bulan (29-28)</button>
+                    <button onclick="setPenghasilanRange('custom')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700">Kustom</button>
+                </div>
+                <div id="penghasilan-custom-range" class="hidden flex items-center gap-2">
+                    <input type="date" id="penghasilan-start" class="bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-astra-500">
+                    <span class="text-slate-400 text-xs">s/d</span>
+                    <input type="date" id="penghasilan-end" class="bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-astra-500">
+                    <button onclick="applyPenghasilanCustom()" class="bg-astra-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-astra-800 transition-all">Terapkan</button>
+                </div>
             </div>
 
             <!-- Summary Cards -->
@@ -621,7 +648,7 @@ $current_status = loadStatus();
             </div>
             <div id="penghasilan-empty" class="hidden text-center py-10 text-slate-400">
                 <i class="fa-solid fa-chart-line text-4xl mb-3"></i>
-                <p>Belum ada transaksi bulan ini.</p>
+                <p>Belum ada transaksi periode ini.</p>
             </div>
         </div>
     </div>
@@ -1620,7 +1647,17 @@ function renderKategoriTable(newCats) {
 function toggleKategoriVis(idx) {
     if (kategoriEditData[idx]) {
         kategoriEditData[idx].visible = kategoriEditData[idx].visible === false ? true : false;
-        loadKategoriPanel();
+        var btn = document.querySelector('#kategori-table-body tr:nth-child(' + (idx + 1) + ') button');
+        if (btn) {
+            var icon = btn.querySelector('i');
+            if (kategoriEditData[idx].visible === false) {
+                btn.className = 'text-lg text-slate-300 hover:text-green-500 transition-colors';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                btn.className = 'text-lg text-green-600 hover:text-slate-400 transition-colors';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
     }
 }
 
@@ -2373,22 +2410,35 @@ function renderAset() {
 
 // ─── HUTANG PANEL ────────────────────────────────────────────────────────
 let hutangData = { data: [], grand_total_faktur: 0, grand_total_sisa: 0, total: 0 };
+let hutangTipeFilter = '';
+
+function setHutangTipe(tipe) {
+    hutangTipeFilter = tipe;
+    document.querySelectorAll('#hutang-tipe-filter button').forEach(function(b) {
+        var match = (tipe === '' && b.textContent.includes('Semua')) || (tipe === 'BL' && b.textContent.includes('BL')) || (tipe === 'KI' && b.textContent.includes('KI'));
+        b.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all ' + (match ? 'bg-white text-astra-700 shadow-sm' : 'text-slate-500 hover:text-slate-700');
+    });
+    loadHutang();
+}
 
 async function loadHutang() {
     try {
-        const res = await fetch('api_hutang.php?_t=' + Date.now());
+        var params = '?_t=' + Date.now();
+        if (hutangTipeFilter) params += '&tipe=' + hutangTipeFilter;
+        params += '&sort=' + document.getElementById('hutang-sort').value;
+        const res = await fetch('api_hutang.php' + params);
         hutangData = await res.json();
         if (!hutangData || !Array.isArray(hutangData.data)) hutangData = { data: [], grand_total_faktur: 0, grand_total_sisa: 0, total: 0 };
         renderHutang();
     } catch (e) {
-        document.getElementById('hutang-tbody').innerHTML = '<tr><td colspan="8" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
+        document.getElementById('hutang-tbody').innerHTML = '<tr><td colspan="10" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
     }
 }
 
 function renderHutang() {
     const search = (document.getElementById('hutang-search').value || '').toLowerCase();
 
-    let filtered = hutangData.data.filter(h => {
+    let filtered = hutangData.data.filter(function(h) {
         if (search && !h.supplier.toLowerCase().includes(search) && !h.no_faktur.toLowerCase().includes(search)) return false;
         return true;
     });
@@ -2404,33 +2454,77 @@ function renderHutang() {
     }
     document.getElementById('hutang-empty').classList.add('hidden');
 
-    tbody.innerHTML = filtered.map(h => {
-        let badge = '';
-        if (h.status === 'lunas') badge = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold">Lunas</span>';
-        else if (h.status === 'terlambat') badge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">Terlambat</span>';
-        else badge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">Aktif</span>';
+    tbody.innerHTML = filtered.map(function(h) {
+        var tipeBadge = h.tipe === 'KI'
+            ? '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-bold">Kongsi</span>'
+            : '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-bold">Hutang</span>';
+        var statusBadge = '';
+        if (h.status === 'lunas') statusBadge = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold">Lunas</span>';
+        else if (h.status === 'terlambat') statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">Terlambat</span>';
+        else statusBadge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">Aktif</span>';
 
-        return `<tr class="border-b border-slate-100 hover:bg-slate-50">
-            <td class="py-2.5 px-2 font-mono text-xs text-slate-500">${escAttr(h.no_faktur)}</td>
-            <td class="py-2.5 px-2 font-semibold text-slate-800">${escAttr(h.supplier)}</td>
-            <td class="py-2.5 px-2 text-slate-500">${formatDate(h.tanggal)}</td>
-            <td class="py-2.5 px-2 text-right">${formatRupiah(h.total_faktur)}</td>
-            <td class="py-2.5 px-2 text-right font-bold ${h.total_sisa > 0 ? 'text-red-600' : 'text-green-600'}">${formatRupiah(h.total_sisa)}</td>
-            <td class="py-2.5 px-2 text-center">${badge}</td>
-            <td class="py-2.5 px-2 text-right text-slate-500">${h.hari_terlambat > 0 ? h.hari_terlambat + ' hari' : '-'}</td>
-            <td class="py-2.5 px-2 text-slate-500 max-w-[200px] truncate">${escAttr(h.keterangan || '-')}</td>
-        </tr>`;
+        var jatuhTempo = h.tgl_jatuh_tempo ? formatDate(h.tgl_jatuh_tempo) : '-';
+
+        return '<tr class="border-b border-slate-100 hover:bg-slate-50">'
+            + '<td class="py-2.5 px-2 font-mono text-xs text-slate-500">' + escAttr(h.no_faktur) + '</td>'
+            + '<td class="py-2.5 px-2 font-semibold text-slate-800">' + escAttr(h.supplier) + '</td>'
+            + '<td class="py-2.5 px-2">' + tipeBadge + '</td>'
+            + '<td class="py-2.5 px-2 text-slate-500">' + formatDate(h.tanggal) + '</td>'
+            + '<td class="py-2.5 px-2 text-right">' + formatRupiah(h.total_faktur) + '</td>'
+            + '<td class="py-2.5 px-2 text-right font-bold ' + (h.total_sisa > 0 ? 'text-red-600' : 'text-green-600') + '">' + formatRupiah(h.total_sisa) + '</td>'
+            + '<td class="py-2.5 px-2 text-slate-500">' + jatuhTempo + '</td>'
+            + '<td class="py-2.5 px-2 text-center">' + statusBadge + '</td>'
+            + '<td class="py-2.5 px-2 text-right text-slate-500">' + (h.hari_terlambat > 0 ? h.hari_terlambat + ' hari' : '-') + '</td>'
+            + '<td class="py-2.5 px-2 text-slate-500 max-w-[200px] truncate">' + escAttr(h.keterangan || '-') + '</td>'
+            + '</tr>';
     }).join('');
 }
 
 // ─── PENGHASILAN PANEL ───────────────────────────────────────────────────
-let penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, bulan: '' }, transactions: [] };
+let penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, label: '' }, transactions: [] };
+let penghasilanRange = 'month';
 
-async function loadPenghasilan() {
+function setPenghasilanRange(range) {
+    penghasilanRange = range;
+    document.querySelectorAll('#penghasilan-range-filter button').forEach(function(b) {
+        var match = (b.textContent.includes('Hari Ini') && range === 'day') || (b.textContent.includes('Minggu') && range === 'week') || (b.textContent.includes('29-28') && range === 'month') || (b.textContent.includes('Kustom') && range === 'custom');
+        b.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all ' + (match ? 'bg-white text-astra-700 shadow-sm' : 'text-slate-500 hover:text-slate-700');
+    });
+    if (range === 'custom') {
+        document.getElementById('penghasilan-custom-range').classList.remove('hidden');
+        document.getElementById('penghasilan-custom-range').classList.add('flex');
+    } else {
+        document.getElementById('penghasilan-custom-range').classList.add('hidden');
+        document.getElementById('penghasilan-custom-range').classList.remove('flex');
+        loadPenghasilan();
+    }
+}
+
+function applyPenghasilanCustom() {
+    var start = document.getElementById('penghasilan-start').value;
+    var end = document.getElementById('penghasilan-end').value;
+    if (!start || !end) {
+        showNotification('Pilih tanggal mulai dan selesai', 'error');
+        return;
+    }
+    loadPenghasilan(start, end);
+}
+
+async function loadPenghasilan(start, end) {
     try {
-        const res = await fetch('api_penghasilan.php?_t=' + Date.now());
+        var params = '?_t=' + Date.now();
+        if (start && end) {
+            params += '&start=' + start + '&end=' + end;
+        } else if (penghasilanRange === 'day') {
+            params += '&range=day';
+        } else if (penghasilanRange === 'week') {
+            params += '&range=week';
+        } else {
+            params += '&range=month';
+        }
+        const res = await fetch('api_penghasilan.php' + params);
         penghasilanData = await res.json();
-        if (!penghasilanData || !penghasilanData.summary) penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, bulan: '' }, transactions: [] };
+        if (!penghasilanData || !penghasilanData.summary) penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, label: '' }, transactions: [] };
         renderPenghasilan();
     } catch (e) {
         document.getElementById('penghasilan-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
@@ -2439,7 +2533,7 @@ async function loadPenghasilan() {
 
 function renderPenghasilan() {
     const s = penghasilanData.summary;
-    document.getElementById('penghasilan-bulan').textContent = s.bulan ? '— ' + s.bulan : '';
+    document.getElementById('penghasilan-label').textContent = s.label ? '\u2014 ' + s.label : '';
     document.getElementById('penghasilan-total').textContent = formatRupiah(s.total_penjualan);
     document.getElementById('penghasilan-transaksi').textContent = s.total_transaksi.toLocaleString('id-ID');
     document.getElementById('penghasilan-rata').textContent = formatRupiah(s.rata_rata);
@@ -2453,16 +2547,16 @@ function renderPenghasilan() {
     }
     document.getElementById('penghasilan-empty').classList.add('hidden');
 
-    tbody.innerHTML = tx.map(t => {
-        const itemList = (t.items || []).map(it =>
-            escAttr(it.nama || it.kode) + ' x' + Number(it.qty).toLocaleString('id-ID')
-        ).join(', ');
-        return `<tr class="border-b border-slate-100 hover:bg-slate-50">
-            <td class="py-2.5 px-2 font-mono text-xs text-slate-500">${escAttr(t.no_faktur)}</td>
-            <td class="py-2.5 px-2 text-slate-600">${formatDate(t.tanggal)}</td>
-            <td class="py-2.5 px-2 text-right font-semibold text-green-700">${formatRupiah(t.total)}</td>
-            <td class="py-2.5 px-2 text-slate-500 text-xs max-w-[300px] truncate">${itemList || '-'}</td>
-        </tr>`;
+    tbody.innerHTML = tx.map(function(t) {
+        var itemList = (t.items || []).map(function(it) {
+            return escAttr(it.nama || it.kode) + ' x' + Number(it.qty).toLocaleString('id-ID');
+        }).join(', ');
+        return '<tr class="border-b border-slate-100 hover:bg-slate-50">'
+            + '<td class="py-2.5 px-2 font-mono text-xs text-slate-500">' + escAttr(t.no_faktur) + '</td>'
+            + '<td class="py-2.5 px-2 text-slate-600">' + formatDate(t.tanggal) + '</td>'
+            + '<td class="py-2.5 px-2 text-right font-semibold text-green-700">' + formatRupiah(t.total) + '</td>'
+            + '<td class="py-2.5 px-2 text-slate-500 text-xs max-w-[300px] truncate">' + (itemList || '-') + '</td>'
+            + '</tr>';
     }).join('');
 }
 

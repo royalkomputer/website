@@ -451,14 +451,16 @@ function syncDataAset($conn): array {
 }
 
 function syncDataHutang($conn): array {
-    $sql = "SELECT h.no_faktur, h.tgl, h.total_faktur, h.jmlkredit AS total_sisa,
-                   COALESCE(h.keterangan, '') AS keterangan, h.tgl_jatuh_tempo,
-                   COALESCE(s.nama, 'Unknown') AS supplier
+    $sql = "SELECT h.notransaksi AS no_faktur, h.tanggal, h.totalakhir AS total_faktur,
+                   (h.jmlkredit - COALESCE(h.krd_jml_byr, 0)) AS total_sisa,
+                   COALESCE(h.keterangan, '') AS keterangan, h.byr_krd_jt AS tgl_jatuh_tempo,
+                   COALESCE(s.nama, 'Unknown') AS supplier,
+                   COALESCE(h.tipe, 'BL') AS tipe
             FROM tbl_imhd h
             LEFT JOIN tbl_supel s ON h.kodesupel = s.kode
-            WHERE h.jmlkredit > 0
-              AND (h.jenis IS NULL OR h.jenis NOT IN ('RKI'))
-            ORDER BY h.tgl DESC";
+            WHERE (h.jmlkredit - COALESCE(h.krd_jml_byr, 0)) > 0
+              AND (h.tipe IS NULL OR h.tipe NOT IN ('RKI'))
+            ORDER BY h.tanggal DESC";
     $result = @pg_query($conn, $sql);
     if (!$result) return ['data' => [], 'grand_total_faktur' => 0, 'grand_total_sisa' => 0, 'total' => 0];
 
@@ -481,10 +483,12 @@ function syncDataHutang($conn): array {
         $data[] = [
             'no_faktur' => $row['no_faktur'],
             'supplier' => $row['supplier'],
-            'tanggal' => $row['tgl'],
+            'tanggal' => $row['tanggal'],
             'total_faktur' => $total_faktur,
             'total_sisa' => $total_sisa,
             'keterangan' => $row['keterangan'] ?? '',
+            'tipe' => $row['tipe'] ?? 'BL',
+            'tgl_jatuh_tempo' => $row['tgl_jatuh_tempo'] ?? '',
             'status' => $total_sisa <= 0 ? 'lunas' : ($hari_terlambat > 0 ? 'terlambat' : 'aktif'),
             'hari_terlambat' => $hari_terlambat,
         ];
@@ -499,12 +503,18 @@ function syncDataHutang($conn): array {
 }
 
 function syncDataPenghasilan($conn): array {
-    $sql = "SELECT COUNT(DISTINCT h.no_faktur) AS total_transaksi,
-                   COALESCE(SUM(h.total), 0) AS total_penjualan,
-                   COALESCE(SUM(d.qty), 0) AS total_item
+    $year = date('Y');
+    $month = date('m');
+    $bulan_start = sprintf('%s-%02d-29', $year, $month - 1);
+    $bulan_end = sprintf('%s-%02d-28', $year, $month);
+    $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end' + INTERVAL '1 day'";
+
+    $sql = "SELECT COUNT(DISTINCT h.notransaksi) AS total_transaksi,
+                   COALESCE(SUM(h.totalakhir), 0) AS total_penjualan,
+                   COALESCE(SUM(d.jumlah), 0) AS total_item
             FROM tbl_ikhd h
-            JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
-            WHERE h.tgl >= date_trunc('month', CURRENT_DATE)";
+            JOIN tbl_ikdt d ON h.notransaksi = d.notransaksi
+            WHERE $date_filter";
     $result = @pg_query($conn, $sql);
     $summary = pg_fetch_assoc($result);
     if (!$summary) $summary = ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0];
@@ -512,12 +522,13 @@ function syncDataPenghasilan($conn): array {
     $total_trans = (int)$summary['total_transaksi'];
     $total_jual = (float)$summary['total_penjualan'];
 
-    $sql2 = "SELECT h.no_faktur, h.tgl, h.total, d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.qty, d.harga
+    $sql2 = "SELECT h.notransaksi AS no_faktur, h.tanggal AS tgl, h.totalakhir AS total,
+                    d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.jumlah AS qty, d.harga
              FROM tbl_ikhd h
-             JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
+             JOIN tbl_ikdt d ON h.notransaksi = d.notransaksi
              LEFT JOIN tbl_item i ON d.kodeitem = i.kodeitem
-             WHERE h.tgl >= date_trunc('month', CURRENT_DATE)
-             ORDER BY h.tgl DESC, h.no_faktur ASC";
+             WHERE $date_filter
+             ORDER BY h.tanggal DESC, h.notransaksi ASC";
     $result2 = @pg_query($conn, $sql2);
 
     $merged = [];
@@ -547,7 +558,7 @@ function syncDataPenghasilan($conn): array {
             'total_penjualan' => $total_jual,
             'total_item' => (int)$summary['total_item'],
             'rata_rata' => $total_trans > 0 ? round($total_jual / $total_trans) : 0,
-            'bulan' => date('F Y'),
+            'label' => date('j M Y', strtotime($bulan_start)) . ' s/d ' . date('j M Y', strtotime($bulan_end)),
         ],
         'transactions' => array_values($merged),
     ];
@@ -595,7 +606,12 @@ function syncToVPS(): bool {
         __DIR__ . '/../backend/data/waktu_sync.json',
     ];
 
-    $ssh_cmd = "ssh -i \"$key\" -p $port -o StrictHostKeyChecking=no";
+    $ssh_base = "-i \"$key\" -o StrictHostKeyChecking=no";
+    $dest_dir = "$target/backend/data/";
+
+    // Check if rsync is available; fallback to scp
+    exec("where rsync 2>NUL", $rsync_out, $rsync_exit);
+    $has_rsync = ($rsync_exit === 0);
 
     $all_ok = true;
     foreach ($files as $file) {
@@ -604,14 +620,35 @@ function syncToVPS(): bool {
             continue;
         }
         $basename = basename($file);
-        $dest = "$target/backend/data/$basename";
-        $cmd = "rsync -az --rsync-path=\"sudo rsync\" -e \"$ssh_cmd\" \"$file\" $user@$host:$dest 2>&1";
+
+        if ($has_rsync) {
+            $cmd = "rsync -az --rsync-path=\"sudo rsync\" -e \"ssh $ssh_base -p $port\" \"$file\" $user@$host:$dest_dir$basename 2>&1";
+        } else {
+            $tmp = "/tmp/$basename";
+            $cmd = "scp $ssh_base -P $port \"$file\" $user@$host:$tmp 2>&1";
+            exec($cmd, $output, $exit_code);
+            if ($exit_code === 0) {
+                $mv_cmd = "ssh $ssh_base -p $port $user@$host \"sudo mv $tmp $dest_dir$basename && sudo chown www-data:www-data $dest_dir$basename\" 2>&1";
+                exec($mv_cmd, $mv_out, $mv_exit);
+                if ($mv_exit === 0) {
+                    log_and_echo("VPS: $basename → VPS OK (via scp+sudo)");
+                } else {
+                    log_and_echo("VPS: GAGAL sudo mv $basename: " . implode(" | ", $mv_out));
+                    $all_ok = false;
+                }
+            } else {
+                log_and_echo("VPS: GAGAL scp $basename: " . implode(" | ", $output));
+                $all_ok = false;
+            }
+            continue;
+        }
+
         exec($cmd, $output, $exit_code);
 
         if ($exit_code === 0) {
             log_and_echo("VPS: $basename → VPS OK");
         } else {
-            log_and_echo("VPS: GAGAL sync $basename: " . implode("\n", $output));
+            log_and_echo("VPS: GAGAL sync $basename: " . implode(" | ", $output));
             $all_ok = false;
         }
     }

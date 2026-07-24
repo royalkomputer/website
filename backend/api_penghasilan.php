@@ -10,12 +10,34 @@ error_reporting(E_ERROR | E_PARSE);
 $db = getDB();
 
 if ($db) {
-    $sql = "SELECT COUNT(DISTINCT h.no_faktur) AS total_transaksi,
-                   COALESCE(SUM(h.total), 0) AS total_penjualan,
-                   COALESCE(SUM(d.qty), 0) AS total_item
+    $range = $_GET['range'] ?? 'month';
+    $start = $_GET['start'] ?? '';
+    $end = $_GET['end'] ?? '';
+
+    if ($start && $end) {
+        $date_filter = "h.tanggal >= '$start' AND h.tanggal <= '$end 23:59:59'";
+        $label = date('j M Y', strtotime($start)) . ' s/d ' . date('j M Y', strtotime($end));
+    } elseif ($range === 'day') {
+        $date_filter = "h.tanggal >= CURRENT_DATE";
+        $label = date('j M Y');
+    } elseif ($range === 'week') {
+        $date_filter = "h.tanggal >= CURRENT_DATE - INTERVAL '7 days'";
+        $label = date('j M Y', strtotime('-7 days')) . ' s/d ' . date('j M Y');
+    } else {
+        $year = date('Y');
+        $month = date('m');
+        $bulan_start = sprintf('%s-%02d-29', $year, $month - 1);
+        $bulan_end = sprintf('%s-%02d-28', $year, $month);
+        $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end' + INTERVAL '1 day'";
+        $label = date('j M Y', strtotime($bulan_start)) . ' s/d ' . date('j M Y', strtotime($bulan_end));
+    }
+
+    $sql = "SELECT COUNT(DISTINCT h.notransaksi) AS total_transaksi,
+                   COALESCE(SUM(h.totalakhir), 0) AS total_penjualan,
+                   COALESCE(SUM(d.jumlah), 0) AS total_item
             FROM tbl_ikhd h
-            JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
-            WHERE h.tgl >= date_trunc('month', CURRENT_DATE)";
+            JOIN tbl_ikdt d ON h.notransaksi = d.notransaksi
+            WHERE $date_filter";
     $result = @pg_query($db, $sql);
     $summary = pg_fetch_assoc($result);
     if (!$summary) $summary = ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0];
@@ -23,12 +45,13 @@ if ($db) {
     $total_trans = (int)$summary['total_transaksi'];
     $total_jual = (float)$summary['total_penjualan'];
 
-    $sql2 = "SELECT h.no_faktur, h.tgl, h.total, d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.qty, d.harga
+    $sql2 = "SELECT h.notransaksi AS no_faktur, h.tanggal AS tgl, h.totalakhir AS total,
+                    d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.jumlah AS qty, d.harga
              FROM tbl_ikhd h
-             JOIN tbl_ikdt d ON h.no_faktur = d.no_faktur
+             JOIN tbl_ikdt d ON h.notransaksi = d.notransaksi
              LEFT JOIN tbl_item i ON d.kodeitem = i.kodeitem
-             WHERE h.tgl >= date_trunc('month', CURRENT_DATE)
-             ORDER BY h.tgl DESC, h.no_faktur ASC";
+             WHERE $date_filter
+             ORDER BY h.tanggal DESC, h.notransaksi ASC";
     $result2 = @pg_query($db, $sql2);
 
     $merged = [];
@@ -58,7 +81,7 @@ if ($db) {
             'total_penjualan' => $total_jual,
             'total_item' => (int)$summary['total_item'],
             'rata_rata' => $total_trans > 0 ? round($total_jual / $total_trans) : 0,
-            'bulan' => date('F Y'),
+            'label' => $label,
         ],
         'transactions' => array_values($merged),
     ]);
@@ -69,5 +92,5 @@ $cache = @file_get_contents(__DIR__ . '/data/cache_penghasilan.json');
 if ($cache) {
     echo $cache;
 } else {
-    echo json_encode(['summary' => ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0, 'rata_rata' => 0, 'bulan' => date('F Y')], 'transactions' => []]);
+    echo json_encode(['summary' => ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0, 'rata_rata' => 0, 'label' => ''], 'transactions' => []]);
 }

@@ -6,7 +6,7 @@
 ### Changelog
 | Tanggal | Perubahan |
 |---------|-----------|
-| 2026-07-24 | **Direct Sync VPS** — Ganti flow sync dari git push ke rsync langsung ke VPS (103.93.133.60). Tambah fitur Aset, Hutang, Penghasilan di dashboard admin. Data finansial tidak masuk GitHub public (`.gitignore`). Foto tetap di VPS, tidak sync dari lokal. |
+| 2026-07-24 | **Filter & Sort Hutang + Penghasilan** — Pisah hutang BL/KI, urut jatuh tempo, filter range penghasilan (hari/minggu/bulan/kustom). Fix bug kategori toggle visibilitas refresh ke atas. |
 | 2026-07-19 | Hapus menu Serial Number, Penghasilan, Hutang, Aset dari admin dashboard. Hapus endpoint API `api_aset.php`, `api_hutang.php`, `api_penghasilan.php`. Hapus sync data aset/hutang/penghasilan dari sync agent. |
 | 2026-07-19 | Hapus fitur jam buka toko (operating hours). Hapus `loadJamOperasional()` dari `frontend/config.php`. Hapus logic jam operasional, badge tutup/buka, schedule warning, dan footer "JAM BUKA TOKO" dari `frontend/index.php`. Hapus `StoreStatus.js` (dead code). Sederhanakan `api_status.php`. Hapus `fetchStoreStatus()` dari `api.js`. |
 | 2026-07-19 | Refactor UI `frontend/index.php` — minimal & modern: navbar lebih ramping (border-bottom, social links satu warna), hero header solid tanpa gradient, sidebar bg-slate-800/60, product card hover subtle (border aksen), grid 5 kolom di xl, info bar & empty state lebih clean, footer compact. |
@@ -156,8 +156,8 @@
 - [x] Banner management (playlist-based carousel)
 - [x] Sync status dashboard
 - [x] **Aset report** (nilai modal, nilai jual per item)
-- [x] **Hutang report** (hutang ke supplier)
-- [x] **Penghasilan report** (penjualan bulan berjalan)
+- [x] **Hutang report** — filter BL/KI, urut jatuh tempo terdekat
+- [x] **Penghasilan report** — filter hari/minggu/bulan(29-28)/kustom
 
 ### Sync Agent
 - [x] IPOS PostgreSQL → cache_produk.json + cache_aset/hutang/penghasilan.json
