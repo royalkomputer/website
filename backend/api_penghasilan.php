@@ -34,16 +34,19 @@ if ($db) {
 
     $sql = "SELECT COUNT(DISTINCT h.notransaksi) AS total_transaksi,
                    COALESCE(SUM(h.totalakhir), 0) AS total_penjualan,
-                   COALESCE(SUM(d.jumlah), 0) AS total_item
+                   COALESCE(SUM(d.jumlah), 0) AS total_item,
+                   COALESCE(SUM(d.jumlah * i.hargapokok), 0) AS total_hpp
             FROM tbl_ikhd h
             JOIN tbl_ikdt d ON h.notransaksi = d.notransaksi
+            LEFT JOIN tbl_item i ON d.kodeitem = i.kodeitem
             WHERE $date_filter";
     $result = @pg_query($db, $sql);
     $summary = pg_fetch_assoc($result);
-    if (!$summary) $summary = ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0];
+    if (!$summary) $summary = ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0, 'total_hpp' => 0];
 
     $total_trans = (int)$summary['total_transaksi'];
     $total_jual = (float)$summary['total_penjualan'];
+    $total_hpp = (float)$summary['total_hpp'];
 
     $sql2 = "SELECT h.notransaksi AS no_faktur, h.tanggal AS tgl, h.totalakhir AS total,
                     d.kodeitem, COALESCE(i.namaitem, d.kodeitem) AS namaitem, d.jumlah AS qty, d.harga
@@ -80,6 +83,8 @@ if ($db) {
             'total_transaksi' => $total_trans,
             'total_penjualan' => $total_jual,
             'total_item' => (int)$summary['total_item'],
+            'total_hpp' => $total_hpp,
+            'penghasilan_bersih' => $total_jual - $total_hpp,
             'rata_rata' => $total_trans > 0 ? round($total_jual / $total_trans) : 0,
             'label' => $label,
         ],
@@ -92,5 +97,5 @@ $cache = @file_get_contents(__DIR__ . '/data/cache_penghasilan.json');
 if ($cache) {
     echo $cache;
 } else {
-    echo json_encode(['summary' => ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0, 'rata_rata' => 0, 'label' => ''], 'transactions' => []]);
+    echo json_encode(['summary' => ['total_transaksi' => 0, 'total_penjualan' => 0, 'total_item' => 0, 'total_hpp' => 0, 'penghasilan_bersih' => 0, 'rata_rata' => 0, 'label' => ''], 'transactions' => []]);
 }

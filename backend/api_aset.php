@@ -13,6 +13,7 @@ if ($db) {
     $sql = "SELECT i.kodeitem, i.namaitem, i.jenis, i.hargapokok, i.hargajual1, COALESCE(SUM(s.stok), 0) AS stok
             FROM tbl_item i
             JOIN tbl_itemstok s ON i.kodeitem = s.kodeitem
+            WHERE LOWER(i.namaitem) NOT LIKE '%jasa%'
             GROUP BY i.kodeitem, i.namaitem, i.jenis, i.hargapokok, i.hargajual1
             HAVING SUM(s.stok) > 0
             ORDER BY i.namaitem ASC";

@@ -617,7 +617,7 @@ $current_status = loadStatus();
             </div>
 
             <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-green-50 border border-green-200 rounded-xl p-4">
                     <div class="text-xs font-bold text-green-600 uppercase tracking-wider">Total Penjualan</div>
                     <div id="penghasilan-total" class="text-2xl font-extrabold text-green-800 mt-1">-</div>
@@ -625,6 +625,10 @@ $current_status = loadStatus();
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <div class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Transaksi</div>
                     <div id="penghasilan-transaksi" class="text-2xl font-extrabold text-blue-800 mt-1">-</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div class="text-xs font-bold text-amber-600 uppercase tracking-wider">Penghasilan Bersih</div>
+                    <div id="penghasilan-bersih" class="text-2xl font-extrabold text-amber-800 mt-1">-</div>
                 </div>
                 <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
                     <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Rata-rata / Transaksi</div>
@@ -2481,7 +2485,7 @@ function renderHutang() {
 }
 
 // ─── PENGHASILAN PANEL ───────────────────────────────────────────────────
-let penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, label: '' }, transactions: [] };
+let penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, total_hpp: 0, penghasilan_bersih: 0, rata_rata: 0, label: '' }, transactions: [] };
 let penghasilanRange = 'month';
 
 function setPenghasilanRange(range) {
@@ -2524,7 +2528,7 @@ async function loadPenghasilan(start, end) {
         }
         const res = await fetch('api_penghasilan.php' + params);
         penghasilanData = await res.json();
-        if (!penghasilanData || !penghasilanData.summary) penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, rata_rata: 0, label: '' }, transactions: [] };
+        if (!penghasilanData || !penghasilanData.summary) penghasilanData = { summary: { total_transaksi: 0, total_penjualan: 0, total_item: 0, total_hpp: 0, penghasilan_bersih: 0, rata_rata: 0, label: '' }, transactions: [] };
         renderPenghasilan();
     } catch (e) {
         document.getElementById('penghasilan-tbody').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
@@ -2536,6 +2540,7 @@ function renderPenghasilan() {
     document.getElementById('penghasilan-label').textContent = s.label ? '\u2014 ' + s.label : '';
     document.getElementById('penghasilan-total').textContent = formatRupiah(s.total_penjualan);
     document.getElementById('penghasilan-transaksi').textContent = s.total_transaksi.toLocaleString('id-ID');
+    document.getElementById('penghasilan-bersih').textContent = formatRupiah(s.penghasilan_bersih);
     document.getElementById('penghasilan-rata').textContent = formatRupiah(s.rata_rata);
 
     const tbody = document.getElementById('penghasilan-tbody');
