@@ -508,7 +508,7 @@ function syncDataPenghasilan($conn): array {
     $month = date('m');
     $bulan_start = sprintf('%s-%02d-29', $year, $month - 1);
     $bulan_end = sprintf('%s-%02d-28', $year, $month);
-    $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end' + INTERVAL '1 day'";
+    $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end'::date + INTERVAL '1 day'";
 
     $sql = "SELECT COUNT(DISTINCT h.notransaksi) AS total_transaksi,
                    COALESCE(SUM(h.totalakhir), 0) AS total_penjualan,

@@ -28,7 +28,7 @@ if ($db) {
         $month = date('m');
         $bulan_start = sprintf('%s-%02d-29', $year, $month - 1);
         $bulan_end = sprintf('%s-%02d-28', $year, $month);
-        $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end' + INTERVAL '1 day'";
+        $date_filter = "h.tanggal >= '$bulan_start' AND h.tanggal < '$bulan_end'::date + INTERVAL '1 day'";
         $label = date('j M Y', strtotime($bulan_start)) . ' s/d ' . date('j M Y', strtotime($bulan_end));
     }
 

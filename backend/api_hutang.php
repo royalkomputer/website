@@ -14,7 +14,7 @@ if ($db) {
     $sort = $_GET['sort'] ?? 'tgl_desc';
 
     $where = "(h.jmlkredit - COALESCE(h.krd_jml_byr, 0)) > 0 AND (h.tipe IS NULL OR h.tipe NOT IN ('RKI'))";
-    if ($tipe_filter === 'BL') $where .= " AND h.tipe = 'BL'";
+    if ($tipe_filter === 'BL') $where .= " AND (h.tipe IS NULL OR h.tipe = 'BL')";
     elseif ($tipe_filter === 'KI') $where .= " AND h.tipe = 'KI'";
 
     $order = "h.tanggal DESC";
